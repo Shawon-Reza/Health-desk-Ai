@@ -28,6 +28,7 @@ const LoginPage = () => {
                         </h1>
                     </div>
 
+
                     <form onSubmit={handleSubmit} className='space-y-6'>
                         {/* Email Section */}
                         <div className='space-y-4'>
@@ -119,6 +120,7 @@ const LoginPage = () => {
                     />
                 </figure>
             </section>
+            
         </div>
     );
 };

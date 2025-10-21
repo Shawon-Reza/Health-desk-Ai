@@ -2,7 +2,7 @@ import React from 'react'
 
 const ForgotPasswordPage = () => {
   return (
-    <div>ForgotPasswordPage</div>
+    <div className='py-20 primarytextcolor '>ForgotPasswordPage</div>
   )
 }
 

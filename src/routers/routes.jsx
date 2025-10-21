@@ -3,6 +3,8 @@ import LoginPage from "../features/auth/LoginPage";
 import ResetPasswordPage from "../features/auth/ResetPasswordPage";
 import ForgotPasswordPage from "../features/auth/ForgotPasswordPage";
 import AdminDashboard from "../features/AdminDashboard/AdminDashboard";
+import NotFoundpage from "../Components/NotFoundpage";
+import DashboardContent from "../features/AdminDashboard/DashboardContent";
 
 export const router = createBrowserRouter([
     {
@@ -21,23 +23,27 @@ export const router = createBrowserRouter([
             },
             {
                 path: "dashboard",
-                element: <div>dashboard</div>,
+                element: <DashboardContent></DashboardContent> ,
             },
             {
                 path: "communication",
                 element: <div>communication</div>,
             },
             {
-                path: "manage_clinic",
+                path: "manage-clinic",
                 element: <div>manage_clinic</div>,
             },
             {
-                path: "subject_matter",
+                path: "subject-matters",
                 element: <div>subject_matter</div>,
             },
             {
-                path: "ai_training",
-                element: <div>ai_training</div>,
+                path: "user-management",
+                element: <div>user-management</div>,
+            },
+            {
+                path: "ai-training",
+                element: <div>ai-training</div>,
             },
             {
                 path: "assessments",
@@ -65,6 +71,11 @@ export const router = createBrowserRouter([
     {
         path: "/forgot-password",
         element: <ForgotPasswordPage />,
+    },
+    // Not Found Page Route
+    {
+        path: "*",
+        element: <NotFoundpage />,
     },
 ]);
 

@@ -1,7 +1,37 @@
 @import "tailwindcss";
 
 
+:root {
+    --color-primary: #00A4A6;
+    --color-default: white;
+    --color-secondary: #2F2F2F;
+    --bg-primary: #00A4A6;
+    --bg-default: white;
+    /* default value */
+}
 
-.primarycolor {
-  color: #00A4A6; /* For text */
+
+
+
+
+/* Text Releted custom color css */
+.text-primary {
+    color: var(--color-primary);
+}
+
+.text-default {
+    color: var(--color-default);
+}
+
+.text-secondary {
+    color: var(--color-secondary);
+}
+
+/* Bg related custom color css */
+
+.bg-primary {
+    background-color: var(--color-primary);
+}
+.bg-default {
+    background-color: var(--color-default);
 }

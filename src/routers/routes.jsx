@@ -6,6 +6,7 @@ import AdminDashboard from "../features/AdminDashboard/AdminDashboard";
 import NotFoundpage from "../Components/NotFoundpage";
 import DashboardContent from "../features/AdminDashboard/DashboardContent";
 import ClinicManagement from "../features/AdminDashboard/ClinicManagement";
+import SubjectMatters from "../features/AdminDashboard/SubjectMatters";
 
 export const router = createBrowserRouter([
     {
@@ -36,7 +37,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "subject-matters",
-                element: <div>subject_matter</div>,
+                element: <SubjectMatters></SubjectMatters>,
             },
             {
                 path: "user-management",

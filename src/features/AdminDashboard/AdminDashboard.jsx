@@ -18,14 +18,14 @@ const AdminDashboard = () => {
     const toggleSidebar = () => setIsSidebarOpen(prev => !prev)
 
     return (
-        <div className="max-h-screen min-h-screen flex overflow-hidden relative">
+        <div className="max-h-screen min-h-screen flex ">
             {/* Sidebar: visible on desktop; on mobile it's a full-screen panel when open */}
             {(!isMobile || isSidebarOpen) && (
                 <section
                     className={
                         isMobile
                             ? 'fixed inset-0 z-50 bg-white w-full h-full shadow-lg' // mobile full-screen sidebar
-                            : 'w-[30%]' // desktop sidebar width
+                            : 'w-[40%] lg:w-[30%] xl:w-[20%]' // desktop sidebar width
                     }
                 >
                     <div className=' relative'>
@@ -53,12 +53,13 @@ const AdminDashboard = () => {
 
             {/* Main content area: hide on mobile when sidebar is open */}
             {(!isMobile || !isSidebarOpen) && (
-                <section className={isMobile ? 'w-full' : 'w-[70%]'}>
-                    <section className="w-full">
+                <section className={`overflow-auto 
+                 ${isMobile ? 'w-full' : 'w-[60%] lg:w-[70%] xl:w-[80%]'}`}>
+                    <section className="w-full ">
                         {/* Navbar */}
                         <nav className="w-full flex justify-between items-center px-6 py-4 shadow-2xl">
                             <div className="text-primary">
-                                <h3 className="font-semibold">Welcome, Admin</h3>
+                                <h3 className="font-semibold text-xl">Welcome, Admin</h3>
                                 <h5>let's make your work easy</h5>
                             </div>
 
@@ -94,7 +95,7 @@ const AdminDashboard = () => {
                         </nav>
                     </section>
 
-                    <section>
+                    <section className='bg-secondary min-h-[calc(100vh-85px)]'>
                         <Outlet />
                     </section>
                 </section>

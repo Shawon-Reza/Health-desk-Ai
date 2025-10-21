@@ -8,6 +8,7 @@
     --bg-primary: #00A4A6;
     --bg-default: white;
     /* default value */
+    --bg-secondary: #f0fdf4;
 }
 
 
@@ -31,6 +32,9 @@
 
 .bg-primary {
     background-color: var(--color-primary);
+}
+.bg-secondary {
+    background-color: var(--bg-secondary);
 }
 .bg-default {
     background-color: var(--color-default);

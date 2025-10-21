@@ -5,6 +5,7 @@ import ForgotPasswordPage from "../features/auth/ForgotPasswordPage";
 import AdminDashboard from "../features/AdminDashboard/AdminDashboard";
 import NotFoundpage from "../Components/NotFoundpage";
 import DashboardContent from "../features/AdminDashboard/DashboardContent";
+import ClinicManagement from "../features/AdminDashboard/ClinicManagement";
 
 export const router = createBrowserRouter([
     {
@@ -31,7 +32,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "manage-clinic",
-                element: <div>manage_clinic</div>,
+                element: <ClinicManagement></ClinicManagement>,
             },
             {
                 path: "subject-matters",

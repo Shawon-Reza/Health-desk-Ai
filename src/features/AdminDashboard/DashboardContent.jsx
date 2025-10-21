@@ -120,7 +120,7 @@ const DashboardContent = () => {
 
   // ============ ACTIVITY ITEM COMPONENT ============
   const ActivityItem = ({ activity }) => (
-    <div className="flex items-start gap-4 py-4 border-b last:border-b-0">
+    <div className="flex items-start gap-4 py-4 border-b border-gray-300 last:border-b-0">
       <img
         src={activity.avatar || "/placeholder.svg"}
         alt={activity.name}
@@ -150,10 +150,10 @@ const DashboardContent = () => {
 
   // ============ RENDER ============
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className="  font-sans">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className=" border-b border-gray-200 sticky top-0 z-30">
+        <div className="px-6 py-8">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Here's an overview of your members activities.</p>
         </div>
@@ -202,9 +202,9 @@ const DashboardContent = () => {
             {/* Recent Activity & Quick Actions */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Recent Activity */}
-              <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
+              <div className="lg:col-span-2 bg-white rounded-lg shadow-lg p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h2>
-                <div className="space-y-2">
+                <div className="space-y-2 ">
                   {recentActivity?.map((activity) => (
                     <ActivityItem key={activity.id} activity={activity} />
                   ))}

@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import LoginPage from "../features/auth/LoginPage";
 import ResetPasswordPage from "../features/auth/ResetPasswordPage";
 import ForgotPasswordPage from "../features/auth/ForgotPasswordPage";
@@ -7,6 +7,11 @@ import NotFoundpage from "../Components/NotFoundpage";
 import DashboardContent from "../features/AdminDashboard/DashboardContent";
 import ClinicManagement from "../features/AdminDashboard/ClinicManagement";
 import SubjectMatters from "../features/AdminDashboard/SubjectMatters";
+import Settings from "../features/AdminDashboard/Settings";
+import ProfilePersonalInformationForm from "../features/AdminDashboard/ProfilePersonalInformationForm";
+import Notifications from "../features/AdminDashboard/Notifications";
+import Security from "../features/AdminDashboard/Security";
+import AITrainingPage from "../features/AdminDashboard/AITrainingPage";
 
 export const router = createBrowserRouter([
     {
@@ -25,7 +30,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "dashboard",
-                element: <DashboardContent></DashboardContent> ,
+                element: <DashboardContent></DashboardContent>,
             },
             {
                 path: "communication",
@@ -45,7 +50,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "ai-training",
-                element: <div>ai-training</div>,
+                element: <AITrainingPage></AITrainingPage>,
             },
             {
                 path: "assessments",
@@ -53,7 +58,26 @@ export const router = createBrowserRouter([
             },
             {
                 path: "settings",
-                element: <div>settings</div>,
+                element: <Settings></Settings>,
+                children: [
+                    {
+                        index: true,
+                        // element: <div>profile</div>,
+                        element: <Navigate to="profile" replace />,
+                    },
+                    {
+                        path: 'profile',
+                        element: <ProfilePersonalInformationForm></ProfilePersonalInformationForm>,
+                    },
+                    {
+                        path: 'notifications',
+                        element: <Notifications></Notifications>,
+                    },
+                    {
+                        path: 'security',
+                        element: <Security></Security>,
+                    },
+                ]
             },
         ],
     },

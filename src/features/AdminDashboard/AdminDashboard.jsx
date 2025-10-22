@@ -95,7 +95,7 @@ const AdminDashboard = () => {
                         </nav>
                     </section>
 
-                    <section className='bg-secondary min-h-[calc(100vh-85px)]'>
+                    <section className='bg-secondary min-h-[calc(100vh-85px)] mx-auto px-6 py-8'>
                         <Outlet />
                     </section>
                 </section>

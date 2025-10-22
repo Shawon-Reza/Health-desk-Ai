@@ -160,7 +160,7 @@ const DashboardContent = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className=" mx-auto px-6 py-8">
+      <div className=" ">
         {loading ? (
           <div className="text-center py-12">
             <p className="text-gray-600">Loading dashboard data...</p>

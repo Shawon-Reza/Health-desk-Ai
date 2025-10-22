@@ -13,6 +13,7 @@ import Notifications from "../features/AdminDashboard/Notifications";
 import Security from "../features/AdminDashboard/Security";
 import AITrainingPage from "../features/AdminDashboard/AITrainingPage";
 import UserManagement from "../features/AdminDashboard/UserManagement";
+import Communication from "../features/AdminDashboard/Communication/Communication";
 
 export const router = createBrowserRouter([
     {
@@ -35,7 +36,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "communication",
-                element: <div>communication</div>,
+                element: <Communication></Communication>,
             },
             {
                 path: "manage-clinic",

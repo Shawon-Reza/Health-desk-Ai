@@ -1,5 +1,6 @@
 import React from 'react'
 import AITrainingCenter from './AITrainingCenter'
+import UploadedDocuments from './UploadedDocuments'
 
 const AITrainingPage = () => {
     return (
@@ -9,7 +10,10 @@ const AITrainingPage = () => {
             </section>
 
 
-
+            {/* Uploaded Document 2nd part */}
+            <section>
+                <UploadedDocuments></UploadedDocuments>
+            </section>
 
         </div>
     )

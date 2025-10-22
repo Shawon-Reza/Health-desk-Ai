@@ -12,6 +12,7 @@ import ProfilePersonalInformationForm from "../features/AdminDashboard/ProfilePe
 import Notifications from "../features/AdminDashboard/Notifications";
 import Security from "../features/AdminDashboard/Security";
 import AITrainingPage from "../features/AdminDashboard/AITrainingPage";
+import UserManagement from "../features/AdminDashboard/UserManagement";
 
 export const router = createBrowserRouter([
     {
@@ -46,7 +47,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "user-management",
-                element: <div>user-management</div>,
+                element: <UserManagement></UserManagement>,
             },
             {
                 path: "ai-training",

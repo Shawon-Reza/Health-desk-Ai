@@ -3,6 +3,7 @@
 
 :root {
     --color-primary: #00A4A6;
+    --color-primarytransparent: #00A4A610;
     --color-default: white;
     --color-secondary: #2F2F2F;
     --bg-primary: #00A4A6;
@@ -32,6 +33,9 @@
 
 .bg-primary {
     background-color: var(--color-primary);
+}
+.bg-primarytransparent {
+    background-color: var(--color-primarytransparent);
 }
 .bg-secondary {
     background-color: var(--bg-secondary);

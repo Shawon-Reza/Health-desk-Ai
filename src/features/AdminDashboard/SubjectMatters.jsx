@@ -7,15 +7,16 @@ import AddMatterModal from "./AddMatterModal"
 const SubjectMatters = () => {
     const [subjectMatters, setSubjectMatters] = useState([])
     const [loading, setLoading] = useState(true)
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [selectedMatter, setSelectedMatter] = useState(null)
 
     //    Open modal to add new matter
     const handleModalOpen = () => {
-        setIsModalOpen(true);
-    };
+        setIsModalOpen(true)
+    }
     const handleModalClose = () => {
-        setIsModalOpen(false);
-    };
+        setIsModalOpen(false)
+    }
 
     // Mock data - Replace with backend API call
     const mockSubjectMatters = [
@@ -81,14 +82,38 @@ const SubjectMatters = () => {
     // Handle add subject matter
     const handleAddSubjectMatter = () => {
         console.log("[SubjectMatters] Add Subject Matter clicked")
-        // Add your logic here
-        handleModalOpen();
+        setSelectedMatter(null)
+        handleModalOpen()
     }
 
     // Handle edit subject matter
     const handleEditSubjectMatter = (id, title) => {
         console.log("[SubjectMatters] Edit clicked for ID:", id, "Title:", title)
-        // Add your logic here
+        const matter = subjectMatters.find((m) => m.id === id) || null
+        setSelectedMatter(matter)
+        handleModalOpen()
+    }
+
+    // Save handler for add/edit
+    const handleSaveMatter = (payload) => {
+        if (payload.id) {
+            // Edit existing
+            setSubjectMatters((prev) =>
+                prev.map((m) => (m.id === payload.id ? { ...m, ...payload } : m))
+            )
+        } else {
+            // Add new
+            const nextId = subjectMatters.length
+                ? Math.max(...subjectMatters.map((m) => m.id)) + 1
+                : 1
+            setSubjectMatters((prev) => [
+                ...prev,
+                {
+                    ...payload,
+                    id: nextId,
+                },
+            ])
+        }
     }
 
     // Handle delete subject matter
@@ -106,7 +131,12 @@ const SubjectMatters = () => {
     return (
         <div className="p-8">
             {/* Add Matter Modal */}
-            <AddMatterModal isOpen={isModalOpen} onClose={handleModalClose} />
+            <AddMatterModal
+                isOpen={isModalOpen}
+                onClose={handleModalClose}
+                data={selectedMatter}
+                onSubmit={handleSaveMatter}
+            />
 
             {/* Header Section */}
             <div className="flex justify-between items-start mb-8">

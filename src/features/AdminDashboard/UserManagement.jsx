@@ -2,12 +2,14 @@
 import { useState, useEffect, useRef } from "react";
 import { FiSearch, FiChevronDown, FiUserPlus } from "react-icons/fi";
 import UserDetailsTable from "./UserDetailsTable";
+import AddNewUserModal from "./AddNewUserModal";
 
 export default function UserManagement() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedRole, setSelectedRole] = useState("All Roles");
     const [selectedClinic, setSelectedClinic] = useState("All Clinics");
     const [users, setUsers] = useState([]);
+    const [isAddUserOpen, setIsAddUserOpen] = useState(false);
 
     const [showRoleDropdown, setShowRoleDropdown] = useState(false);
     const [showClinicDropdown, setShowClinicDropdown] = useState(false);
@@ -137,7 +139,44 @@ export default function UserManagement() {
     }, [searchQuery, selectedRole, selectedClinic]);
 
     const handleAddUser = () => {
-        console.log("Add user clicked");
+        console.log("[UserManagement] Add user clicked");
+        setIsAddUserOpen(true);
+    };
+
+    const handleCloseAddUser = () => setIsAddUserOpen(false);
+
+    // Map new user payload to table row shape
+    const mapUserToRow = (u) => {
+        const roleColorMap = {
+            Admin: "bg-pink-200 text-pink-700",
+            President: "bg-blue-200 text-blue-700",
+            Manager: "bg-purple-200 text-purple-700",
+            Doctor: "bg-emerald-200 text-emerald-700",
+            Staff: "bg-amber-200 text-amber-700",
+            "Jr. Staff": "bg-amber-100 text-amber-700",
+        };
+        const statusColorMap = {
+            Active: "bg-green-500 text-white",
+            Blocked: "bg-red-500 text-white",
+            Pending: "bg-yellow-500 text-white",
+        };
+
+        return {
+            id: String(users.length + 1).padStart(2, "0"),
+            name: u.name || `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim(),
+            email: u.email,
+            subjectMatters: u.subjectMatter || "N/A",
+            role: u.role,
+            roleColor: roleColorMap[u.role] || "bg-gray-200 text-gray-700",
+            clinic: Array.isArray(u.clinics) && u.clinics.length ? u.clinics[0] : "N/A",
+            status: u.status || "Active",
+            statusColor: statusColorMap[u.status] || statusColorMap.Active,
+        };
+    };
+
+    const handleUserCreated = (created) => {
+        console.log("[UserManagement] User created:", created);
+        setUsers((prev) => [...prev, mapUserToRow(created)]);
     };
 
     const handleRoleChange = (role) => {
@@ -174,6 +213,14 @@ export default function UserManagement() {
 
     return (
         <div className="p-6 space-y-6">
+            {/* Add New User Modal */}
+            <AddNewUserModal
+                isOpen={isAddUserOpen}
+                onClose={handleCloseAddUser}
+                onCreated={handleUserCreated}
+                roles={roles.filter((r) => r !== "All Roles")}
+                clinics={clinics.filter((c) => c !== "All Clinics")}
+            />
             {/* Header */}
             <div className="flex justify-between items-start">
                 <div>
@@ -182,87 +229,92 @@ export default function UserManagement() {
                         Manage staff members and their access
                     </p>
                 </div>
+                {/* Add User Button */}
                 <button
                     onClick={handleAddUser}
                     style={{ backgroundColor: "#00A4A6" }}
-                    className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+                    className="flex items-center gap-2 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:opacity-90 transition-opacity text-sm md:text-base"
                 >
-                    <FiUserPlus size={20} />
-                    Add User
+                    <FiUserPlus size={18} className="md:w-5 md:h-5" />
+                    <span className="hidden sm:inline">Add User</span>
+                    <span className="sm:hidden">Add</span>
                 </button>
             </div>
 
             {/* Search & Filters */}
-            <div className="border border-gray-300 rounded-lg p-4 space-y-4">
-                <div className="flex flex-col md:flex-row gap-4">
+            <div className="border border-gray-300 rounded-lg p-3 md:p-4 space-y-3 md:space-y-4 bg-white">
+                <div className="flex flex-col lg:flex-row  gap-3 md:gap-4">
                     {/* Search Bar */}
-                    <div className="flex-1 relative">
-                        <FiSearch className="absolute left-3 top-3 text-gray-400" size={20} />
+                    <div className="w-full relative">
+                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         <input
                             type="text"
                             placeholder="Search by name or email"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            className="w-full pl-10 pr-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                         />
                     </div>
 
-                    {/* Role Dropdown */}
-                    <div className="relative" ref={roleRef}>
-                        <button
-                            onClick={() => setShowRoleDropdown((prev) => !prev)}
-                            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                        >
-                            {selectedRole}
-                            <FiChevronDown size={18} />
-                        </button>
-                        {showRoleDropdown && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-                                {roles.map((role) => (
-                                    <button
-                                        key={role}
-                                        onClick={() => handleRoleChange(role)}
-                                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${role === selectedRole ? "bg-gray-100 font-semibold" : ""
-                                            }`}
-                                    >
-                                        {role}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    {/* Filters Row */}
+                    <div className="flex gap-2 md:gap-4">
+                        {/* Role Dropdown */}
+                        <div className="relative flex-1" ref={roleRef}>
+                            <button
+                                onClick={() => setShowRoleDropdown((prev) => !prev)}
+                                className="w-full flex items-center justify-between gap-2 px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg hover:bg-gray-50"
+                            >
+                                <span className="truncate">{selectedRole}</span>
+                                <FiChevronDown size={16} className="flex-shrink-0" />
+                            </button>
+                            {showRoleDropdown && (
+                                <div className="absolute left-0 md:right-0 md:left-auto mt-2 w-full md:w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                                    {roles.map((role) => (
+                                        <button
+                                            key={role}
+                                            onClick={() => handleRoleChange(role)}
+                                            className={`w-full text-left px-3 md:px-4 py-2 text-sm md:text-base hover:bg-gray-100 transition-colors ${role === selectedRole ? "bg-gray-100 font-semibold" : ""
+                                                }`}
+                                        >
+                                            {role}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
 
-                    {/* Clinic Dropdown */}
-                    <div className="relative" ref={clinicRef}>
-                        <button
-                            onClick={() => setShowClinicDropdown((prev) => !prev)}
-                            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                        >
-                            {selectedClinic}
-                            <FiChevronDown size={18} />
-                        </button>
-                        {showClinicDropdown && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-                                {clinics.map((clinic) => (
-                                    <button
-                                        key={clinic}
-                                        onClick={() => handleClinicChange(clinic)}
-                                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${clinic === selectedClinic
-                                                ? "bg-gray-100 font-semibold"
-                                                : ""
-                                            }`}
-                                    >
-                                        {clinic}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        {/* Clinic Dropdown */}
+                        <div className="relative flex-1" ref={clinicRef}>
+                            <button
+                                onClick={() => setShowClinicDropdown((prev) => !prev)}
+                                className="w-full flex items-center justify-between gap-2 px-3 md:px-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg hover:bg-gray-50"
+                            >
+                                <span className="truncate">{selectedClinic}</span>
+                                <FiChevronDown size={16} className="flex-shrink-0" />
+                            </button>
+                            {showClinicDropdown && (
+                                <div className="absolute left-0 md:right-0 md:left-auto mt-2 w-full md:w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                                    {clinics.map((clinic) => (
+                                        <button
+                                            key={clinic}
+                                            onClick={() => handleClinicChange(clinic)}
+                                            className={`w-full text-left px-3 md:px-4 py-2 text-sm md:text-base hover:bg-gray-100 transition-colors ${clinic === selectedClinic
+                                                    ? "bg-gray-100 font-semibold"
+                                                    : ""
+                                                }`}
+                                        >
+                                            {clinic}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* UserDetailsTable placeholder */}
-            <section className="max-h-[calc(100vh-320px)] overflow-auto">
+            <section className="max-h-[calc(100vh-320px)] overflow-auto bg-white">
                 <UserDetailsTable users={users} />
             </section>
         </div>

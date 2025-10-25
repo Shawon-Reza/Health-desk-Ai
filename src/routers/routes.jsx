@@ -14,6 +14,10 @@ import Security from "../features/AdminDashboard/Security";
 import AITrainingPage from "../features/AdminDashboard/AITrainingPage";
 import UserManagement from "../features/AdminDashboard/UserManagement";
 import Communication from "../features/AdminDashboard/Communication/Communication";
+import UserProfileFromAdmin from "../features/AdminDashboard/UserProfileFromAdmin";
+import Assesments from "../features/AdminDashboard/Assesments";
+import ReviewAssesmentResult from "../features/AdminDashboard/ReviewAssesmentResult";
+import CreatedAssesmentDetails from "../features/AdminDashboard/CreatedAssesmentDetails";
 
 export const router = createBrowserRouter([
     {
@@ -28,7 +32,7 @@ export const router = createBrowserRouter([
             // Define child routes for admin dashboard here
             {
                 index: true,
-                element: <div>Admin Home</div>,
+                element: <DashboardContent></DashboardContent>,
             },
             {
                 path: "dashboard",
@@ -51,12 +55,24 @@ export const router = createBrowserRouter([
                 element: <UserManagement></UserManagement>,
             },
             {
+                path: "user-management/user/:userId",
+                element: <UserProfileFromAdmin></UserProfileFromAdmin>,
+            },
+            {
                 path: "ai-training",
                 element: <AITrainingPage></AITrainingPage>,
             },
             {
                 path: "assessments",
-                element: <div>assessments</div>,
+                element: <Assesments></Assesments>,
+            },
+            {
+                path: "assessments/created/:assessmentId",
+                element: <CreatedAssesmentDetails></CreatedAssesmentDetails>,
+            },
+            {
+                path: "assessments/history/:assessmentId",
+                element: <ReviewAssesmentResult></ReviewAssesmentResult>,
             },
             {
                 path: "settings",

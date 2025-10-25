@@ -29,6 +29,7 @@ const ChatPanel = () => {
   const [inputMessage, setInputMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef(null)
+  const [actionPopup, setActionPopup] = useState(false)
 
   const currentUser = {
     name: "Dr. Michael Chen",
@@ -149,7 +150,25 @@ const ChatPanel = () => {
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           aria-label="User info"
         >
-          <FiInfo size={20} className="text-gray-600" />
+          <FiInfo size={20} className="text-gray-600 cursor-pointer"
+            onClick={() => {
+              setActionPopup((prev) => !prev);
+            }}
+
+          />
+
+          <div className={`absolute right-6 z-10 mt-2 w-48 rounded-md shadow-lg ${actionPopup ? "block" : "hidden"}`}>
+            <div className="bg-white rounded-md shadow-lg">
+              <div className="p-4">
+                <h3 className="font-semibold text-gray-900">Action</h3>
+                <div className="mt-2 flex flex-col gap-2">
+                  <button className="bg-[#FFB20F] rounded-lg cursor-pointer py-2 text-white font-semibold">Block User</button>
+                  <button className="bg-[#FF4B3E] rounded-lg cursor-pointer py-2 text-white font-semibold">Delete Chat</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </button>
       </div>
 
@@ -175,9 +194,8 @@ const ChatPanel = () => {
 
                 <div className={`flex flex-col ${msg.type === "sent" ? "items-end" : "items-start"}`}>
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      msg.type === "sent" ? "bg-teal-100 text-gray-900" : "bg-blue-100 text-gray-900"
-                    }`}
+                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.type === "sent" ? "bg-teal-100 text-gray-900" : "bg-blue-100 text-gray-900"
+                      }`}
                   >
                     <p className="text-sm">{msg.message}</p>
                   </div>

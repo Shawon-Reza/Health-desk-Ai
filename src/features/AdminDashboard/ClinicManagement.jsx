@@ -10,7 +10,9 @@ const ClinicManagement = () => {
     // ============ STATE MANAGEMENT ============
     const [clinics, setClinics] = useState(null)
     const [loading, setLoading] = useState(true)
-      const [isAddClinicOpen, setIsAddClinicOpen] = useState(false)   
+    const [isAddClinicOpen, setIsAddClinicOpen] = useState(false)
+    const [isEditClinicOpen, setIsEditClinicOpen] = useState(false)
+    const [selectedClinic, setSelectedClinic] = useState(null)
 
 
     // ============ MOCK DATA - Replace with backend API calls ============
@@ -37,7 +39,7 @@ const ClinicManagement = () => {
         },
         {
             id: 3,
-            name: "Downtown Medical Center",
+            name: "Medical Center",
             address: "123 Main St, City, ST 12345",
             phone: "(555) 123-4567",
             fax: "(555) 123-4567",
@@ -103,12 +105,19 @@ const ClinicManagement = () => {
         setIsAddClinicOpen(true)
     }
 
-    const handleEditClinic = (clinicId, clinicName) => {
-        console.log("[v0] Edit Clinic clicked")
-        console.log("[v0] Clinic Details:", { id: clinicId, name: clinicName })
-        console.log("[v0] Action: Open Edit Clinic Modal/Form")
-        // Add your edit logic here
+    // =========== EDIT & DELETE HANDLERS ============
+    const handleEditClinic = ({ id }) => {
+        console.log("[v0] Edit Clinic button clicked for Clinic ID:", id)
+        // Add your modal/form logic here
+
+        const clinicToEdit = clinics.find((clinic) => clinic.id === id)
+        setSelectedClinic(clinicToEdit)
+        console.log("[v0] Clinic to Edit:", clinicToEdit)
+        // setIsEditClinicOpen(true)
+        setIsAddClinicOpen(true)
     }
+
+
 
     const handleDeleteClinic = (clinicId, clinicName) => {
         console.log("[v0] Delete Clinic clicked")
@@ -120,6 +129,12 @@ const ClinicManagement = () => {
     // ============ CLINIC CARD COMPONENT ============
     const ClinicCard = ({ clinic }) => (
         <div className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+
+            {/* Add Clinic Modal */}
+            <AddClinicModal isOpen={isAddClinicOpen} onClose={() => setIsAddClinicOpen(false)} data={selectedClinic} />
+
+
+
             {/* Card Header with Title and Actions */}
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -133,11 +148,12 @@ const ClinicManagement = () => {
                 </div>
                 <div className="flex gap-2">
                     <button
-                        onClick={() => handleEditClinic(clinic.id, clinic.name)}
+                        onClick={() => handleEditClinic({ id: clinic.id })}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Edit clinic"
                     >
-                        <FiEdit2 className="w-4 h-4 text-gray-600" />
+                        <FiEdit2
+                            className="w-4 h-4 text-gray-600 cursor-pointer" />
                     </button>
                     <button
                         onClick={() => handleDeleteClinic(clinic.id, clinic.name)}
@@ -188,7 +204,9 @@ const ClinicManagement = () => {
                         <FiGlobe className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
                         <div>
                             <p className="text-xs text-gray-500 font-medium">Website</p>
-                            <p className="text-sm text-gray-700">{clinic.website}</p>
+                            {/* open in new tab */}
+                            <a href={clinic.website} className="text-sm text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">{clinic.website}</a>
+
                         </div>
                     </div>
                     <div className="flex items-start gap-3">

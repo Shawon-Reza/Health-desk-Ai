@@ -8,16 +8,20 @@ import {
     FiType,
 } from "react-icons/fi";
 
-const AddClinicModal = ({ isOpen, onClose }) => {
+const AddClinicModal = ({ isOpen, onClose, data }) => {
     if (!isOpen) return null; // Don't render when closed
+    console.log(data)
+
+
+
 
     const [formData, setFormData] = useState({
-        name: "",
-        address: "",
-        phone: "",
-        fax: "",
-        website: "",
-        type: "",
+        name: data?.name || "",
+        address: data?.address || "",
+        phone: data?.phone || "",
+        fax: data?.fax || "",
+        website: data?.website || "",
+        type: data?.type || "",
     });
 
     // Handle field changes
@@ -35,7 +39,7 @@ const AddClinicModal = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+        <div className="fixed inset-0 bg-black/10 flex items-center justify-center z-50 px-4">
             <div className="bg-white w-full max-w-2xl rounded-lg shadow-lg">
                 {/* Header */}
                 <div className="flex justify-between items-center border-b-3 border-gray-300 px-6 py-4">
@@ -62,6 +66,7 @@ const AddClinicModal = ({ isOpen, onClose }) => {
                             <input
                                 type="text"
                                 name="name"
+
                                 value={formData.name}
                                 onChange={handleChange}
                                 placeholder="Enter clinic name"

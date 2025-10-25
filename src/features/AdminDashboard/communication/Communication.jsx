@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiSearch, FiFilter } from 'react-icons/fi';
-import ChatPanel from './ChatPanel';
+import ChatPanel from '../../AdminDashboard/communication/ChatPanel';
 
 const Communication = () => {
     const [activeTab, setActiveTab] = useState('allChat');
@@ -78,7 +78,7 @@ const Communication = () => {
     });
 
     return (
-        <div className="container mx-auto p-4">
+        <div className="container mx-auto ">
             {/* Communication header */}
             <section className="text-secondary mb-8">
                 <h2 className="text-2xl lg:text-3xl font-bold">Communication Hub</h2>
@@ -86,8 +86,8 @@ const Communication = () => {
             </section>
 
             {/* Communication main part */}
-            <section className="flex gap-6 h-[calc(100vh-250px)]">
-                {/* Sidebar */}
+            <section className="flex gap-6 h-[calc(100vh-280px)]">
+                {/* Sidebar.......................................................... */}
                 <section className="w-[40%] xl:w-[25%] h-full bg-white rounded-xl shadow-md p-4 space-y-4 border border-gray-300">
                     {/* Tabs */}
                     <div className="flex justify-between gap-3  pb-2">
@@ -114,7 +114,7 @@ const Communication = () => {
 
                     <div className="flex justify-between gap-3  pb-2">
                         <button
-                           
+
                             className={`pb-1 font-medium ${activeTab === 'allChat'
                                 ? 'text-primary border-2 rounded-lg px-2 border-primary'
                                 : 'text-gray-600 hover:text-primary'
@@ -123,13 +123,13 @@ const Communication = () => {
                             New Group
                         </button>
                         <button
-                         
-                              className={`pb-1 font-medium ${activeTab === 'allChat'
+
+                            className={`pb-1 font-medium ${activeTab === 'allChat'
                                 ? 'text-primary border-2 rounded-lg px-2 border-primary'
                                 : 'text-gray-600 hover:text-primary'
                                 }`}
                         >
-                           New Message
+                            New Message
                         </button>
                     </div>
 

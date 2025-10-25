@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { FiUsers, FiUserCheck, FiHome, FiBell, FiMessageCircle, FiShield } from "react-icons/fi"
+import { useNavigate } from "react-router-dom"
 
 const DashboardContent = () => {
   // ============ STATE MANAGEMENT ============
   const [dashboardData, setDashboardData] = useState(null)
   const [recentActivity, setRecentActivity] = useState(null)
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate();
 
   // ============ MOCK DATA - Replace with backend API calls ============
   const mockDashboardStats = {
@@ -95,6 +97,7 @@ const DashboardContent = () => {
     console.log("[v0] Quick Action Triggered:", actionLabel)
     console.log("[v0] Action Details:", { action: actionLabel, timestamp: new Date().toISOString() })
     // Add your action logic here
+    // navigate('/admin/users-management');
   }
 
   const handleScrollMore = () => {

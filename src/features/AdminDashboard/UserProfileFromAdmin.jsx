@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { FiArrowLeft, FiFileText, FiHash, FiMessageCircle, FiUserX } from 'react-icons/fi'
 import { RiContactsBook3Line } from 'react-icons/ri';
-import Communication from './Communication/Communication';
+import Communication from './communication/Communication';
 import UserManageMentSetAction from './UserManageMentSetAction';
 
 // Small, reusable stat card component

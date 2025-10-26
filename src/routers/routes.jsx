@@ -13,11 +13,11 @@ import Notifications from "../features/AdminDashboard/Notifications";
 import Security from "../features/AdminDashboard/Security";
 import AITrainingPage from "../features/AdminDashboard/AITrainingPage";
 import UserManagement from "../features/AdminDashboard/UserManagement";
-import Communication from "../features/AdminDashboard/Communication/Communication";
 import UserProfileFromAdmin from "../features/AdminDashboard/UserProfileFromAdmin";
 import Assesments from "../features/AdminDashboard/Assesments";
 import ReviewAssesmentResult from "../features/AdminDashboard/ReviewAssesmentResult";
 import CreatedAssesmentDetails from "../features/AdminDashboard/CreatedAssesmentDetails";
+import Communication from "../features/AdminDashboard/Communication/Communication";
 
 export const router = createBrowserRouter([
     {

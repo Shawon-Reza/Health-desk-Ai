@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FiSearch, FiFilter } from 'react-icons/fi';
-import ChatPanel from '../../AdminDashboard/communication/ChatPanel';
+import ChatPanel from './ChatPanel';
 import CreateNewGroupModal from '../../AdminDashboard/communication/CreateNewGroupModal';
+
+
 
 const Communication = () => {
     const [activeTab, setActiveTab] = useState('allChat');

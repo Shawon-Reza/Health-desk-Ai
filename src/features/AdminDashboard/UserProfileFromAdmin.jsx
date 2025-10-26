@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { FiArrowLeft, FiFileText, FiHash, FiMessageCircle, FiUserX } from 'react-icons/fi'
 import { RiContactsBook3Line } from 'react-icons/ri';
-import Communication from './communication/Communication';
+
 import UserManageMentSetAction from './UserManageMentSetAction';
+import Communication from '../AdminDashboard/Communication/Communication';
+
 
 // Small, reusable stat card component
 const StatCard = ({ icon: Icon, label, value, children, tone = 'default' }) => {
@@ -207,7 +209,7 @@ const UserProfileFromAdmin = () => {
             <div className="mt-8">
                 <h2 className="text-xl font-semibold text-[#2F2F2F] mb-3">Viewing Chat History</h2>
 
-                <Communication></Communication>
+                <Communication />
 
 
 

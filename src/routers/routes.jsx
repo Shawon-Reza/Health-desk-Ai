@@ -17,7 +17,7 @@ import UserProfileFromAdmin from "../features/AdminDashboard/UserProfileFromAdmi
 import Assesments from "../features/AdminDashboard/Assesments";
 import ReviewAssesmentResult from "../features/AdminDashboard/ReviewAssesmentResult";
 import CreatedAssesmentDetails from "../features/AdminDashboard/CreatedAssesmentDetails";
-import Communication from "../features/AdminDashboard/Communication/Communication";
+import Communication from "../features/AdminDashboard/communication/Communication";
 
 export const router = createBrowserRouter([
     {

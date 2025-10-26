@@ -3,7 +3,7 @@ import { FiArrowLeft, FiFileText, FiHash, FiMessageCircle, FiUserX } from 'react
 import { RiContactsBook3Line } from 'react-icons/ri';
 
 import UserManageMentSetAction from './UserManageMentSetAction';
-import Communication from '../AdminDashboard/communication/Communication';
+import Communication from './Communication/Communication';
 
 
 // Small, reusable stat card component

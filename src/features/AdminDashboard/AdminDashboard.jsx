@@ -25,7 +25,7 @@ const AdminDashboard = () => {
                     className={
                         isMobile
                             ? 'fixed inset-0 z-50 bg-white w-full h-full shadow-lg' // mobile full-screen sidebar
-                            : 'w-[40%] lg:w-[30%] xl:w-[20%]' // desktop sidebar width
+                            : 'w-[30%] lg:w-[30%] xl:w-[20%]' // desktop sidebar width
                     }
                 >
                     <div className=' relative'>
@@ -54,7 +54,7 @@ const AdminDashboard = () => {
             {/* Main content area: hide on mobile when sidebar is open */}
             {(!isMobile || !isSidebarOpen) && (
                 <section className={`overflow-auto 
-                 ${isMobile ? 'w-full' : 'w-[60%] lg:w-[70%] xl:w-[80%]'}`}>
+                 ${isMobile ? 'w-full' : 'w-[70%] lg:w-[70%] xl:w-[80%]'}`}>
                     <section className="w-full ">
                         {/* Navbar */}
                         <nav className="w-full flex justify-between items-center px-6 py-4 shadow-2xl">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiSearch, FiFilter } from 'react-icons/fi';
 import ChatPanel from './ChatPanel';
 import CreateNewGroupModal from '../communication/CreateNewGroupModal';
+import CreateNewMessageModal from './CreateNewMessageModal';
 
 
 
@@ -83,6 +84,7 @@ const Communication = () => {
 
     // Modal state
     const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+    const [showCreateMessageModal, setShowCreateMessageModal] = useState(false);
 
     return (
         <div className="container mx-auto ">
@@ -134,6 +136,7 @@ const Communication = () => {
                                 ? 'text-primary border-2 rounded-lg px-2 border-primary'
                                 : 'text-gray-600 hover:text-primary'
                                 }`}
+                            onClick={() => setShowCreateMessageModal(true)}
                         >
                             New Message
                         </button>
@@ -212,6 +215,17 @@ const Communication = () => {
                         <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xl relative">
                             <CreateNewGroupModal
                                 onClose={() => setShowCreateGroupModal(false)}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* Create New Message Modal */}
+                {showCreateMessageModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 bg-opacity-30">
+                        <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xl relative">
+                            <CreateNewMessageModal
+                                onClose={() => setShowCreateMessageModal(false)}
                             />
                         </div>
                     </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiSearch, FiFilter } from 'react-icons/fi';
 import ChatPanel from '../../AdminDashboard/communication/ChatPanel';
+import CreateNewGroupModal from '../../AdminDashboard/communication/CreateNewGroupModal';
 
 const Communication = () => {
     const [activeTab, setActiveTab] = useState('allChat');
@@ -77,6 +78,9 @@ const Communication = () => {
         return matchesSearch && matchesRole;
     });
 
+    // Modal state
+    const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+
     return (
         <div className="container mx-auto ">
             {/* Communication header */}
@@ -114,16 +118,15 @@ const Communication = () => {
 
                     <div className="flex justify-between gap-3  pb-2">
                         <button
-
                             className={`pb-1 font-medium ${activeTab === 'allChat'
                                 ? 'text-primary border-2 rounded-lg px-2 border-primary'
                                 : 'text-gray-600 hover:text-primary'
                                 }`}
+                            onClick={() => setShowCreateGroupModal(true)}
                         >
                             New Group
                         </button>
                         <button
-
                             className={`pb-1 font-medium ${activeTab === 'allChat'
                                 ? 'text-primary border-2 rounded-lg px-2 border-primary'
                                 : 'text-gray-600 hover:text-primary'
@@ -197,9 +200,19 @@ const Communication = () => {
 
                 {/* Communication chat panel */}
                 <section className="w-[60%] xl:w-[75%] h-full bg-white rounded-lg shadow-md p-4">
-                    {/* Add your chat panel components here */}
-                    <ChatPanel></ChatPanel>
+                    <ChatPanel />
                 </section>
+
+                {/* Create New Group Modal */}
+                {showCreateGroupModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 bg-opacity-30">
+                        <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xl relative">
+                            <CreateNewGroupModal
+                                onClose={() => setShowCreateGroupModal(false)}
+                            />
+                        </div>
+                    </div>
+                )}
             </section>
         </div>
     );

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FiSearch, FiFilter } from 'react-icons/fi';
 import ChatPanel from './ChatPanel';
-import CreateNewGroupModal from '../../AdminDashboard/communication/CreateNewGroupModal';
+import CreateNewGroupModal from './Communication/CreateNewGroupModal';
+
 
 
 

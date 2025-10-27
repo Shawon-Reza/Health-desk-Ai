@@ -18,84 +18,85 @@ const LoginPage = () => {
 
 
     return (
-        <div className='min-h-screen md:flex'>
+        <div className='min-h-screen md:flex bg-secondary'>
             {/* Left Section - Login Form */}
-            <section className='relative w-full h-screen md:w-1/2 flex items-center justify-center bg-white p-8'>
-                <div className='w-full max-w-md'>
+            <section className='relative w-full h-screen md:w-1/2 flex items-center justify-center  p-8'>
+                <div>
                     <div className='text-center mb-8'>
-                        <h1 className='text-3xl font-bold primarycolor mb-2'>
+                        <h1 className='text-4xl font-bold primarycolor mb-2 text-primary'>
                             Sign in to your account
                         </h1>
                     </div>
 
+                    <div className='w-full min-w-lg max-w-xl bg-white p-4 px-12 py-8 rounded-xl shadow-lg z-10'>
 
-                    <form onSubmit={handleSubmit} className='space-y-6'>
-                        {/* Email Section */}
-                        <div className='space-y-4'>
-                            <h2 className='text-lg font-semibold text-gray-700'>
-                                Email address
-                            </h2>
-                            <div className='w-full'>
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="Enter your email"
-                                    className='w-full p-3 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                                    required
-                                />
+
+                        <form onSubmit={handleSubmit} className='space-y-6'>
+                            {/* Email Section */}
+                            <div className='space-y-4'>
+                                <h2 className='text-lg font-semibold text-gray-700'>
+                                    Email address
+                                </h2>
+                                <div className='w-full'>
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="Enter your email"
+                                        className='w-full p-3 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                                        required
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Password Section */}
-                        <div className='space-y-4'>
-                            <h2 className='text-lg font-semibold text-gray-700'>
-                                Password
-                            </h2>
-                            <div className='relative w-full'>
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="Enter your password"
-                                    className='w-full p-3 pr-10 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                                    required
-                                />
-                                <span
-                                    className='absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500'
-                                    onClick={() => setShowPassword(!showPassword)}
-                                >
-                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                                </span>
+                            {/* Password Section */}
+                            <div className='space-y-4'>
+                                <h2 className='text-lg font-semibold text-gray-700'>
+                                    Password
+                                </h2>
+                                <div className='relative w-full'>
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="Enter your password"
+                                        className='w-full p-3 pr-10 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                                        required
+                                    />
+                                    <span
+                                        className='absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500'
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
 
 
-                        {/* Sign In Section */}
-                        <div className='space-y-4'>
-                           
+                            {/* Sign In Section */}
+                            <div className='space-y-4'>
+                                {/* 
+                                <CommonButton
+                                    className="w-full "
+                                    type="submit"
+                                    text="Login"
+                                /> */}
 
-                            <CommonButton
-                                className="w-full "
-                                type="submit"
-                                text="Login"
-                            />
+                                <button className='bg-primary w-full py-2 font-semibold text-white rounded-lg cursor-pointer'>
+                                    Login
+                                </button>
+
+                            </div>
 
 
-                        </div>
+                        </form>
 
-                        {/* Target Password Question */}
-                        <div className='text-center mt-6'>
-                            <p className='text-gray-600 font-medium'>
-                                Target password?
-                            </p>
-                        </div>
-                    </form>
+                    </div>
 
                     {/* Disclaimer */}
-                    <div className='mt-12 text-center'>
+                    <div className='mt-8 text-center'>
                         <p className='text-sm text-gray-500'>
-                            <strong>Disclaimer:</strong><br />
+                            <strong className='text-primary'>Disclaimer:</strong><br />
                             All Rights Reserved
                         </p>
                     </div>
@@ -120,7 +121,7 @@ const LoginPage = () => {
                     />
                 </figure>
             </section>
-            
+
         </div>
     );
 };

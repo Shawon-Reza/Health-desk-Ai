@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { FaFax } from "react-icons/fa"
 import { FiEdit2, FiFacebook, FiGlobe, FiMapPin, FiPhone, FiPlus, FiTrash2, FiUser } from "react-icons/fi"
 import AddClinicModal from "./AddClinicModal"
+import { BiClinic } from "react-icons/bi"
 // import { FiEdit2, FiTrash2, FiMapPin, FiPhone, FiFax, FiGlobe, FiUsers, FiPlus } from "react-icons/fi"
 
 const ClinicManagement = () => {
@@ -167,18 +168,26 @@ const ClinicManagement = () => {
 
             {/* Card Content */}
             <div className="space-y-3">
-                {/* Address */}
-                <div className="flex items-start gap-3">
-                    <FiMapPin className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
-                    <div>
+      
+
+                {/* Phone & Fax Row */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-start gap-3">
+                        <FiMapPin className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
+                          <div>
                         <p className="text-xs text-gray-500 font-medium">Address</p>
                         <p className="text-sm text-gray-700">{clinic.address}</p>
                     </div>
-                    <div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <BiClinic className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
+                          <div>
                         <p className="text-xs text-gray-500 font-medium">Type</p>
                         <p className="text-sm text-gray-700">{clinic.type}</p>
                     </div>
+                    </div>
                 </div>
+
 
                 {/* Phone & Fax Row */}
                 <div className="grid grid-cols-2 gap-4">

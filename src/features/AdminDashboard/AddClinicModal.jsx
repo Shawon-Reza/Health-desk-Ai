@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     FiX,
     FiMapPin,
@@ -7,13 +7,12 @@ import {
     FiFileText,
     FiType,
 } from "react-icons/fi";
+import { useMutation } from "@tanstack/react-query";
+import axiosApi from "../../service/axiosInstance";
+import { toast } from "react-toastify";
 
 const AddClinicModal = ({ isOpen, onClose, data }) => {
     if (!isOpen) return null; // Don't render when closed
-    console.log(data)
-
-
-
 
     const [formData, setFormData] = useState({
         name: data?.name || "",
@@ -22,6 +21,88 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
         fax: data?.fax || "",
         website: data?.website || "",
         type: data?.type || "",
+    });
+
+    // Reset form data when data prop changes
+    useEffect(() => {
+        if (data) {
+            setFormData({
+                name: data.name || "",
+                address: data.address || "",
+                phone: data.phone || "",
+                fax: data.fax || "",
+                website: data.website || "",
+                type: data.type || "",
+            });
+        } else {
+            setFormData({
+                name: "",
+                address: "",
+                phone: "",
+                fax: "",
+                website: "",
+                type: "",
+            });
+        }
+    }, [data]);
+
+    const isEditMode = data?.id;
+
+    // Create clinic mutation
+    const createClinicMutation = useMutation({
+        mutationFn: async (clinicData) => {
+            const response = await axiosApi.post("/api/v1/clinics/create/", {
+                name: clinicData.name,
+                address: clinicData.address,
+                phone_number: clinicData.phone,
+                fax_number: clinicData.fax,
+                website: clinicData.website,
+                type: clinicData.type,
+            });
+            return response.data;
+        },
+        onSuccess: () => {
+            toast.success("Clinic created successfully");
+            onClose();
+            setFormData({
+                name: "",
+                address: "",
+                phone: "",
+                fax: "",
+                website: "",
+                type: "",
+            });
+        },
+        onError: (error) => {
+            const message = error?.response?.data?.detail || error.message || "Failed to create clinic";
+            toast.error(message);
+            console.log(error);
+        },
+    });
+
+    // Update clinic mutation
+    const updateClinicMutation = useMutation({
+        mutationFn: async (clinicData) => {
+            const response = await axiosApi.put(`/api/v1/clinics/${data.id}/update/`, {
+                name: clinicData.name,
+                address: clinicData.address,
+                phone_number: clinicData.phone,
+                fax_number: clinicData.fax,
+                website: clinicData.website,
+                type: clinicData.type,
+            });
+            console.log('[Update Clinic Response]:', response.data);
+            return response.data;
+        },
+        onSuccess: () => {
+            toast.success("Clinic updated successfully");
+            onClose();
+        },
+        onError: (error) => {
+            const message = error?.response?.data?.detail || error.message || "Failed to update clinic";
+            toast.error(message);
+            console.log(error);
+        },
     });
 
     // Handle field changes
@@ -33,10 +114,14 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
     // Handle form submit
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("[Form Submitted]");
-        console.table(formData);
-        onClose(); // close popup after logging
+        if (isEditMode) {
+            updateClinicMutation.mutate(formData);
+        } else {
+            createClinicMutation.mutate(formData);
+        }
     };
+
+    const isLoading = createClinicMutation.isPending || updateClinicMutation.isPending;
 
     return (
         <div className="fixed inset-0 bg-black/10 flex items-center justify-center z-50 px-4">
@@ -44,11 +129,12 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
                 {/* Header */}
                 <div className="flex justify-between items-center border-b-3 border-gray-300 px-6 py-4">
                     <h2 className="text-lg font-semibold text-gray-800">
-                        Add New Clinic
+                        {isEditMode ? "Edit Clinic" : "Add New Clinic"}
                     </h2>
                     <button
                         onClick={onClose}
                         className="p-2 rounded-full hover:bg-gray-100 transition"
+                        disabled={isLoading}
                     >
                         <FiX className="w-5 h-5 text-gray-600" />
                     </button>
@@ -173,14 +259,16 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
                             type="button"
                             onClick={onClose}
                             className="px-4 py-2 border border-red-400 text-red-500 rounded-lg hover:bg-red-50 transition"
+                            disabled={isLoading}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:opacity-90 transition"
+                            className="px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:opacity-90 transition disabled:opacity-60"
+                            disabled={isLoading}
                         >
-                            Add Clinic
+                            {isLoading ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Clinic" : "Add Clinic")}
                         </button>
                     </div>
                 </form>

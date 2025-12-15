@@ -17,12 +17,12 @@ import UserProfileFromAdmin from "../features/AdminDashboard/UserProfileFromAdmi
 import Assesments from "../features/AdminDashboard/Assesments";
 import ReviewAssesmentResult from "../features/AdminDashboard/ReviewAssesmentResult";
 import CreatedAssesmentDetails from "../features/AdminDashboard/CreatedAssesmentDetails";
-import Communication from "../features/AdminDashboard/communication/Communication";
+import Communication from "../features/AdminDashboard/Communication/Communication";
 
 export const router = createBrowserRouter([
     {
         path: "/",
-        element: <div className="text-2xl">Hello world!</div>,
+        element: <Navigate to="/admin" replace />,
     },
     // Admin Dashboard Route
     {
@@ -99,7 +99,6 @@ export const router = createBrowserRouter([
             },
         ],
     },
-
 
 
 

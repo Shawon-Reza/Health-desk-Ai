@@ -3,7 +3,7 @@ import { FaRegFileLines } from "react-icons/fa6";
 import { FiX, FiMapPin, FiFileText } from "react-icons/fi";
 import { PiSubtitlesThin } from "react-icons/pi";
 
-const AddMatterModal = ({ isOpen, onClose, data = null, onSubmit }) => {
+const AddMatterModal = ({ isOpen, onClose, data = null, onSubmit, isLoading = false }) => {
     if (!isOpen) return null;
 
     const [formData, setFormData] = useState({
@@ -118,14 +118,16 @@ const AddMatterModal = ({ isOpen, onClose, data = null, onSubmit }) => {
                             type="button"
                             onClick={onClose}
                             className="px-4 py-2 border border-red-400 text-red-500 rounded-lg hover:bg-red-50 transition"
+                            disabled={isLoading}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:opacity-90 transition"
+                            className="px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:opacity-90 transition disabled:opacity-60"
+                            disabled={isLoading}
                         >
-                            {data?.id ? "Update Subject" : "Add Subject"}
+                            {isLoading ? (data?.id ? "Updating..." : "Creating...") : (data?.id ? "Update Subject" : "Add Subject")}
                         </button>
                     </div>
                 </form>

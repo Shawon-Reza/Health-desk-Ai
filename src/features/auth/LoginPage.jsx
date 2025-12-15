@@ -2,20 +2,49 @@ import React, { useState } from 'react';
 import img from "../../assets/authimg.png";
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import icon from "../../assets/python.png";
-import CommonButton from '../../Components/CommonButton';
+// import axiosApi from "../../service/axiosInstance";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios';
+import { base_URL } from '../../config/Config';
+import { useNavigate } from 'react-router-dom';
+
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Email:', email);
-        console.log('Password:', password);
-        // Add your authentication logic here
-    };
+        setIsLoading(true);
+        try {
+            console.log()
+            const response = await axios.post(`${base_URL}/api/v1/login/`, {
+                email,
+                password,
+            });
+            console.log(response)
+            toast.success('Login successful');
+            navigate('/admin', { replace: true });
+            // Saved auth tokens if returned
+            if (response?.data) {
+                const { access, refresh } = response.data;
+                if (access || refresh) {
+                    localStorage.setItem('auth', JSON.stringify({ access, refresh }));
+                }
+            }
 
+            // navigate or update global state here if needed
+        } catch (error) {
+            const message = error?.response?.data?.detail || error.message || 'Login failed';
+            toast.error(message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div className='min-h-screen md:flex bg-secondary'>

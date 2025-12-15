@@ -1,14 +1,88 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { FiEdit2, FiTrash2, FiPlus, FiFileText } from "react-icons/fi"
 import AddMatterModal from "./AddMatterModal"
+import { useQuery, useMutation } from "@tanstack/react-query"
+import axiosApi from "../../service/axiosInstance"
+import { toast } from "react-toastify"
+import Swal from "sweetalert2"
 
 const SubjectMatters = () => {
-    const [subjectMatters, setSubjectMatters] = useState([])
-    const [loading, setLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [selectedMatter, setSelectedMatter] = useState(null)
+
+    // Fetch subject matters from API
+    const { data: subjectMatters, isLoading: loading, error, refetch } = useQuery({
+        queryKey: ['subjectMatters'],
+        queryFn: async () => {
+            const response = await axiosApi.get('/api/v1/subjects/')
+            console.log('[Subject Matters API Response]:', response.data)
+            return response.data
+        },
+    })
+
+    // Create subject matter mutation
+    const createMatterMutation = useMutation({
+        mutationFn: async (matterData) => {
+            const response = await axiosApi.post('/api/v1/subjects/create/', {
+                title: matterData.title,
+                description: matterData.description,
+            })
+            console.log('[Create Subject Matter Response]:', response.data)
+            return response.data
+        },
+        onSuccess: () => {
+            toast.success('Subject matter created successfully')
+            refetch()
+            handleModalClose()
+        },
+        onError: (error) => {
+            const message = error?.response?.data?.detail || error.message || 'Failed to create subject matter'
+            toast.error(message)
+            console.log(error)
+        },
+    })
+
+    // Update subject matter mutation
+    const updateMatterMutation = useMutation({
+        mutationFn: async (matterData) => {
+            const response = await axiosApi.put(`/api/v1/subjects/${matterData.id}/update/`, {
+                title: matterData.title,
+                description: matterData.description,
+            })
+            console.log('[Update Subject Matter Response]:', response.data)
+            return response.data
+        },
+        onSuccess: () => {
+            toast.success('Subject matter updated successfully')
+            refetch()
+            handleModalClose()
+        },
+        onError: (error) => {
+            const message = error?.response?.data?.detail || error.message || 'Failed to update subject matter'
+            toast.error(message)
+            console.log(error)
+        },
+    })
+
+    // Delete subject matter mutation
+    const deleteMatterMutation = useMutation({
+        mutationFn: async (matterId) => {
+            const response = await axiosApi.delete(`/api/v1/subjects/${matterId}/delete/`)
+            console.log('[Delete Subject Matter Response]:', response.data)
+            return response.data
+        },
+        onSuccess: () => {
+            toast.success('Subject matter deleted successfully')
+            refetch()
+        },
+        onError: (error) => {
+            const message = error?.response?.data?.detail || error.message || 'Failed to delete subject matter'
+            toast.error(message)
+            console.log(error)
+        },
+    })
 
     //    Open modal to add new matter
     const handleModalOpen = () => {
@@ -18,66 +92,7 @@ const SubjectMatters = () => {
         setIsModalOpen(false)
     }
 
-    // Mock data - Replace with backend API call
-    const mockSubjectMatters = [
-        {
-            id: 1,
-            title: "Customer Support",
-            description:
-                "Our customer support team is dedicated to providing fast, friendly, and reliable assistance. We handle every query with care, ensuring clear communication and quick solutions. Customer satisfaction is our top priority, and we strive to make every interaction smooth and helpful. Always ready to assist, we're here to ensure you have the best possible experience every time you reach out.",
-            icon: "FiFileText",
-            borderColor: "border-l-4 border-l-[#00A4A6]",
-        },
-        {
-            id: 2,
-            title: "Accountant",
-            description:
-                "Our customer support team is dedicated to providing fast, friendly, and reliable assistance. We handle every query with care, ensuring clear communication and quick solutions. Customer satisfaction is our top priority, and we strive to make every interaction smooth and helpful. Always ready to assist, we're here to ensure you have the best possible experience every time you reach out.",
-            icon: "FiFileText",
-            borderColor: "border-l-4 border-l-pink-400",
-        },
-        {
-            id: 3,
-            title: "Eye Specialist",
-            description:
-                "Our customer support team is dedicated to providing fast, friendly, and reliable assistance. We handle every query with care, ensuring clear communication and quick solutions. Customer satisfaction is our top priority, and we strive to make every interaction smooth and helpful. Always ready to assist, we're here to ensure you have the best possible experience every time you reach out.",
-            icon: "FiFileText",
-            borderColor: "border-l-4 border-l-[#00A4A6]",
-        },
-        {
-            id: 4,
-            title: "Surgeon",
-            description:
-                "Our customer support team is dedicated to providing fast, friendly, and reliable assistance. We handle every query with care, ensuring clear communication and quick solutions. Customer satisfaction is our top priority, and we strive to make every interaction smooth and helpful. Always ready to assist, we're here to ensure you have the best possible experience every time you reach out.",
-            icon: "FiFileText",
-            borderColor: "border-l-4 border-l-red-400",
 
-        },
-    ]
-
-    // Fetch subject matters data
-    useEffect(() => {
-        console.log("[SubjectMatters] Component mounted - Fetching data...")
-
-        // Simulate API call
-        setTimeout(() => {
-            setSubjectMatters(mockSubjectMatters)
-            setLoading(false)
-            console.log("[SubjectMatters] Data loaded successfully:", mockSubjectMatters)
-        }, 500)
-
-        // Replace with actual API call:
-        // fetchSubjectMatters()
-        //   .then(data => {
-        //     console.log('[SubjectMatters] API Response:', data);
-        //     setSubjectMatters(data);
-        //     setLoading(false);
-        //   })
-        //   .catch(error => {
-        //     console.error('[SubjectMatters] Error fetching data:', error);
-        //     setLoading(false);
-        //   });
-    }, [])
 
     // Handle add subject matter
     const handleAddSubjectMatter = () => {
@@ -98,32 +113,41 @@ const SubjectMatters = () => {
     const handleSaveMatter = (payload) => {
         if (payload.id) {
             // Edit existing
-            setSubjectMatters((prev) =>
-                prev.map((m) => (m.id === payload.id ? { ...m, ...payload } : m))
-            )
+            updateMatterMutation.mutate(payload)
         } else {
             // Add new
-            const nextId = subjectMatters.length
-                ? Math.max(...subjectMatters.map((m) => m.id)) + 1
-                : 1
-            setSubjectMatters((prev) => [
-                ...prev,
-                {
-                    ...payload,
-                    id: nextId,
-                },
-            ])
+            createMatterMutation.mutate(payload)
         }
     }
 
     // Handle delete subject matter
     const handleDeleteSubjectMatter = (id, title) => {
-        console.log("[SubjectMatters] Delete clicked for ID:", id, "Title:", title)
-        // Add your logic here
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            deleteMatterMutation.mutate(id)
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: "Deleted!",
+                    text: "Your file has been deleted.",
+                    icon: "success"
+                });
+            }
+        });
     }
 
     if (loading) {
         return <div className="p-8">Loading...</div>
+    }
+
+    if (error) {
+        return <div className="p-8 text-red-600">Error loading subject matters: {error.message}</div>
     }
 
 
@@ -136,6 +160,7 @@ const SubjectMatters = () => {
                 onClose={handleModalClose}
                 data={selectedMatter}
                 onSubmit={handleSaveMatter}
+                isLoading={createMatterMutation.isPending || updateMatterMutation.isPending}
             />
 
             {/* Header Section */}
@@ -158,7 +183,7 @@ const SubjectMatters = () => {
 
             {/* Subject Matters Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                {subjectMatters.map((matter) => (
+                {subjectMatters?.map((matter) => (
                     <div
                         key={matter.id}
                         className={`${matter.borderColor} rounded-lg p-6 transition-all duration-200 hover:shadow-lg`}
@@ -192,7 +217,7 @@ const SubjectMatters = () => {
                         {/* Description */}
                         <div className="flex items-start gap-3">
                             <FiFileText size={16} className="text-gray-400 mt-1 flex-shrink-0" />
-                            <p className="text-gray-600 text-sm leading-relaxed">{matter.description}</p>
+                            <p className="max-h-[250px] overflow-auto text-gray-600 text-sm leading-relaxed thin-scroll">{matter.description}</p>
                         </div>
                     </div>
                 ))}

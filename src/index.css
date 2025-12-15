@@ -43,3 +43,22 @@
 .bg-default {
     background-color: var(--color-default);
 }
+
+/* Thin scrollbar utility */
+.thin-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #c7c7c7 transparent;
+}
+
+.thin-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.thin-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.thin-scroll::-webkit-scrollbar-thumb {
+    background-color: #c7c7c7;
+    border-radius: 9999px;
+}

@@ -13,12 +13,14 @@ const SubjectMatters = () => {
     const [selectedMatter, setSelectedMatter] = useState(null)
 
     // Fetch subject matters from API
-    const { data: subjectMatters, isLoading: loading, error, refetch } = useQuery({
+    const { data: subjectMatters = [], isLoading: loading, error, refetch } = useQuery({
         queryKey: ['subjectMatters'],
         queryFn: async () => {
             const response = await axiosApi.get('/api/v1/subjects/')
             console.log('[Subject Matters API Response]:', response.data)
-            return response.data
+            // Handle both array and object responses
+            const dataArray = Array.isArray(response.data) ? response.data : response.data?.results || response.data?.data || []
+            return dataArray
         },
     })
 

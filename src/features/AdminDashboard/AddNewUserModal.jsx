@@ -324,11 +324,10 @@ const AddNewUserModal = ({
                       type="button"
                       key={c}
                       onClick={() => toggleClinic(c)}
-                      className={`px-3 py-1 rounded-full text-sm border transition ${
-                        form.clinics.includes(c)
+                      className={`px-3 py-1 rounded-full text-sm border transition ${form.clinics.includes(c)
                           ? 'bg-gray-100 text-gray-700 border-gray-300'
                           : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
-                      }`}
+                        }`}
                     >
                       {c}
                     </button>
@@ -353,7 +352,7 @@ const AddNewUserModal = ({
               <Select
                 value={form.status}
                 onChange={update('status')}
-                options={[ 'Active', 'Blocked', 'Pending' ]}
+                options={['Active', 'Blocked', 'Pending']}
                 leftIcon={FiUser}
                 placeholder="Select status"
               />
@@ -372,9 +371,8 @@ const AddNewUserModal = ({
             <button
               type="submit"
               disabled={!canSubmit || submitting}
-              className={`px-5 py-2 rounded-lg text-white font-semibold transition ${
-                !canSubmit || submitting ? 'bg-teal-300 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'
-              }`}
+              className={`px-5 py-2 rounded-lg text-white font-semibold transition ${!canSubmit || submitting ? 'bg-teal-300 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'
+                }`}
             >
               {submitting ? 'Adding…' : 'Add User'}
             </button>

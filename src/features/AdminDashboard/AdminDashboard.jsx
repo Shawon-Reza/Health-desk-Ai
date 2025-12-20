@@ -9,6 +9,7 @@ import { BsLayoutSidebarInset } from 'react-icons/bs'
 const AdminDashboard = () => {
     const isMobile = useIsBelowMd()
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+    const [isCollapsed, setIsCollapsed] = useState(false)
 
     // Keep sidebar open on larger screens, closed by default on small screens
     useEffect(() => {
@@ -16,6 +17,7 @@ const AdminDashboard = () => {
     }, [isMobile])
 
     const toggleSidebar = () => setIsSidebarOpen(prev => !prev)
+    const toggleCollapse = () => setIsCollapsed(prev => !prev)
 
     return (
         <div className="max-h-screen min-h-screen flex ">
@@ -25,11 +27,13 @@ const AdminDashboard = () => {
                     className={
                         isMobile
                             ? 'fixed inset-0 z-50 bg-white w-full h-full shadow-lg' // mobile full-screen sidebar
-                            : 'w-[30%] lg:w-[30%] xl:w-[20%]' // desktop sidebar width
+                            : isCollapsed
+                                ? 'w-[80px]' // collapsed width
+                                : 'w-[30%] lg:w-[30%] xl:w-[20%]' // desktop sidebar width
                     }
                 >
                     <div className=' relative'>
-                        <AdminDashboardSidebar onClick={toggleSidebar} />
+                        <AdminDashboardSidebar onClick={toggleSidebar} isCollapsed={isCollapsed} onToggleCollapse={toggleCollapse} />
 
                         {/* Sidebar toggle icon only on small screens */}
                         {isMobile && (
@@ -53,15 +57,34 @@ const AdminDashboard = () => {
 
             {/* Main content area: hide on mobile when sidebar is open */}
             {(!isMobile || !isSidebarOpen) && (
-                <section className={`overflow-auto 
-                 ${isMobile ? 'w-full' : 'w-[70%] lg:w-[70%] xl:w-[80%]'}`}>
+                <section className={`overflow-auto fle
+                 ${isMobile ? 'w-full' : isCollapsed ? 'w-[calc(100%-80px)]' : 'w-[70%] lg:w-[70%] xl:w-[80%]'}`}>
+
                     <section className="w-full ">
+
                         {/* Navbar */}
                         <nav className="w-full flex justify-between items-center px-6 py-4 shadow-2xl">
-                            <div className="text-primary">
-                                <h3 className="font-semibold text-xl">Welcome, Admin</h3>
-                                <h5>let's make your work easy</h5>
-                            </div>
+
+                            {!isMobile && (
+                                <div className=" flex gap-2">
+                                    <button
+                                        onClick={toggleCollapse}
+                                        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                                        className="p-2 rounded-md hover:bg-gray-100 transition-colors cursor-pointer"
+                                    >
+                                        {isCollapsed ? (
+                                            <BsLayoutSidebarInset size={30} />
+                                        ) : (
+                                            <TbLayoutSidebarFilled size={35} />
+                                        )}
+                                    </button>
+                                    <div className="text-primary">
+                                        <h3 className="font-semibold text-xl">Welcome, Admin</h3>
+                                        <h5>let's make your work easy</h5>
+                                    </div>
+                                </div>
+                            )}
+
 
                             <div className="flex items-center gap-5">
                                 <div className="relative p-3 rounded-full bg-[#00A4A61A] cursor-pointer">

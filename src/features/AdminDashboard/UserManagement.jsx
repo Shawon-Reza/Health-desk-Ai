@@ -31,6 +31,7 @@ export default function UserManagement() {
         "Downtown Medical Center",
         "Uptown Clinic",
         "Central Hospital",
+        "Central Hospital2",
     ];
 
     const mockUsers = [

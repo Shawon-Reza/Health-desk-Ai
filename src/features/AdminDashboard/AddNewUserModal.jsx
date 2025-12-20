@@ -15,6 +15,7 @@ import {
   FiTag,
   FiChevronDown,
 } from 'react-icons/fi'
+import useGetSubjectMattersAndClinicsList from '../../hooks/useGetSubjectMattersAndClinicsList'
 
 // Simple API helper that can be swapped with a real client
 async function createUser(payload) {
@@ -72,8 +73,9 @@ const AddNewUserModal = ({
   onClose,
   onCreated,
   roles = ['Admin', 'President', 'Manager', 'Doctor', 'Staff', 'Jr. Staff'],
-  clinics = ['Clinic 1', 'Clinic 2', 'Clinic 3'],
-  subjectMatters = ['Customer Support', 'Accountant', 'Eye Specialist', 'Surgeon'],
+  clinics = [],
+  subjectMatters = [],
+  isLoading = false,
 }) => {
   if (!isOpen) return null
 
@@ -87,8 +89,10 @@ const AddNewUserModal = ({
     startDate: new Date().toISOString().slice(0, 10),
     employeeId: '00125',
     knowledgeLevel: '8',
-    clinics: ['Clinic 1', 'Clinic 2'],
-    subjectMatter: 'Customer Support',
+    clinics: [],
+    clinicIds: [],
+    subjectMatter: '',
+    subjectMatterId: null,
     status: 'Active',
   })
   const [showPassword, setShowPassword] = useState(false)
@@ -111,17 +115,29 @@ const AddNewUserModal = ({
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
-  const toggleClinic = (name) => {
+  const toggleClinic = (clinic) => {
     setForm((prev) => {
-      const has = prev.clinics.includes(name)
-      const next = has
-        ? prev.clinics.filter((c) => c !== name)
-        : [...prev.clinics, name]
-      return { ...prev, clinics: next }
+      const clinicName = clinic.name || clinic
+      const clinicId = clinic.id
+      const hasClinic = prev.clinics.includes(clinicName)
+      const newClinics = hasClinic
+        ? prev.clinics.filter((c) => c !== clinicName)
+        : [...prev.clinics, clinicName]
+      const newClinicIds = hasClinic
+        ? prev.clinicIds.filter((id) => id !== clinicId)
+        : [...prev.clinicIds, clinicId]
+      return { ...prev, clinics: newClinics, clinicIds: newClinicIds }
     })
   }
 
-  const handleRemoveClinic = (name) => toggleClinic(name)
+  const handleRemoveClinic = (clinicName) => {
+    setForm((prev) => {
+      const clinicIndex = prev.clinics.indexOf(clinicName)
+      const newClinics = prev.clinics.filter((c) => c !== clinicName)
+      const newClinicIds = clinicIndex !== -1 ? prev.clinicIds.filter((_, i) => i !== clinicIndex) : prev.clinicIds
+      return { ...prev, clinics: newClinics, clinicIds: newClinicIds }
+    })
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -132,6 +148,8 @@ const AddNewUserModal = ({
       name: `${form.firstName} ${form.lastName}`.trim(),
     }
     console.log('[AddNewUserModal] Submitting payload:', payload)
+    console.log('[AddNewUserModal] Selected Clinic IDs:', form.clinicIds)
+    console.log('[AddNewUserModal] Selected Subject Matter ID:', form.subjectMatterId)
     try {
       const created = await createUser(payload)
       console.log('[AddNewUserModal] POST success:', created)
@@ -144,6 +162,7 @@ const AddNewUserModal = ({
       setSubmitting(false)
     }
   }
+
 
   return (
     <div
@@ -319,32 +338,77 @@ const AddNewUserModal = ({
                 </div>
                 {/* Options */}
                 <div className="flex flex-wrap gap-2">
-                  {clinics.map((c) => (
-                    <button
-                      type="button"
-                      key={c}
-                      onClick={() => toggleClinic(c)}
-                      className={`px-3 py-1 rounded-full text-sm border transition ${form.clinics.includes(c)
-                          ? 'bg-gray-100 text-gray-700 border-gray-300'
-                          : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
-                        }`}
-                    >
-                      {c}
-                    </button>
-                  ))}
+                  {isLoading ? (
+                    <span className="text-sm text-gray-500">Loading clinics...</span>
+                  ) : clinics.length > 0 ? (
+                    clinics.map((clinic) => {
+                      const clinicName = clinic.name || clinic
+                      return (
+                        <button
+                          type="button"
+                          key={clinic.id || clinic}
+                          onClick={() => toggleClinic(clinic)}
+                          className={`px-3 py-1 rounded-full text-sm border transition ${form.clinics.includes(clinicName)
+                            ? 'bg-gray-100 text-gray-700 border-gray-300'
+                            : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                            }`}
+                        >
+                          {clinicName}
+                        </button>
+                      )
+                    })
+                  ) : (
+                    <span className="text-sm text-gray-500">No data available</span>
+                  )}
                 </div>
               </div>
             </Field>
 
             {/* Subject Matter Experts */}
             <Field label="Subjects Matter Experts" icon={FiTag}>
-              <Select
-                value={form.subjectMatter}
-                onChange={update('subjectMatter')}
-                options={subjectMatters}
-                leftIcon={FiTag}
-                placeholder="Select subject"
-              />
+              {isLoading ? (
+                <div className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
+                  Loading subjects...
+                </div>
+              ) : subjectMatters.length > 0 ? (
+                <div className="relative">
+                  {FiTag && (
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <FiTag className="w-4 h-4 text-gray-500" />
+                    </span>
+                  )}
+                  <select
+                    value={form.subjectMatter}
+                    onChange={(e) => {
+                      const selectedTitle = e.target.value
+                      const selectedSubject = subjectMatters.find(s => (s.title || s) === selectedTitle)
+                      setForm((prev) => ({
+                        ...prev,
+                        subjectMatter: selectedTitle,
+                        subjectMatterId: selectedSubject?.id || null
+                      }))
+                    }}
+                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 appearance-none"
+                  >
+                    <option value="" disabled>
+                      Select subject
+                    </option>
+                    {subjectMatters.map((s) => {
+                      const title = s.title || s
+                      return (
+                        <option key={s.id || s} value={title}>
+                          {title}
+                        </option>
+                      )
+                    })}
+                  </select>
+                  <FiChevronDown className="absolute right-3 top-2.5 text-gray-500 pointer-events-none" />
+                </div>
+              ) : (
+                <div className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
+                  No data available
+                </div>
+              )}
             </Field>
 
             {/* Status */}

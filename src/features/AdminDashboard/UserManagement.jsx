@@ -3,11 +3,13 @@ import { useState, useEffect, useRef } from "react";
 import { FiSearch, FiChevronDown, FiUserPlus } from "react-icons/fi";
 import UserDetailsTable from "./UserDetailsTable";
 import AddNewUserModal from "./AddNewUserModal";
+import useGetSubjectMattersAndClinicsList from "../../hooks/useGetSubjectMattersAndClinicsList";
 
 export default function UserManagement() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedRole, setSelectedRole] = useState("All Roles");
     const [selectedClinic, setSelectedClinic] = useState("All Clinics");
+    const [selectedClinicId, setSelectedClinicId] = useState(null);
     const [users, setUsers] = useState([]);
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
 
@@ -26,13 +28,7 @@ export default function UserManagement() {
         "Staff",
         "Jr. Staff",
     ];
-    const clinics = [
-        "All Clinics",
-        "Downtown Medical Center",
-        "Uptown Clinic",
-        "Central Hospital",
-        "Central Hospital2",
-    ];
+    const clinics = ["All Clinics"]; // kept for the "All Clinics" label; real data comes from the hook
 
     const mockUsers = [
         {
@@ -134,7 +130,7 @@ export default function UserManagement() {
         const filterParams = {
             search: searchQuery,
             role: selectedRole === "All Roles" ? null : selectedRole,
-            clinic: selectedClinic === "All Clinics" ? null : selectedClinic,
+            clinic: selectedClinicId || null,
         };
         console.log("[UserManagement] Filters applied:", filterParams);
     }, [searchQuery, selectedRole, selectedClinic]);
@@ -185,8 +181,10 @@ export default function UserManagement() {
         setShowRoleDropdown(false);
     };
 
-    const handleClinicChange = (clinic) => {
-        setSelectedClinic(clinic);
+    const handleClinicChange = (clinicOption) => {
+        const isAll = clinicOption === "All Clinics";
+        setSelectedClinic(isAll ? "All Clinics" : (clinicOption.name || clinicOption.title || clinicOption));
+        setSelectedClinicId(isAll ? null : clinicOption.id);
         setShowClinicDropdown(false);
     };
 
@@ -212,6 +210,17 @@ export default function UserManagement() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [showRoleDropdown, showClinicDropdown]);
 
+    // ================ FETCH CLINICS AND SUBJECT MATTERS ================
+    const {
+        clinicsList,
+        subjectMattersList,
+        isLoading,
+        error,
+        refetch
+    } = useGetSubjectMattersAndClinicsList()
+
+    console.log("clinic list :", clinicsList)
+
     return (
         <div className="p-6 space-y-6">
             {/* Add New User Modal */}
@@ -220,7 +229,9 @@ export default function UserManagement() {
                 onClose={handleCloseAddUser}
                 onCreated={handleUserCreated}
                 roles={roles.filter((r) => r !== "All Roles")}
-                clinics={clinics.filter((c) => c !== "All Clinics")}
+                clinics={clinicsList}
+                subjectMatters={subjectMattersList}
+                isLoading={isLoading}
             />
             {/* Header */}
             <div className="flex justify-between items-start">
@@ -295,16 +306,25 @@ export default function UserManagement() {
                             </button>
                             {showClinicDropdown && (
                                 <div className="absolute left-0 md:right-0 md:left-auto mt-2 w-full md:w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-                                    {clinics.map((clinic) => (
+                                    {/* All Clinics option */}
+                                    <button
+                                        key="all-clinics"
+                                        onClick={() => handleClinicChange("All Clinics")}
+                                        className={`w-full text-left px-3 md:px-4 py-2 text-sm md:text-base hover:bg-gray-100 transition-colors ${selectedClinicId === null ? "bg-gray-100 font-semibold" : ""}`}
+                                    >
+                                        All Clinics
+                                    </button>
+                                    {/* Dynamic clinics from hook */}
+                                    {clinicsList?.map((clinic) => (
                                         <button
-                                            key={clinic}
+                                            key={clinic.id}
                                             onClick={() => handleClinicChange(clinic)}
-                                            className={`w-full text-left px-3 md:px-4 py-2 text-sm md:text-base hover:bg-gray-100 transition-colors ${clinic === selectedClinic
-                                                    ? "bg-gray-100 font-semibold"
-                                                    : ""
+                                            className={`w-full text-left px-3 md:px-4 py-2 text-sm md:text-base hover:bg-gray-100 transition-colors ${clinic.id === selectedClinicId
+                                                ? "bg-gray-100 font-semibold"
+                                                : ""
                                                 }`}
                                         >
-                                            {clinic}
+                                            {clinic.name || clinic.title || clinic.id}
                                         </button>
                                     ))}
                                 </div>

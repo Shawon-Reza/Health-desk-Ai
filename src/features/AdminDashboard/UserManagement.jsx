@@ -12,6 +12,8 @@ export default function UserManagement() {
     const [selectedClinicId, setSelectedClinicId] = useState(null);
     const [users, setUsers] = useState([]);
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+    const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
+    const [selectedUserId, setSelectedUserId] = useState(null);
 
     const [showRoleDropdown, setShowRoleDropdown] = useState(false);
     const [showClinicDropdown, setShowClinicDropdown] = useState(false);
@@ -99,10 +101,23 @@ export default function UserManagement() {
 
     const handleAddUser = () => {
         console.log("[UserManagement] Add user clicked");
+        setModalMode('create');
+        setSelectedUserId(null);
         setIsAddUserOpen(true);
     };
 
-    const handleCloseAddUser = () => setIsAddUserOpen(false);
+    const handleEditUser = (userId) => {
+        console.log("[UserManagement] Edit user clicked for ID:", userId);
+        setModalMode('edit');
+        setSelectedUserId(userId);
+        setIsAddUserOpen(true);
+    };
+
+    const handleCloseAddUser = () => {
+        setIsAddUserOpen(false);
+        setModalMode('create');
+        setSelectedUserId(null);
+    };
 
     // Map new user payload to table row shape
     const mapUserToRow = (u) => {
@@ -175,12 +190,15 @@ export default function UserManagement() {
 
 
     return (
-        <div className="p-6 space-y-6 max-h-[calc(100dvh-148px)] overflow-hidden">
+        <div className="p-6 space-y-6 max-h-[calc(100dvh-148px)] overflow-auto">
             {/* Add New User Modal */}
             <AddNewUserModal
                 isOpen={isAddUserOpen}
                 onClose={handleCloseAddUser}
                 onCreated={handleUserCreated}
+                onRefetch={refetch}
+                mode={modalMode}
+                userId={selectedUserId}
                 roles={roles.filter((r) => r !== "All Roles")}
                 clinics={clinicsList}
                 subjectMatters={subjectMattersList}
@@ -258,7 +276,7 @@ export default function UserManagement() {
                                 <FiChevronDown size={16} className="flex-shrink-0" />
                             </button>
                             {showClinicDropdown && (
-                                <div className="absolute left-0 md:right-0 md:left-auto mt-2 w-full md:w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                                <div className="absolute left-0 md:right-0 md:left-auto mt-2 w-full md:w-48 bg-white border border-gray-300 rounded-lg shadow-lg  max-h-60 overflow-y-auto z-100">
                                     {/* All Clinics option */}
                                     <button
                                         key="all-clinics"
@@ -292,7 +310,7 @@ export default function UserManagement() {
                 {users.length === 0 ? (
                     <div className="p-6 text-center text-gray-500">No data available</div>
                 ) : (
-                    <UserDetailsTable users={userList} />
+                    <UserDetailsTable users={userList} onEditUser={handleEditUser} />
                 )}
             </section>
         </div>

@@ -18,6 +18,7 @@ import {
 import { useMutation } from '@tanstack/react-query'
 import axiosApi from '../../service/axiosInstance'
 import useGetSubjectMattersAndClinicsList from '../../hooks/useGetSubjectMattersAndClinicsList'
+import toast from 'daisyui/components/toast'
 
 const Field = ({ label, icon: Icon, children }) => (
   <div>
@@ -57,6 +58,9 @@ const AddNewUserModal = ({
   isOpen,
   onClose,
   onCreated,
+  onRefetch,
+  mode = 'create', // 'create' or 'edit'
+  userId = null,
   roles = ['Admin', 'President', 'Manager', 'Doctor', 'Staff', 'Jr. Staff'],
   clinics = [],
   subjectMatters = [],
@@ -65,15 +69,15 @@ const AddNewUserModal = ({
   if (!isOpen) return null
 
   const [form, setForm] = useState({
-    firstName: 'Sahil',
-    lastName: 'Khan',
-    email: 'usermail@gmail.com',
-    phone: '+999999999',
-    password: '1234569',
-    role: 'Manager',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    role: '',
     startDate: new Date().toISOString().slice(0, 10),
-    employeeId: '00125',
-    knowledgeLevel: '8',
+    employeeId: '',
+    knowledgeLevel: '',
     clinics: [],
     clinicIds: [],
     subjectMatter: '',
@@ -81,35 +85,85 @@ const AddNewUserModal = ({
     status: 'Active',
   })
   const [showPassword, setShowPassword] = useState(false)
+  const [loadingUserData, setLoadingUserData] = useState(false)
 
-  // Mutation for creating user
+  // Fetch user data when in edit mode
+  React.useEffect(() => {
+    if (mode === 'edit' && userId && isOpen) {
+      setLoadingUserData(true)
+      axiosApi.get(`/api/v1/users/${userId}/`)
+        .then((response) => {
+          const userData = response.data
+          console.log(userData)
+          // Map API data to form state
+          setForm({
+            firstName: userData.first_name || '',
+            lastName: userData.last_name || '',
+            email: userData.email || '',
+            phone: userData.phone || '',
+            password: '', // Don't pre-fill password
+            role: userData.role ? userData.role.charAt(0).toUpperCase() + userData.role.slice(1) : '',
+            startDate: userData.joining_date || new Date().toISOString().slice(0, 10),
+            employeeId: userData.employee_id || '',
+            knowledgeLevel: String(userData.knowledge_level || ''),
+            clinics: userData.clinics || [],
+            clinicIds: userData.clinic_ids || [],
+            subjectMatter: userData.subject_matters?.[0]?.title || '',
+            subjectMatterId: userData.subject_matters?.[0]?.id || null,
+            status: userData.is_blocked ? 'Blocked' : userData.is_active ? 'Active' : 'Pending',
+          })
+          setLoadingUserData(false)
+        })
+        .catch((error) => {
+          console.error('[AddNewUserModal] Failed to fetch user data:', error)
+          alert('Failed to load user data')
+          setLoadingUserData(false)
+          onClose()
+        })
+    }
+  }, [mode, userId, isOpen])
+
+  // Mutation for creating/updating user
   const createUserMutation = useMutation({
     mutationFn: async (payload) => {
-      const response = await axiosApi.post('/api/v1/users/create/', payload)
-      return response.data
+      if (mode === 'edit' && userId) {
+        console.log(userId)
+        console.log(payload)
+        const response = await axiosApi.patch(`/api/v1/users/${userId}/update/`, payload)
+        return response.data
+      } else {
+        const response = await axiosApi.post('/api/v1/users/create/', payload)
+        return response.data
+      }
     },
     onSuccess: (data) => {
-      console.log('[AddNewUserModal] User created successfully:', data)
+      console.log(mode === 'edit' ? 'User updated successfully:' : 'User created successfully:', data)
       onCreated && onCreated(data)
+      onRefetch && onRefetch()
       onClose && onClose()
     },
     onError: (error) => {
-      console.error('[AddNewUserModal] POST failed:', error)
-      alert('Failed to create user. See console for details.')
+      console.error(`[AddNewUserModal] ${mode === 'edit' ? 'PUT' : 'POST'} failed:`, error)
+      alert(error?.response?.data?.message || `Failed to ${mode === 'edit' ? 'update' : 'create'} user.`);
     },
   })
 
   const canSubmit = useMemo(() => {
-    return (
+    const baseValidation = 
       form.firstName &&
       form.lastName &&
       /@/.test(form.email) &&
-      form.password &&
       form.role &&
       form.employeeId &&
-      form.status
-    )
-  }, [form])
+      form.status;
+    
+    // Password is only required in create mode
+    if (mode === 'create') {
+      return baseValidation && form.password;
+    }
+    
+    return baseValidation;
+  }, [form, mode])
 
   const update = (key) => (eOrValue) => {
     const value = eOrValue?.target ? eOrValue.target.value : eOrValue
@@ -152,7 +206,6 @@ const AddNewUserModal = ({
       role: form.role.toLowerCase(),
       is_active: form.status === 'Active',
       clinic_ids: form.clinicIds,
-      password: form.password,
       picture: null,
       subject_ids: form.subjectMatterId ? [form.subjectMatterId] : [],
       employee_id: form.employeeId,
@@ -160,6 +213,11 @@ const AddNewUserModal = ({
       is_blocked: form.status === 'Blocked',
       joining_date: form.startDate,
       phone: form.phone,
+    }
+
+    // Only include password if it's set (required for create, optional for edit)
+    if (form.password) {
+      payload.password = form.password
     }
 
     console.log('[AddNewUserModal] Submitting payload:', payload)
@@ -177,7 +235,7 @@ const AddNewUserModal = ({
       <div className="bg-white w-full max-w-full sm:max-w-2xl md:max-w-4xl lg:max-w-5xl rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="px-4 sm:px-6 md:px-8 py-4 sm:py-5 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10">
-          <h2 id="add-user-title" className="text-lg sm:text-xl font-semibold text-gray-800">Add New User</h2>
+          <h2 id="add-user-title" className="text-lg sm:text-xl font-semibold text-gray-800">{mode === 'edit' ? 'Update User' : 'Add New User'}</h2>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100" aria-label="Close">
             <FiX className="w-5 h-5" />
           </button>
@@ -246,7 +304,7 @@ const AddNewUserModal = ({
             </Field>
 
             {/* Password */}
-            <Field label="Set Password" icon={FiLock}>
+            <Field label={mode === 'edit' ? 'Change Password (leave empty to keep current)' : 'Set Password'} icon={FiLock}>
               <div className="relative">
                 <FiLock className="absolute left-3 top-2.5 text-gray-500" />
                 <input
@@ -255,7 +313,7 @@ const AddNewUserModal = ({
                   onChange={update('password')}
                   className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="••••••••"
-                  required
+                  required={mode === 'create'}
                 />
                 <button
                   type="button"
@@ -437,11 +495,11 @@ const AddNewUserModal = ({
             </button>
             <button
               type="submit"
-              disabled={!canSubmit || createUserMutation.isPending}
-              className={`px-5 py-2 rounded-lg text-white font-semibold transition ${!canSubmit || createUserMutation.isPending ? 'bg-teal-300 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'
+              disabled={!canSubmit || createUserMutation.isPending || loadingUserData}
+              className={`px-5 py-2 rounded-lg text-white font-semibold transition ${!canSubmit || createUserMutation.isPending || loadingUserData ? 'bg-teal-300 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'
                 }`}
             >
-              {createUserMutation.isPending ? 'Adding…' : 'Add User'}
+              {loadingUserData ? 'Loading...' : createUserMutation.isPending ? (mode === 'edit' ? 'Updating…' : 'Adding…') : (mode === 'edit' ? 'Update User' : 'Add User')}
             </button>
           </div>
         </form>

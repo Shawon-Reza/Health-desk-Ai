@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { FiSearch, FiChevronDown, FiUserPlus } from "react-icons/fi";
 import UserDetailsTable from "./UserDetailsTable";
 import AddNewUserModal from "./AddNewUserModal";
+import ChangePasswordModal from "./ChangePasswordModal";
 import useGetSubjectMattersAndClinicsList from "../../hooks/useGetSubjectMattersAndClinicsList";
 
 export default function UserManagement() {
@@ -14,6 +15,9 @@ export default function UserManagement() {
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
     const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
     const [selectedUserId, setSelectedUserId] = useState(null);
+    const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+    const [changePasswordUserId, setChangePasswordUserId] = useState(null);
+    const [changePasswordUserName, setChangePasswordUserName] = useState('');
 
     const [showRoleDropdown, setShowRoleDropdown] = useState(false);
     const [showClinicDropdown, setShowClinicDropdown] = useState(false);
@@ -111,6 +115,19 @@ export default function UserManagement() {
         setModalMode('edit');
         setSelectedUserId(userId);
         setIsAddUserOpen(true);
+    };
+
+    const handleChangePassword = (userId, userName) => {
+        console.log("[UserManagement] Change password clicked for ID:", userId);
+        setChangePasswordUserId(userId);
+        setChangePasswordUserName(userName);
+        setIsChangePasswordOpen(true);
+    };
+
+    const handleCloseChangePassword = () => {
+        setIsChangePasswordOpen(false);
+        setChangePasswordUserId(null);
+        setChangePasswordUserName('');
     };
 
     const handleCloseAddUser = () => {
@@ -310,9 +327,17 @@ export default function UserManagement() {
                 {users.length === 0 ? (
                     <div className="p-6 text-center text-gray-500">No data available</div>
                 ) : (
-                    <UserDetailsTable users={userList} onEditUser={handleEditUser} />
+                    <UserDetailsTable users={userList} onEditUser={handleEditUser} onChangePassword={handleChangePassword} />
                 )}
             </section>
+
+            {/* Change Password Modal */}
+            <ChangePasswordModal
+                isOpen={isChangePasswordOpen}
+                onClose={handleCloseChangePassword}
+                userId={changePasswordUserId}
+                userName={changePasswordUserName}
+            />
         </div>
     );
 }

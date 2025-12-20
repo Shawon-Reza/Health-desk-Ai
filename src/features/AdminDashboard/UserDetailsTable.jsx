@@ -3,7 +3,7 @@ import { use, useState, useRef, useEffect } from "react"
 import { FiUser, FiMoreVertical } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
 
-export default function UserDetailsTable({ users = [], onEditUser }) {
+export default function UserDetailsTable({ users = [], onEditUser, onChangePassword }) {
   const navigate = useNavigate();
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
@@ -36,7 +36,9 @@ export default function UserDetailsTable({ users = [], onEditUser }) {
     e.stopPropagation();
     console.log("[v0] Change password for user ID:", userId);
     setOpenMenuId(null);
-    // Add your change password logic here
+    const user = users.find(u => u.id === userId);
+    const userName = user?.full_name || user?.email || '';
+    onChangePassword && onChangePassword(userId, userName);
   }
   //..............Handle Delete/Archive User..............\\
   const handleDeleteArchive = (userId, e) => {
@@ -137,6 +139,7 @@ export default function UserDetailsTable({ users = [], onEditUser }) {
                           >
                             Change Password
                           </button>
+
                           <button
                             onClick={(e) => handleDeleteArchive(user.id, e)}
                             className="w-full px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 hover:bg-red-50 rounded-lg transition-colors"

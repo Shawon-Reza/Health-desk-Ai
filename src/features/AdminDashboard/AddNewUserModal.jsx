@@ -15,24 +15,9 @@ import {
   FiTag,
   FiChevronDown,
 } from 'react-icons/fi'
+import { useMutation } from '@tanstack/react-query'
+import axiosApi from '../../service/axiosInstance'
 import useGetSubjectMattersAndClinicsList from '../../hooks/useGetSubjectMattersAndClinicsList'
-
-// Simple API helper that can be swapped with a real client
-async function createUser(payload) {
-  const API_BASE = import.meta.env.VITE_API_BASE_URL
-  if (API_BASE) {
-    const res = await fetch(`${API_BASE}/users`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    if (!res.ok) throw new Error(`Failed to create user: ${res.status}`)
-    return res.json()
-  }
-  console.warn('[AddNewUserModal] VITE_API_BASE_URL not set. Simulating POST...')
-  await new Promise((r) => setTimeout(r, 500))
-  return { id: String(Date.now()), ...payload }
-}
 
 const Field = ({ label, icon: Icon, children }) => (
   <div>
@@ -96,7 +81,23 @@ const AddNewUserModal = ({
     status: 'Active',
   })
   const [showPassword, setShowPassword] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+
+  // Mutation for creating user
+  const createUserMutation = useMutation({
+    mutationFn: async (payload) => {
+      const response = await axiosApi.post('/api/v1/users/create/', payload)
+      return response.data
+    },
+    onSuccess: (data) => {
+      console.log('[AddNewUserModal] User created successfully:', data)
+      onCreated && onCreated(data)
+      onClose && onClose()
+    },
+    onError: (error) => {
+      console.error('[AddNewUserModal] POST failed:', error)
+      alert('Failed to create user. See console for details.')
+    },
+  })
 
   const canSubmit = useMemo(() => {
     return (
@@ -142,25 +143,27 @@ const AddNewUserModal = ({
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!canSubmit) return
-    setSubmitting(true)
+
+    // Map form data to API payload structure
     const payload = {
-      ...form,
-      name: `${form.firstName} ${form.lastName}`.trim(),
+      email: form.email,
+      first_name: form.firstName,
+      last_name: form.lastName,
+      role: form.role.toLowerCase(),
+      is_active: form.status === 'Active',
+      clinic_ids: form.clinicIds,
+      password: form.password,
+      picture: null,
+      subject_ids: form.subjectMatterId ? [form.subjectMatterId] : [],
+      employee_id: form.employeeId,
+      knowledge_level: parseInt(form.knowledgeLevel) || 0,
+      is_blocked: form.status === 'Blocked',
+      joining_date: form.startDate,
+      phone: form.phone,
     }
+
     console.log('[AddNewUserModal] Submitting payload:', payload)
-    console.log('[AddNewUserModal] Selected Clinic IDs:', form.clinicIds)
-    console.log('[AddNewUserModal] Selected Subject Matter ID:', form.subjectMatterId)
-    try {
-      const created = await createUser(payload)
-      console.log('[AddNewUserModal] POST success:', created)
-      onCreated && onCreated(created)
-      onClose && onClose()
-    } catch (err) {
-      console.error('[AddNewUserModal] POST failed:', err)
-      alert('Failed to create user. See console for details.')
-    } finally {
-      setSubmitting(false)
-    }
+    createUserMutation.mutate(payload)
   }
 
 
@@ -434,11 +437,11 @@ const AddNewUserModal = ({
             </button>
             <button
               type="submit"
-              disabled={!canSubmit || submitting}
-              className={`px-5 py-2 rounded-lg text-white font-semibold transition ${!canSubmit || submitting ? 'bg-teal-300 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'
+              disabled={!canSubmit || createUserMutation.isPending}
+              className={`px-5 py-2 rounded-lg text-white font-semibold transition ${!canSubmit || createUserMutation.isPending ? 'bg-teal-300 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'
                 }`}
             >
-              {submitting ? 'Adding…' : 'Add User'}
+              {createUserMutation.isPending ? 'Adding…' : 'Add User'}
             </button>
           </div>
         </form>

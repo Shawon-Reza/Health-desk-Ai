@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom"
 export default function UserDetailsTable({ users = [] }) {
   const navigate = useNavigate();
 
-
+console.log("User:",users)
 
 
   const handleViewDetails = (userId) => {
@@ -20,13 +20,13 @@ export default function UserDetailsTable({ users = [] }) {
   }
 
   return (
-    <div className="border border-gray-300 rounded-lg p-4">
+    <div className="border border-gray-300 rounded-lg p-4 ">
       <h2 className="text-xl font-bold text-gray-900 mb-4">Users Details</h2>
 
       {/* Table Container */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto max-h-[calc(100vh-450px)] ">
         <table className="w-full">
-          <thead>
+          <thead className="sticky top-0 z-10">
             <tr className="border-b border-gray-300 bg-gray-100">
               <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">ID NO</th>
               <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">User Name</th>
@@ -44,26 +44,30 @@ export default function UserDetailsTable({ users = [] }) {
                 <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
                   onClick={() => handleViewDetails(user.id)}
                 >
-                  <td className="px-4 py-3 text-sm text-gray-900">{user.id}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{user.employee_id}</td>
                   <td className="px-4 py-3 text-sm text-gray-900">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
                         <FiUser size={16} className="text-primary" />
                       </div>
-                      {user.name}
+                      {user.full_name}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600">{user.email}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{user.subjectMatters}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{user.subject_matters}</td>
                   <td className="px-4 py-3 text-sm flex items-center justify-center">
                     <span className={`px-4 py-2  rounded-full text-xs font-semibold ${user.roleColor}`}>
-                      {user.role}
+                      {user.role.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{user.clinic}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {
+                    user.clinics.join(", ")
+                    }
+                    </td>
                   <td className=" text-sm">
                     <span className={`px-3 py-3 h-full flex items-center text-xs font-semibold justify-center ${user.statusColor}`}>
-                      {user.status}
+                      {user.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm">

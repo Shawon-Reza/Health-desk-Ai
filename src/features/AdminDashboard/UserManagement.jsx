@@ -30,101 +30,63 @@ export default function UserManagement() {
     ];
     const clinics = ["All Clinics"]; // kept for the "All Clinics" label; real data comes from the hook
 
-    const mockUsers = [
-        {
-            id: "01",
-            name: "Dr. Sarah Jhonson",
-            email: "admin@example.com",
-            subjectMatters: "N/A",
-            role: "Admin",
-            roleColor: "bg-pink-200 text-pink-700",
-            clinic: "Downtown Medical Center",
-            status: "Active",
-            statusColor: "bg-green-500 text-white",
-        },
-        {
-            id: "02",
-            name: "Dr. Zara Khan",
-            email: "zarakhah@example.com",
-            subjectMatters: "Eye Specialist",
-            role: "President",
-            roleColor: "bg-blue-200 text-blue-700",
-            clinic: "Downtown Medical Center",
-            status: "Active",
-            statusColor: "bg-green-500 text-white",
-        },
-        {
-            id: "03",
-            name: "Dr. Zara Khan",
-            email: "zarakhah@example.com",
-            subjectMatters: "Eye Specialist",
-            role: "President",
-            roleColor: "bg-blue-200 text-blue-700",
-            clinic: "Downtown Medical Center",
-            status: "Active",
-            statusColor: "bg-green-500 text-white",
-        },
-        {
-            id: "04",
-            name: "Dr. Zara Khan",
-            email: "zarakhah@example.com",
-            subjectMatters: "Eye Specialist",
-            role: "President",
-            roleColor: "bg-blue-200 text-blue-700",
-            clinic: "Downtown Medical Center",
-            status: "Active",
-            statusColor: "bg-green-500 text-white",
-        },
-        {
-            id: "01",
-            name: "Dr. Sarah Jhonson",
-            email: "admin@example.com",
-            subjectMatters: "N/A",
-            role: "Admin",
-            roleColor: "bg-pink-200 text-pink-700",
-            clinic: "Downtown Medical Center",
-            status: "Active",
-            statusColor: "bg-green-500 text-white",
-        },
-        {
-            id: "02",
-            name: "Dr. Zara Khan",
-            email: "zarakhah@example.com",
-            subjectMatters: "Eye Specialist",
-            role: "President",
-            roleColor: "bg-blue-200 text-blue-700",
-            clinic: "Downtown Medical Center",
-            status: "Active",
-            statusColor: "bg-green-500 text-white",
-        },
-        {
-            id: "03",
-            name: "Dr. Zara Khan",
-            email: "zarakhah@example.com",
-            subjectMatters: "Eye Specialist",
-            role: "President",
-            roleColor: "bg-blue-200 text-blue-700",
-            clinic: "Downtown Medical Center",
-            status: "Active",
-            statusColor: "bg-green-500 text-white",
-        },
-        {
-            id: "04",
-            name: "Dr. Zara Khan",
-            email: "zarakhah@example.com",
-            subjectMatters: "Eye Specialist",
-            role: "President",
-            roleColor: "bg-blue-200 text-blue-700",
-            clinic: "Downtown Medical Center",
-            status: "Active",
-            statusColor: "bg-green-500 text-white",
-        },
-        // Add others...
-    ];
+    // ================ FETCH CLINICS AND SUBJECT MATTERS ================
+    const {
+        userList,
+        clinicsList,
+        subjectMattersList,
+        isLoading,
+        error,
+        refetch
+    } = useGetSubjectMattersAndClinicsList()
 
+    console.log("User list :", userList);
+
+
+
+    // map API user shape to table row shape
+    const mapUserFromApi = (u, idx) => {
+        const roleColorMap = {
+            owner: "bg-pink-200 text-pink-700",
+            admin: "bg-pink-200 text-pink-700",
+            doctor: "bg-blue-200 text-blue-700",
+            manager: "bg-purple-200 text-purple-700",
+            staff: "bg-amber-200 text-amber-700",
+            default: "bg-gray-200 text-gray-700",
+        };
+        const statusColorMap = {
+            Active: "bg-green-500 text-white",
+            Blocked: "bg-red-500 text-white",
+            Pending: "bg-yellow-500 text-white",
+        };
+
+        const subjectMattersValue = Array.isArray(u.subject_matters) && u.subject_matters.length
+            ? (u.subject_matters[0].title || u.subject_matters[0])
+            : "N/A";
+        const clinicValue = Array.isArray(u.clinics) && u.clinics.length ? u.clinics[0] : "N/A";
+        const statusValue = u.is_blocked ? "Blocked" : u.is_active ? "Active" : "Pending";
+
+        return {
+            id: String(u.id ?? idx + 1).padStart(2, "0"),
+            name: `${u.first_name ?? ""} ${u.last_name ?? ""}`.trim() || u.email,
+            email: u.email,
+            subjectMatters: subjectMattersValue,
+            role: u.role,
+            roleColor: roleColorMap[u.role] || roleColorMap.default,
+            clinic: clinicValue,
+            status: statusValue,
+            statusColor: statusColorMap[statusValue] || statusColorMap.Pending,
+        };
+    };
+
+    // when API data arrives, populate the table rows
     useEffect(() => {
-        setUsers(mockUsers);
-    }, []);
+        if (Array.isArray(userList) && userList.length) {
+            setUsers(userList.map((u, idx) => mapUserFromApi(u, idx)));
+        } else {
+            setUsers([]);
+        }
+    }, [userList]);
 
     useEffect(() => {
         const filterParams = {
@@ -133,7 +95,7 @@ export default function UserManagement() {
             clinic: selectedClinicId || null,
         };
         console.log("[UserManagement] Filters applied:", filterParams);
-    }, [searchQuery, selectedRole, selectedClinic]);
+    }, [searchQuery, selectedRole, selectedClinicId]);
 
     const handleAddUser = () => {
         console.log("[UserManagement] Add user clicked");
@@ -210,19 +172,10 @@ export default function UserManagement() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [showRoleDropdown, showClinicDropdown]);
 
-    // ================ FETCH CLINICS AND SUBJECT MATTERS ================
-    const {
-        clinicsList,
-        subjectMattersList,
-        isLoading,
-        error,
-        refetch
-    } = useGetSubjectMattersAndClinicsList()
 
-    console.log("clinic list :", clinicsList)
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 max-h-[calc(100dvh-148px)] overflow-hidden">
             {/* Add New User Modal */}
             <AddNewUserModal
                 isOpen={isAddUserOpen}
@@ -336,7 +289,11 @@ export default function UserManagement() {
 
             {/* UserDetailsTable placeholder */}
             <section className="max-h-[calc(100vh-320px)] overflow-auto bg-white">
-                <UserDetailsTable users={users} />
+                {users.length === 0 ? (
+                    <div className="p-6 text-center text-gray-500">No data available</div>
+                ) : (
+                    <UserDetailsTable users={userList} />
+                )}
             </section>
         </div>
     );

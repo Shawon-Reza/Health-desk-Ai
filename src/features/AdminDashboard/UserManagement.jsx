@@ -27,7 +27,7 @@ export default function UserManagement() {
 
     const roles = [
         "All Roles",
-        "Admin",
+       
         "President",
         "Manager",
         "Doctor",

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { FiLock, FiEye, FiEyeOff } from "react-icons/fi";
+import { useMutation } from "@tanstack/react-query";
+import axiosApi from "../../service/axiosInstance";
 
 /** Password Field Component */
 const PasswordField = ({ label, name, value, showPassword, onChange, onToggle, error }) => (
@@ -45,7 +47,28 @@ export default function Security() {
   });
 
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (payload) => {
+      const response = await axiosApi.post('/api/v1/users/password/reset/', payload)
+      return response.data
+    },
+    onSuccess: () => {
+      alert('Password changed successfully!')
+      setFormData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      })
+      setErrors({})
+    },
+    onError: (error) => {
+      const message = error?.response?.data?.message || error?.response?.data?.detail || 'Failed to change password. Please try again.'
+      setErrors({ submit: message })
+      console.log(message)
+      console.log(error)
+    }
+  })
 
   /** Handle Input Change */
   const handleInputChange = (e) => {
@@ -81,27 +104,20 @@ export default function Security() {
 
   /** Handle Save Changes */
   const handleSaveChanges = async () => {
+    // Log all input field data on Save Changes click
+    console.log('[Security] Save Changes clicked:', {
+      currentPassword: formData.currentPassword,
+      newPassword: formData.newPassword,
+      confirmPassword: formData.confirmPassword,
+    })
+
     if (!validateForm()) return;
 
-    setLoading(true);
-    try {
-      // Simulate backend API request
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      alert("Password changed successfully!");
-
-      // Reset form after success
-      setFormData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-      setErrors({});
-    } catch {
-      setErrors({ submit: "Failed to change password. Please try again." });
-    } finally {
-      setLoading(false);
-    }
+    resetPasswordMutation.mutate({
+      old_password: formData.currentPassword,
+      password1: formData.newPassword,
+      password2: formData.confirmPassword,
+    })
   };
 
   /** Handle Cancel */
@@ -166,11 +182,11 @@ export default function Security() {
           </button>
           <button
             onClick={handleSaveChanges}
-            disabled={loading}
+            disabled={resetPasswordMutation.isPending}
             className="px-6 py-2 rounded-lg font-medium text-white transition-all disabled:opacity-50"
             style={{ backgroundColor: "var(--color-primary)" }}
           >
-            {loading ? "Saving..." : "Save Changes"}
+            {resetPasswordMutation.isPending ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </div>

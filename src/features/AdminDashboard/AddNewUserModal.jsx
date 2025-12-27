@@ -61,7 +61,7 @@ const AddNewUserModal = ({
   onRefetch,
   mode = 'create', // 'create' or 'edit'
   userId = null,
-  roles = ['Admin', 'President', 'Manager', 'Doctor', 'Staff', 'Jr. Staff'],
+  roles = ['President', 'Manager', 'Doctor', 'Staff', 'Jr. Staff'],
   clinics = [],
   subjectMatters = [],
   isLoading = false,
@@ -210,7 +210,7 @@ const AddNewUserModal = ({
       subject_ids: form.subjectMatterId ? [form.subjectMatterId] : [],
       employee_id: form.employeeId,
       knowledge_level: parseInt(form.knowledgeLevel) || 0,
-      is_blocked: form.status === 'Blocked',
+      // is_blocked: form.status === 'Blocked',
       joining_date: form.startDate,
       phone: form.phone,
     }
@@ -477,7 +477,7 @@ const AddNewUserModal = ({
               <Select
                 value={form.status}
                 onChange={update('status')}
-                options={['Active', 'Blocked', 'Pending']}
+                options={['Active', 'Inactive']}
                 leftIcon={FiUser}
                 placeholder="Select status"
               />

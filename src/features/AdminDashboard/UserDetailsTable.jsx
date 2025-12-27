@@ -1,12 +1,17 @@
 "use client"
-import { use, useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect } from "react"
 import { FiUser, FiMoreVertical } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "react-toastify"
+import axiosApi from "../../service/axiosInstance"
 
 export default function UserDetailsTable({ users = [], onEditUser, onChangePassword }) {
   const navigate = useNavigate();
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
+  const queryClient = useQueryClient();
+  const [statusUpdatingId, setStatusUpdatingId] = useState(null);
 
   console.log("User:", users)
 
@@ -54,6 +59,32 @@ export default function UserDetailsTable({ users = [], onEditUser, onChangePassw
     setOpenMenuId(null);
     onEditUser && onEditUser(userId);
   }
+
+  const statusMutation = useMutation({
+    mutationFn: async ({ userId, nextStatus }) => {
+      const payload = { is_active: !!nextStatus };
+      console.log(payload)
+      const response = await axiosApi.patch(`/api/v1/users/status/${userId}/`, payload);
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      toast.success(`User ${variables.nextStatus ? "activated" : "deactivated"} successfully`);
+      queryClient.invalidateQueries({ queryKey: ["userList"] });
+    },
+    onError: (error) => {
+      const message = error?.response?.data?.message || "Failed to update status";
+      toast.error(message);
+    },
+    onSettled: () => {
+      setStatusUpdatingId(null);
+    }
+  });
+
+  const handleToggleStatus = (userId, currentStatus, e) => {
+    e.stopPropagation();
+    setStatusUpdatingId(userId);
+    statusMutation.mutate({ userId, nextStatus: !currentStatus });
+  };
 
   return (
     <div className="border border-gray-300 rounded-lg p-4 ">
@@ -103,10 +134,20 @@ export default function UserDetailsTable({ users = [], onEditUser, onChangePassw
                       user.clinics.join(", ")
                     }
                   </td>
-                  <td className=" text-sm">
-                    <span className={`px-3 py-3 h-full flex items-center text-xs font-semibold justify-center ${user.is_active ? 'bg-green-100 text-green-800 rounded-md' : 'bg-red-100 text-red-800 rounded-md'}`}>
-                      {user.is_active ? 'Active' : 'Inactive'}
-                    </span>
+
+
+                  <td className="px-4 py-3 text-sm">
+                    <button
+                      onDoubleClick={(e) => handleToggleStatus(user.id, user.is_active, e)}
+                      disabled={statusMutation.isPending && statusUpdatingId === user.id}
+                      className={`px-3 py-2 w-full h-full flex items-center justify-center text-xs font-semibold rounded-md transition-colors ${
+                        user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      } ${statusMutation.isPending && statusUpdatingId === user.id ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'}`}
+                    >
+                      {statusMutation.isPending && statusUpdatingId === user.id
+                        ? 'Updating...'
+                        : user.is_active ? 'Active' : 'Inactive'}
+                    </button>
                   </td>
                   <td className="px-4 py-3 text-sm relative">
                     <button
@@ -116,7 +157,7 @@ export default function UserDetailsTable({ users = [], onEditUser, onChangePassw
                       <FiMoreVertical size={18} className="text-gray-600 z-0" />
                     </button>
 
-                    {/* Action Menu Popup */}
+                    {/*.............**Action Menu Popup**.................. */}
                     {openMenuId === user.id && (
                       <div
                         ref={menuRef}

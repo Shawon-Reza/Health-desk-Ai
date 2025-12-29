@@ -2,26 +2,15 @@
 
 import { useState, useEffect } from "react"
 import { FiBell } from "react-icons/fi"
+import axiosApi from "../../service/axiosInstance"
+import { toast } from "react-toastify"
 
 const Notifications = () => {
-    const [notifications, setNotifications] = useState([])
+    const [notifications, setNotifications] = useState({
+        notify_assessments: false,
+        notify_tagged_messages: false
+    })
     const [loading, setLoading] = useState(true)
-
-    // Mock data - Replace with your backend API call
-    const mockNotifications = [
-        {
-            id: 1,
-            name: "Assessments Reminder",
-            enabled: true,
-            description: "Get reminded about upcoming assessments",
-        },
-        {
-            id: 2,
-            name: "Tagged Message Reminder",
-            enabled: true,
-            description: "Get notified when you are tagged in messages",
-        },
-    ]
 
     // Fetch notifications data
     useEffect(() => {
@@ -34,49 +23,44 @@ const Notifications = () => {
             console.log("[v0] Fetching notifications data...")
             setLoading(true)
 
-            // Replace this with your actual API call
-            // const response = await fetch('/api/notifications');
-            // const data = await response.json();
-
-            // Using mock data for now
-            setNotifications(mockNotifications)
-            console.log("[v0] Notifications data loaded:", mockNotifications)
+            const response = await axiosApi.get('/api/v1/users/notifications/')
+            const data = response.data
+            console.log("[v0] Notifications API response:", data)
+            
+            setNotifications({
+                notify_assessments: data.notify_assessments ?? false,
+                notify_tagged_messages: data.notify_tagged_messages ?? false
+            })
+            console.log("[v0] Notifications data loaded:", data)
             setLoading(false)
         } catch (error) {
             console.error("[v0] Error fetching notifications:", error)
+            toast.error("Failed to load notification preferences")
             setLoading(false)
         }
     }
 
-    const handleToggle = (id, currentState) => {
-        console.log(`[v0] Toggling notification ID: ${id}, Current state: ${currentState}`)
+    const handleToggle = async (key) => {
+        const currentState = notifications[key]
+        console.log(`[v0] Toggling notification: ${key}, Current state: ${currentState}`)
 
-        const updatedNotifications = notifications.map((notif) =>
-            notif.id === id ? { ...notif, enabled: !notif.enabled } : notif,
-        )
-
+        // Optimistically update UI
+        const updatedNotifications = {
+            ...notifications,
+            [key]: !currentState
+        }
         setNotifications(updatedNotifications)
-        console.log("[v0] Updated notifications:", updatedNotifications)
 
-        // Call your backend API to save the change
-        updateNotificationPreference(id, !currentState)
-    }
-
-    const updateNotificationPreference = async (id, enabled) => {
+        // Call backend API to save the change
         try {
-            console.log(`[v0] Updating notification preference - ID: ${id}, Enabled: ${enabled}`)
-
-            // Replace this with your actual API call
-            // const response = await fetch(`/api/notifications/${id}`, {
-            //   method: 'PUT',
-            //   headers: { 'Content-Type': 'application/json' },
-            //   body: JSON.stringify({ enabled })
-            // });
-            // const data = await response.json();
-
-            console.log(`[v0] Notification preference updated successfully`)
+            const response = await axiosApi.patch('/api/v1/users/notifications/', updatedNotifications)
+            console.log('[v0] Notification preference updated successfully:', response.data)
+            toast.success('Notification preference updated')
         } catch (error) {
-            console.error("[v0] Error updating notification preference:", error)
+            console.error('[v0] Error updating notification preference:', error)
+            toast.error('Failed to update notification preference')
+            // Revert on error
+            setNotifications(notifications)
         }
     }
 
@@ -95,40 +79,64 @@ const Notifications = () => {
                 <hr className="border border-gray-300" />
 
                 <div className="space-y-4">
-                    {notifications.map((notification) => (
-                        <div key={notification.id}>
-                            <div className="flex items-center justify-between py-4">
-                                <div className="flex items-center gap-4">
-                                    <FiBell size={24} style={{ color: "#00A4A6" }} />
-                                    <div>
-                                        <p className="text-lg font-medium text-gray-900">{notification.name}</p>
-                                        {notification.description && <p className="text-sm text-gray-500">{notification.description}</p>}
-                                    </div>
+                    {/* Assessments Reminder */}
+                    <div>
+                        <div className="flex items-center justify-between py-4">
+                            <div className="flex items-center gap-4">
+                                <FiBell size={24} style={{ color: "#00A4A6" }} />
+                                <div>
+                                    <p className="text-lg font-medium text-gray-900">Assessments Reminder</p>
+                                    <p className="text-sm text-gray-500">Get reminded about upcoming assessments</p>
                                 </div>
-
-                                {/* Toggle Switch */}
-                                <button
-                                    onClick={() => handleToggle(notification.id, notification.enabled)}
-                                    className={`relative inline-flex h-6 w-14 items-center rounded-full transition-colors ${notification.enabled ? "bg-teal-500" : "bg-gray-300"
-                                        }`}
-                                    style={{
-                                        backgroundColor: notification.enabled ? "#00A4A6" : "#d1d5db",
-                                    }}
-                                    aria-label={`Toggle ${notification.name}`}
-                                >
-                                    <span
-                                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${notification.enabled ? "translate-x-7" : "translate-x-1"
-                                            }`}
-                                    />
-                                </button>
                             </div>
 
-                            {/* Divider */}
-                            {notification.id !== notifications[notifications.length - 1].id && (
-                                <div className="border-b border-gray-200"></div>
-                            )}
+                            {/* Toggle Switch */}
+                            <button
+                                onClick={() => handleToggle('notify_assessments')}
+                                className="relative inline-flex h-6 w-14 items-center rounded-full transition-colors"
+                                style={{
+                                    backgroundColor: notifications.notify_assessments ? "#00A4A6" : "#d1d5db",
+                                }}
+                                aria-label="Toggle Assessments Reminder"
+                            >
+                                <span
+                                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                                        notifications.notify_assessments ? "translate-x-7" : "translate-x-1"
+                                    }`}
+                                />
+                            </button>
                         </div>
-                    ))}
+                        <div className="border-b border-gray-200"></div>
+                    </div>
+
+                    {/* Tagged Message Reminder */}
+                    <div>
+                        <div className="flex items-center justify-between py-4">
+                            <div className="flex items-center gap-4">
+                                <FiBell size={24} style={{ color: "#00A4A6" }} />
+                                <div>
+                                    <p className="text-lg font-medium text-gray-900">Tagged Message Reminder</p>
+                                    <p className="text-sm text-gray-500">Get notified when you are tagged in messages</p>
+                                </div>
+                            </div>
+
+                            {/* Toggle Switch */}
+                            <button
+                                onClick={() => handleToggle('notify_tagged_messages')}
+                                className="relative inline-flex h-6 w-14 items-center rounded-full transition-colors"
+                                style={{
+                                    backgroundColor: notifications.notify_tagged_messages ? "#00A4A6" : "#d1d5db",
+                                }}
+                                aria-label="Toggle Tagged Message Reminder"
+                            >
+                                <span
+                                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                                        notifications.notify_tagged_messages ? "translate-x-7" : "translate-x-1"
+                                    }`}
+                                />
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

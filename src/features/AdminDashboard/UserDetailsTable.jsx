@@ -105,11 +105,11 @@ export default function UserDetailsTable({ users = [], onEditUser, onChangePassw
   }
 
   return (
-    <div className="border border-gray-300 rounded-lg p-4 ">
+    <div className="border border-gray-300 rounded-lg p-4 min-h-[500px] overflow-x-auto ">
       <h2 className="text-xl font-bold text-gray-900 mb-4">Users Details</h2>
 
       {/* Table Container */}
-      <div className="overflow-x-auto max-h-[calc(100vh-450px)] ">
+      <div className="max-h-[calc(100vh-450px)] ">
         <table className="w-full">
           <thead className="sticky top-0 z-10 ">
             <tr className="border-b border-gray-300 bg-gray-100">

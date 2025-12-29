@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "react-toastify"
 import axiosApi from "../../service/axiosInstance"
 
-export default function UserDetailsTable({ users = [], onEditUser, onChangePassword }) {
+export default function UserDetailsTable({ users = [], onEditUser, onChangePassword, isLoading = false, error = null }) {
   const navigate = useNavigate();
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
@@ -86,6 +86,24 @@ export default function UserDetailsTable({ users = [], onEditUser, onChangePassw
     statusMutation.mutate({ userId, nextStatus: !currentStatus });
   };
 
+  if (isLoading) {
+    return (
+      <div className="border border-gray-300 rounded-lg p-4">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Users Details</h2>
+        <div className="px-4 py-8 text-center text-gray-500">Loading users...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="border border-gray-300 rounded-lg p-4">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Users Details</h2>
+        <div className="px-4 py-8 text-center text-red-500">Error loading users</div>
+      </div>
+    )
+  }
+
   return (
     <div className="border border-gray-300 rounded-lg p-4 ">
       <h2 className="text-xl font-bold text-gray-900 mb-4">Users Details</h2>
@@ -93,7 +111,7 @@ export default function UserDetailsTable({ users = [], onEditUser, onChangePassw
       {/* Table Container */}
       <div className="overflow-x-auto max-h-[calc(100vh-450px)] ">
         <table className="w-full">
-          <thead className="sticky top-0 ">
+          <thead className="sticky top-0 z-10 ">
             <tr className="border-b border-gray-300 bg-gray-100">
               <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">ID NO</th>
               <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">User Name</th>
@@ -137,17 +155,24 @@ export default function UserDetailsTable({ users = [], onEditUser, onChangePassw
 
 
                   <td className="px-4 py-3 text-sm">
-                    <button
-                      onDoubleClick={(e) => handleToggleStatus(user.id, user.is_active, e)}
-                      disabled={statusMutation.isPending && statusUpdatingId === user.id}
-                      className={`px-3 py-2 w-full h-full flex items-center justify-center text-xs font-semibold rounded-md transition-colors ${
-                        user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      } ${statusMutation.isPending && statusUpdatingId === user.id ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'}`}
-                    >
-                      {statusMutation.isPending && statusUpdatingId === user.id
-                        ? 'Updating...'
-                        : user.is_active ? 'Active' : 'Inactive'}
-                    </button>
+                    <div className="relative group">
+                      <button
+                        onDoubleClick={(e) => handleToggleStatus(user.id, user.is_active, e)}
+                        disabled={statusMutation.isPending && statusUpdatingId === user.id}
+                        className={`px-3 py-2 w-full h-full flex items-center justify-center text-xs font-semibold rounded-md transition-colors ${
+                          user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        } ${statusMutation.isPending && statusUpdatingId === user.id ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'}`}
+                      >
+                        {statusMutation.isPending && statusUpdatingId === user.id
+                          ? 'Updating...'
+                          : user.is_active ? 'Active' : 'Inactive'}
+                      </button>
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+                        Double click for Active/Inactive
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-sm relative">
                     <button

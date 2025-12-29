@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom"
 import logo from "../../assets/python2.png"
 import { TbLayoutSidebarFilled } from 'react-icons/tb'
 import { BsLayoutSidebarInset } from 'react-icons/bs'
+import { PiFilesThin } from "react-icons/pi";
 
 const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: FiGrid },
@@ -11,7 +12,7 @@ const menuItems = [
     { id: "subject-matters", label: "Subject Matters", icon: FiLock },
     { id: "user-management", label: "User Management", icon: FiUsers },
     { id: "ai-training", label: "AI Training", icon: FiLock },
-    { id: "assessments", label: "Assessments", icon: FiLock },
+    { id: "assessments", label: "Assessments", icon: PiFilesThin },
 
     { id: "settings", label: "Settings", icon: FiSettings },
 ]

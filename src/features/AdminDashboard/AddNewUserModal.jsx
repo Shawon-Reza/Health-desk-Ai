@@ -61,7 +61,7 @@ const AddNewUserModal = ({
   onRefetch,
   mode = 'create', // 'create' or 'edit'
   userId = null,
-  roles = ['President', 'Manager', 'Doctor', 'Staff', 'Jr. Staff'],
+  roles = ['President', 'Manager', 'Doctor', 'Staff', 'jr_staff'],
   clinics = [],
   subjectMatters = [],
   isLoading = false,

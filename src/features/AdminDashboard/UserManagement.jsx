@@ -5,6 +5,8 @@ import UserDetailsTable from "./UserDetailsTable";
 import AddNewUserModal from "./AddNewUserModal";
 import ChangePasswordModal from "./ChangePasswordModal";
 import useGetSubjectMattersAndClinicsList from "../../hooks/useGetSubjectMattersAndClinicsList";
+import { useQuery } from "@tanstack/react-query";
+import axiosApi from "../../service/axiosInstance";
 
 export default function UserManagement() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -27,26 +29,51 @@ export default function UserManagement() {
 
     const roles = [
         "All Roles",
-       
+
         "President",
         "Manager",
         "Doctor",
         "Staff",
-        "Jr. Staff",
+        "jr_staff",
     ];
     const clinics = ["All Clinics"]; // kept for the "All Clinics" label; real data comes from the hook
 
     // ================ FETCH CLINICS AND SUBJECT MATTERS ================
     const {
-        userList,
+
         clinicsList,
         subjectMattersList,
         isLoading,
         error,
         refetch
     } = useGetSubjectMattersAndClinicsList()
+    // ================================================================
+    //================ FETCH USER LIST DATA INCLUDING FILTERING  ==================\\
+    const {
+        data: userList = [],
+        isLoading: userListLoading,
+        error: userListError,
+        refetch: refetchUserList
+    } = useQuery({
+        queryKey: ['userList', searchQuery, selectedRole, selectedClinicId],
+        queryFn: async () => {
+            // Build query parameters
+            const params = new URLSearchParams();
+            if (searchQuery) params.append('search', searchQuery);
+            if (selectedRole && selectedRole !== 'All Roles') params.append('role', selectedRole.toLowerCase());
+            if (selectedClinicId) params.append('clinic', selectedClinicId);
 
+            const queryString = params.toString();
+            const url = queryString ? `/api/v1/users/?${queryString}` : '/api/v1/users/';
+            
+            const response = await axiosApi.get(url)
+            const dataArray = Array.isArray(response.data) ? response.data : response.data?.results || response.data?.data || []
+            return dataArray
+        },
+    })
     console.log("User list :", userList);
+
+
 
 
 
@@ -144,7 +171,7 @@ export default function UserManagement() {
             Manager: "bg-purple-200 text-purple-700",
             Doctor: "bg-emerald-200 text-emerald-700",
             Staff: "bg-amber-200 text-amber-700",
-            "Jr. Staff": "bg-amber-100 text-amber-700",
+            "jr_staff": "bg-amber-100 text-amber-700",
         };
         const statusColorMap = {
             Active: "bg-green-500 text-white",
@@ -268,7 +295,7 @@ export default function UserManagement() {
                                 <FiChevronDown size={16} className="flex-shrink-0" />
                             </button>
                             {showRoleDropdown && (
-                                <div className="absolute left-0 md:right-0 md:left-auto mt-2 w-full md:w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                                <div className="absolute left-0 md:right-0 md:left-auto mt-2 w-full md:w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
                                     {roles.map((role) => (
                                         <button
                                             key={role}
@@ -324,11 +351,13 @@ export default function UserManagement() {
 
             {/* UserDetailsTable placeholder */}
             <section className="max-h-[calc(100vh-320px)] overflow-auto bg-white">
-                {users.length === 0 ? (
-                    <div className="p-6 text-center text-gray-500">No data available</div>
-                ) : (
-                    <UserDetailsTable users={userList} onEditUser={handleEditUser} onChangePassword={handleChangePassword} />
-                )}
+                <UserDetailsTable 
+                  users={userList} 
+                  onEditUser={handleEditUser} 
+                  onChangePassword={handleChangePassword}
+                  isLoading={userListLoading}
+                  error={userListError}
+                />
             </section>
 
             {/* Change Password Modal */}

@@ -65,7 +65,7 @@ export default function UserManagement() {
 
             const queryString = params.toString();
             const url = queryString ? `/api/v1/users/?${queryString}` : '/api/v1/users/';
-            
+
             const response = await axiosApi.get(url)
             const dataArray = Array.isArray(response.data) ? response.data : response.data?.results || response.data?.data || []
             return dataArray
@@ -89,15 +89,14 @@ export default function UserManagement() {
         };
         const statusColorMap = {
             Active: "bg-green-500 text-white",
-            Blocked: "bg-red-500 text-white",
-            Pending: "bg-yellow-500 text-white",
+            Inactive: "bg-red-500 text-white",
         };
 
         const subjectMattersValue = Array.isArray(u.subject_matters) && u.subject_matters.length
             ? (u.subject_matters[0].title || u.subject_matters[0])
             : "N/A";
         const clinicValue = Array.isArray(u.clinics) && u.clinics.length ? u.clinics[0] : "N/A";
-        const statusValue = u.is_blocked ? "Blocked" : u.is_active ? "Active" : "Pending";
+        const statusValue = u.is_active ? "Active" : "Inactive";
 
         return {
             id: String(u.id ?? idx + 1).padStart(2, "0"),
@@ -108,7 +107,7 @@ export default function UserManagement() {
             roleColor: roleColorMap[u.role] || roleColorMap.default,
             clinic: clinicValue,
             status: statusValue,
-            statusColor: statusColorMap[statusValue] || statusColorMap.Pending,
+            statusColor: statusColorMap[statusValue] || statusColorMap.Inactive,
         };
     };
 
@@ -351,12 +350,12 @@ export default function UserManagement() {
 
             {/* UserDetailsTable placeholder */}
             <section className="max-h-[calc(100vh-320px)] overflow-auto bg-white">
-                <UserDetailsTable 
-                  users={userList} 
-                  onEditUser={handleEditUser} 
-                  onChangePassword={handleChangePassword}
-                  isLoading={userListLoading}
-                  error={userListError}
+                <UserDetailsTable
+                    users={userList}
+                    onEditUser={handleEditUser}
+                    onChangePassword={handleChangePassword}
+                    isLoading={userListLoading}
+                    error={userListError}
                 />
             </section>
 

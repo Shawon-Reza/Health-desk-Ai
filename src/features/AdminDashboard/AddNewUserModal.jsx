@@ -15,10 +15,11 @@ import {
   FiTag,
   FiChevronDown,
 } from 'react-icons/fi'
-import { useMutation } from '@tanstack/react-query'
+import { QueryClient, useMutation } from '@tanstack/react-query'
 import axiosApi from '../../service/axiosInstance'
 import useGetSubjectMattersAndClinicsList from '../../hooks/useGetSubjectMattersAndClinicsList'
 import toast from 'daisyui/components/toast'
+import { queryClient } from '../../main'
 
 const Field = ({ label, icon: Icon, children }) => (
   <div>
@@ -87,6 +88,16 @@ const AddNewUserModal = ({
   const [showPassword, setShowPassword] = useState(false)
   const [loadingUserData, setLoadingUserData] = useState(false)
 
+  // Ensure subject display title syncs once subject list is loaded
+  React.useEffect(() => {
+    if (form.subjectMatterId && Array.isArray(subjectMatters) && subjectMatters.length) {
+      const matched = subjectMatters.find((s) => s.id === form.subjectMatterId)
+      if (matched?.title && matched.title !== form.subjectMatter) {
+        setForm((prev) => ({ ...prev, subjectMatter: matched.title }))
+      }
+    }
+  }, [form.subjectMatterId, form.subjectMatter, subjectMatters])
+
   // Fetch user data when in edit mode
   React.useEffect(() => {
     if (mode === 'edit' && userId && isOpen) {
@@ -95,6 +106,20 @@ const AddNewUserModal = ({
         .then((response) => {
           const userData = response.data
           console.log(userData)
+
+          // Normalize clinics to parallel name/id arrays for chips + selection
+          const normalizedClinics = Array.isArray(userData.clinics)
+            ? userData.clinics.map((c) => c?.name || c?.title || c)
+            : []
+          const normalizedClinicIds = Array.isArray(userData.clinics)
+            ? userData.clinics.map((c) => c?.id).filter(Boolean)
+            : (userData.clinic_ids || [])
+
+          // Normalize first subject for initial select
+          const firstSubject = Array.isArray(userData.subject_matters) ? userData.subject_matters[0] : null
+          const subjectMatterId = firstSubject?.id ?? (typeof firstSubject === 'number' ? firstSubject : null)
+          const subjectMatterTitle = firstSubject?.title || (typeof firstSubject === 'string' ? firstSubject : '')
+
           // Map API data to form state
           setForm({
             firstName: userData.first_name || '',
@@ -106,11 +131,11 @@ const AddNewUserModal = ({
             startDate: userData.joining_date || new Date().toISOString().slice(0, 10),
             employeeId: userData.employee_id || '',
             knowledgeLevel: String(userData.knowledge_level || ''),
-            clinics: userData.clinics || [],
-            clinicIds: userData.clinic_ids || [],
-            subjectMatter: userData.subject_matters?.[0]?.title || '',
-            subjectMatterId: userData.subject_matters?.[0]?.id || null,
-            status: userData.is_blocked ? 'Blocked' : userData.is_active ? 'Active' : 'Pending',
+            clinics: normalizedClinics,
+            clinicIds: normalizedClinicIds,
+            subjectMatter: subjectMatterTitle,
+            subjectMatterId: subjectMatterId,
+            status: userData.is_active ? 'Active' : 'Inactive',
           })
           setLoadingUserData(false)
         })
@@ -141,6 +166,8 @@ const AddNewUserModal = ({
       onCreated && onCreated(data)
       onRefetch && onRefetch()
       onClose && onClose()
+      queryClient.invalidateQueries({ queryKey: ['userList'] })
+      // toast.success(`User ${mode === 'edit' ? 'updated' : 'created'} successfully!`)
     },
     onError: (error) => {
       console.error(`[AddNewUserModal] ${mode === 'edit' ? 'PUT' : 'POST'} failed:`, error)
@@ -210,7 +237,6 @@ const AddNewUserModal = ({
       subject_ids: form.subjectMatterId ? [form.subjectMatterId] : [],
       employee_id: form.employeeId,
       knowledge_level: parseInt(form.knowledgeLevel) || 0,
-      // is_blocked: form.status === 'Blocked',
       joining_date: form.startDate,
       phone: form.phone,
     }

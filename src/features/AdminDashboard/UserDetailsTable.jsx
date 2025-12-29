@@ -159,9 +159,8 @@ export default function UserDetailsTable({ users = [], onEditUser, onChangePassw
                       <button
                         onDoubleClick={(e) => handleToggleStatus(user.id, user.is_active, e)}
                         disabled={statusMutation.isPending && statusUpdatingId === user.id}
-                        className={`px-3 py-2 w-full h-full flex items-center justify-center text-xs font-semibold rounded-md transition-colors ${
-                          user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        } ${statusMutation.isPending && statusUpdatingId === user.id ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'}`}
+                        className={`px-3 py-2 w-full h-full flex items-center justify-center text-xs font-semibold rounded-md transition-colors ${user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          } ${statusMutation.isPending && statusUpdatingId === user.id ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'}`}
                       >
                         {statusMutation.isPending && statusUpdatingId === user.id
                           ? 'Updating...'

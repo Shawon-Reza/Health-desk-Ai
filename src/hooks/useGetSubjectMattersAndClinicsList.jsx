@@ -36,30 +36,30 @@ const useGetSubjectMattersAndClinicsList = () => {
     },
   })
 
-  // ============ FETCH USER LIST DATA ============
-  const {
-    data: userList,
-    isLoading: userListLoading,
-    error: userListError,
-    refetch: refetchUserList
-  } = useQuery({
-    queryKey: ['userList'],
-    queryFn: async () => {
-      const response = await axiosApi.get('/api/v1/users/')
-      // console.log('[User List API Response]:', response.data.results || response.data)
-      const dataArray = Array.isArray(response.data) ? response.data : response.data?.results || response.data?.data || []
-      return dataArray
+  // // ============ FETCH USER LIST DATA ============
+  // const {
+  //   data: userList,
+  //   isLoading: userListLoading,
+  //   error: userListError,
+  //   refetch: refetchUserList
+  // } = useQuery({
+  //   queryKey: ['userList'],
+  //   queryFn: async () => {
+  //     const response = await axiosApi.get('/api/v1/users/')
+  //     // console.log('[User List API Response]:', response.data.results || response.data)
+  //     const dataArray = Array.isArray(response.data) ? response.data : response.data?.results || response.data?.data || []
+  //     return dataArray
 
-    },
-  })
+  //   },
+  // })
 
 
   return {
-    userList,
+    // userList,
     clinicsList,
     subjectMattersList,
-    isLoading: clinicsLoading || subjectMattersLoading || userListLoading,
-    error: clinicsError || subjectMattersError || userListError,
+    isLoading: clinicsLoading || subjectMattersLoading ,
+    error: clinicsError || subjectMattersError ,
     refetch: () => {
       refetchClinics()
       refetchSubjectMatters()

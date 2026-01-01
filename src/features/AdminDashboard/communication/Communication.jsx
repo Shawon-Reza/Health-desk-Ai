@@ -16,6 +16,7 @@ const Communication = () => {
     const [selectedChat, setSelectedChat] = useState(null)
     const [showCreateGroupModal, setShowCreateGroupModal] = useState(false)
     const [showCreateMessageModal, setShowCreateMessageModal] = useState(false)
+    const [selectedChatRoom, setSelectedChatRoom] = useState(null)
 
 
     const roles = ["All", "Manager", "Staff", "Doctor"]
@@ -245,7 +246,8 @@ const Communication = () => {
                     </div>
 
                     {/* Chat List */}
-                    <div className={`space-y-2 overflow-y-auto max-h-[450px]`}>
+                    {/* h-[calc(100vh-250px)] */}
+                    <div className={`space-y-2 overflow-auto h-[calc(100vh-450px)] ${activeTab === 'allChat' ? '' : 'hidden'}`}>
                         {/* AI Assistant Default text */}
                         <p className={`text-center text-gray-500 ${activeTab === 'aiAssistant' ? '' : 'hidden'}`}>
                             All chats are shown here
@@ -278,10 +280,10 @@ const Communication = () => {
                                                 <h4 className="font-medium text-sm truncate">{chat.name}</h4>
                                                 <span className="text-xs text-gray-400">{formatChatTime(chat?.last_message?.created_at)}</span>
                                             </div>
-                                            <p className="text-xs text-gray-600 truncate">{chat?.last_message?.text}</p>
+                                            <p className={`text-xs text-gray-600 truncate ${chat?.unseen_count > 0 ? 'font-bold' : ''}`}>{chat?.last_message?.text}</p>
                                         </div>
                                         {chat?.unseen_count > 0 && (
-                                            <span className="relative w-2 h-2 p-1 text-xs rounded-full bg-primary">
+                                            <span className="relative w-2 h-2 p-2 text-xs rounded-full bg-primary">
                                                 <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white font-semibold">
                                                     {
                                                         chat.unseen_count
@@ -303,7 +305,7 @@ const Communication = () => {
 
                 {/* Communication chat panel */}
                 <section className="w-[60%] xl:w-[75%] h-full bg-white rounded-lg shadow-md p-4">
-                    <ChatPanel />
+                    <ChatPanel chatRoom={selectedChatRoom} />
                 </section>
 
                 {/* Create New Group Modal */}

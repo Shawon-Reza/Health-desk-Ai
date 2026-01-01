@@ -59,6 +59,12 @@ const ProfilePersonalInformationForm = () => {
       }
       return axiosApi.patch(`/api/v1/users/${userProfileData.id}/Infoupdate/`, payload)
     },
+    onSuccess: (data) => {
+      console.log("[ProfileUpdate] Mutation successful:", data)
+    },
+    onError: (error) => {
+      console.error("[ProfileUpdate] Mutation error:", error)
+    }
   })
 
   useEffect(() => {

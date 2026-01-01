@@ -9,12 +9,20 @@ import { BsLayoutSidebarInset } from 'react-icons/bs'
 const AdminDashboard = () => {
     const isMobile = useIsBelowMd()
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-    const [isCollapsed, setIsCollapsed] = useState(false)
+    const [isCollapsed, setIsCollapsed] = useState(() => {
+        const saved = localStorage.getItem('sidebarCollapsed')
+        return saved ? JSON.parse(saved) : false
+    })
 
     // Keep sidebar open on larger screens, closed by default on small screens
     useEffect(() => {
         setIsSidebarOpen(!isMobile)
     }, [isMobile])
+
+    // Save collapse state to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('sidebarCollapsed', JSON.stringify(isCollapsed))
+    }, [isCollapsed])
 
     const toggleSidebar = () => setIsSidebarOpen(prev => !prev)
     const toggleCollapse = () => setIsCollapsed(prev => !prev)

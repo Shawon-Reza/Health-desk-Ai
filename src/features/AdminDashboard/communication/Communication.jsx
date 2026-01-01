@@ -1,90 +1,165 @@
-import React, { useState, useEffect } from 'react';
-import { FiSearch, FiFilter } from 'react-icons/fi';
-import ChatPanel from './ChatPanel';
-import CreateNewGroupModal from '../Communication/CreateNewGroupModal';
-import CreateNewMessageModal from '../Communication/CreateNewMessageModal';
-
-
+import React, { useEffect, useRef, useState } from "react"
+import { FiSearch } from "react-icons/fi"
+import ChatPanel from "./ChatPanel"
+import CreateNewGroupModal from "../Communication/CreateNewGroupModal"
+import CreateNewMessageModal from "../Communication/CreateNewMessageModal"
+import { connectWebSocketForChatList } from "./ChatService"
+import { useQuery } from "@tanstack/react-query"
+import axiosApi from "../../../service/axiosInstance"
+import { queryClient } from "../../../main"
 
 
 const Communication = () => {
-    const [activeTab, setActiveTab] = useState('allChat');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedRole, setSelectedRole] = useState('All');
-    const [chats, setChats] = useState([]);
-    const [selectedChat, setSelectedChat] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState("allChat")
+    const [searchQuery, setSearchQuery] = useState("")
+    const [selectedRole, setSelectedRole] = useState("All")
+    const [selectedChat, setSelectedChat] = useState(null)
+    const [showCreateGroupModal, setShowCreateGroupModal] = useState(false)
+    const [showCreateMessageModal, setShowCreateMessageModal] = useState(false)
 
-    const roles = ['All', 'Manager', 'Staff', 'Doctor'];
 
-    // Mock chat data with roles
-    const mockChats = [
-        {
-            id: 1,
-            name: 'Clinic 1 - All Staff Group',
-            lastMessage: 'Hi, how are you doing today?',
-            timestamp: '10 min ago',
-            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=1',
-            unread: true,
-            role: 'Staff',
-        },
-        {
-            id: 2,
-            name: 'Dr. Zara Khan',
-            lastMessage: 'Sure, I will send the report.',
-            timestamp: '5 min ago',
-            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=2',
-            unread: false,
-            role: 'Doctor',
-        },
-        {
-            id: 3,
-            name: 'AI Assistant',
-            lastMessage: 'How can I assist you today?',
-            timestamp: 'Just now',
-            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=3',
-            unread: true,
-            role: 'Manager',
-        },
-    ];
+    const roles = ["All", "Manager", "Staff", "Doctor"]
+    const socketRef = useRef(null)
 
+    // ................**Fetch user's chat rooms**.................\\
+    const { data: rooms = [], isLoading, isError, error } = useQuery({
+        queryKey: ['myRooms'],
+        queryFn: async () => {
+            const response = await axiosApi.get('/api/v1/rooms/');
+            // Return array - handle both { results: [...] } and direct array response
+            return Array.isArray(response.data) ? response.data : response.data.results || [];
+        },
+        onSuccess: (data) => {
+            console.log("Fetched chat rooms:", data);
+        },
+        onError: (err) => {
+            console.error("Error fetching chat rooms:", err);
+        }
+    });
+    console.log(rooms)
+
+    // ................**WebSocket for real-time chat list updates/query Cached**.................\\
     useEffect(() => {
-        setLoading(true);
-        setTimeout(() => {
-            setChats(mockChats);
-            setLoading(false);
-        }, 500);
-    }, []);
+        socketRef.current = connectWebSocketForChatList({
+            onMessage: (message) => {
+                if (message.type !== 'room_update') return;
+                console.log("New message :", message)
+                const updated = message.data;
 
-    useEffect(() => {
-        console.log('[Search + Filter]', {
-            searchQuery,
-            selectedRole,
+                queryClient.setQueryData(['myRooms'], (oldRooms) => {
+                    // Ensure oldRooms is an array
+                    if (!Array.isArray(oldRooms)) return oldRooms;
+
+                    const existingRoom = oldRooms.find(
+                        room => room.room_id === updated.room_id
+                    );
+
+                    if (!existingRoom) return oldRooms;
+
+                    const mergedRoom = {
+                        ...existingRoom,
+                        ...updated,
+                        last_message: updated.last_message,
+                    };
+
+                    return [
+                        mergedRoom,
+                        ...oldRooms.filter(
+                            room => room.room_id !== updated.room_id
+                        ),
+                    ];
+                });
+            },
         });
-    }, [searchQuery, selectedRole]);
+
+        return () => socketRef.current?.close();
+    }, [queryClient]);
+
+
+
+    // Mock chat data with roles - TODO: Replace with actual API data
+    // const mockChats = [
+    //     {
+    //         id: 1,
+    //         name: "Clinic 1 - All Staff Group",
+    //         lastMessage: "Hi, how are you doing today?",
+    //         timestamp: "10 min ago",
+    //         avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=1",
+    //         unread: true,
+    //         role: "Staff",
+    //     },
+    //     {
+    //         id: 2,
+    //         name: "Dr. Zara Khan",
+    //         lastMessage: "Sure, I will send the report.",
+    //         timestamp: "5 min ago",
+    //         avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=2",
+    //         unread: false,
+    //         role: "Doctor",
+    //     },
+    //     {
+    //         id: 3,
+    //         name: "AI Assistant",
+    //         lastMessage: "How can I assist you today?",
+    //         timestamp: "Just now",
+    //         avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=3",
+    //         unread: true,
+    //         role: "Manager",
+    //     },
+    // ]
+
+    useEffect(() => {
+        console.log("[Search + Filter]", { searchQuery, selectedRole })
+    }, [searchQuery, selectedRole])
 
     const handleSearch = (e) => {
-        setSearchQuery(e.target.value);
-    };
+        setSearchQuery(e.target.value)
+    }
 
     const handleChatSelect = (chat) => {
-        setSelectedChat(chat.id);
-    };
+        setSelectedChat(chat.id)
+    }
 
     const handleRoleFilterChange = (role) => {
-        setSelectedRole(role);
+        setSelectedRole(role)
+    }
+
+    // ......................** Formatting chat time **......................  //
+    const formatChatTime = (isoString) => {
+        const date = new Date(isoString);
+
+        const time = date.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+
+        const day = date.toLocaleDateString("en-GB");
+
+        return `${time} · ${day}`;
     };
 
-    // Filtered chats based on search and role
-    const filteredChats = chats.filter((chat) => {
-        const matchesSearch = chat.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesRole = selectedRole === 'All' || chat.role === selectedRole;
-        return matchesSearch && matchesRole;
-    });
 
-    // Modal state
-    const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
-    const [showCreateMessageModal, setShowCreateMessageModal] = useState(false);
+    // Filtered chats based on search and role
+    // const filteredChats = mockChats.filter((chat) => {
+    //     const matchesSearch = chat.name.toLowerCase().includes(searchQuery.toLowerCase())
+    //     const matchesRole = selectedRole === "All" || chat.role === selectedRole
+    //     return matchesSearch && matchesRole
+    // })
+
+    if (isLoading) {
+        return (
+            <div className="container mx-auto">
+                <section className="text-secondary mb-8">
+                    <h2 className="text-2xl lg:text-3xl font-bold">Communication Hub</h2>
+                    <p className="text-lg opacity-80">Chat with your team and AI assistant</p>
+                </section>
+                <div className="flex justify-center items-center h-[calc(100vh-280px)]">
+                    <p className="text-gray-500">Loading chat rooms...</p>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="container mx-auto ">
@@ -95,9 +170,9 @@ const Communication = () => {
             </section>
 
             {/* Communication main part */}
-            <section className="flex gap-6 h-[calc(100vh-280px)]">
+            <section className="flex gap-6 h-[calc(100vh-250px)]">
                 {/* Sidebar.......................................................... */}
-                <section className="w-[40%] xl:w-[25%] h-full bg-white rounded-xl shadow-md p-4 space-y-4 border border-gray-300">
+                <section className="w-[40%] xl:w-[25%] h-full bg-white rounded-xl shadow-md p-4 space-y-4 border border-gray-300 ">
                     {/* Tabs */}
                     <div className="flex justify-between gap-3  pb-2">
                         <button
@@ -121,7 +196,7 @@ const Communication = () => {
                     </div>
 
 
-                    <div className="flex justify-between gap-3  pb-2">
+                    <div className={`${activeTab === 'allChat' ? '' : 'hidden'} flex justify-between gap-3  pb-2`}>
                         <button
                             className={`pb-1 font-medium ${activeTab === 'allChat'
                                 ? 'text-primary border-2 rounded-lg px-2 border-primary'
@@ -143,7 +218,7 @@ const Communication = () => {
                     </div>
 
                     {/* Search + Role Filter */}
-                    <div className="flex items-center gap-2">
+                    <div className={`flex items-center gap-2 ${activeTab === 'allChat' ? '' : 'hidden'} `}>
                         <div className="relative flex-1">
                             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                             <input
@@ -170,39 +245,61 @@ const Communication = () => {
                     </div>
 
                     {/* Chat List */}
-                    <div className="space-y-2 overflow-y-auto max-h-[400px]">
-                        {loading ? (
-                            <p className="text-center text-gray-500 py-10">Loading chats...</p>
-                        ) : filteredChats.length === 0 ? (
-                            <p className="text-center text-gray-500 py-10">No chats found</p>
-                        ) : (
-                            filteredChats.map((chat) => (
-                                <button
-                                    key={chat.id}
-                                    onClick={() => handleChatSelect(chat)}
-                                    className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition ${selectedChat === chat.id ? 'bg-blue-50' : ''
-                                        }`}
-                                >
-                                    <img
-                                        src={chat.avatar}
-                                        alt={chat.name}
-                                        className="w-10 h-10 rounded-full object-cover"
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-center">
-                                            <h4 className="font-medium text-sm truncate">{chat.name}</h4>
-                                            <span className="text-xs text-gray-400">{chat.timestamp}</span>
+                    <div className={`space-y-2 overflow-y-auto max-h-[450px]`}>
+                        {/* AI Assistant Default text */}
+                        <p className={`text-center text-gray-500 ${activeTab === 'aiAssistant' ? '' : 'hidden'}`}>
+                            All chats are shown here
+                        </p>
+
+                        <div className={`${activeTab === 'allChat' ? '' : 'hidden'}`}>
+                            {rooms.length === 0 ? (
+                                <p className="text-center text-gray-500 py-10">No chats found</p>
+                            ) : (
+                                rooms.map((chat) => (
+                                    <button
+                                        key={chat.id}
+                                        onClick={() => handleChatSelect(chat)}
+                                        className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition `}
+                                    >
+                                        <div className="relative">
+                                            <img
+                                                src={chat.image}
+                                                alt={chat.name}
+                                                className="w-10 h-10 rounded-full object-cover"
+
+
+                                            />
+                                            {chat?.is_online && (
+                                                <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-primary"></span>
+                                            )}
                                         </div>
-                                        <p className="text-xs text-gray-600 truncate">{chat.lastMessage}</p>
-                                    </div>
-                                    {chat.unread && (
-                                        <span className="w-2 h-2 rounded-full bg-primary"></span>
-                                    )}
-                                </button>
-                            ))
-                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-center">
+                                                <h4 className="font-medium text-sm truncate">{chat.name}</h4>
+                                                <span className="text-xs text-gray-400">{formatChatTime(chat?.last_message?.created_at)}</span>
+                                            </div>
+                                            <p className="text-xs text-gray-600 truncate">{chat?.last_message?.text}</p>
+                                        </div>
+                                        {chat?.unseen_count > 0 && (
+                                            <span className="relative w-2 h-2 p-1 text-xs rounded-full bg-primary">
+                                                <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white font-semibold">
+                                                    {
+                                                        chat.unseen_count
+                                                    }
+                                                </p>
+                                            </span>
+                                        )}
+                                    </button>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </section>
+
+
+
+
+
 
                 {/* Communication chat panel */}
                 <section className="w-[60%] xl:w-[75%] h-full bg-white rounded-lg shadow-md p-4">
@@ -232,7 +329,7 @@ const Communication = () => {
                 )}
             </section>
         </div>
-    );
-};
+    )
+}
 
-export default Communication;
+export default Communication

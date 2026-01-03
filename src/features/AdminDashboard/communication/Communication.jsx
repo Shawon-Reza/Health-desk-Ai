@@ -13,7 +13,6 @@ const Communication = () => {
     const [activeTab, setActiveTab] = useState("allChat")
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedRole, setSelectedRole] = useState("All")
-    const [selectedChat, setSelectedChat] = useState(null)
     const [showCreateGroupModal, setShowCreateGroupModal] = useState(false)
     const [showCreateMessageModal, setShowCreateMessageModal] = useState(false)
     const [selectedChatRoom, setSelectedChatRoom] = useState(null)
@@ -77,38 +76,6 @@ const Communication = () => {
     }, [queryClient]);
 
 
-
-    // Mock chat data with roles - TODO: Replace with actual API data
-    // const mockChats = [
-    //     {
-    //         id: 1,
-    //         name: "Clinic 1 - All Staff Group",
-    //         lastMessage: "Hi, how are you doing today?",
-    //         timestamp: "10 min ago",
-    //         avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=1",
-    //         unread: true,
-    //         role: "Staff",
-    //     },
-    //     {
-    //         id: 2,
-    //         name: "Dr. Zara Khan",
-    //         lastMessage: "Sure, I will send the report.",
-    //         timestamp: "5 min ago",
-    //         avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=2",
-    //         unread: false,
-    //         role: "Doctor",
-    //     },
-    //     {
-    //         id: 3,
-    //         name: "AI Assistant",
-    //         lastMessage: "How can I assist you today?",
-    //         timestamp: "Just now",
-    //         avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=3",
-    //         unread: true,
-    //         role: "Manager",
-    //     },
-    // ]
-
     useEffect(() => {
         console.log("[Search + Filter]", { searchQuery, selectedRole })
     }, [searchQuery, selectedRole])
@@ -118,7 +85,10 @@ const Communication = () => {
     }
 
     const handleChatSelect = (chat) => {
-        setSelectedChat(chat.id)
+        console.log(chat)
+        //    Select chat room to pass to ChatPanel
+        setSelectedChatRoom(chat.room_id)
+        console.log(selectedChatRoom)
     }
 
     const handleRoleFilterChange = (role) => {
@@ -259,9 +229,9 @@ const Communication = () => {
                             ) : (
                                 rooms.map((chat) => (
                                     <button
-                                        key={chat.id}
+                                        key={chat.room_id}
                                         onClick={() => handleChatSelect(chat)}
-                                        className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition `}
+                                        className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition ${selectedChatRoom === chat.room_id ? 'bg-gray-200' : ''}`}
                                     >
                                         <div className="relative">
                                             <img

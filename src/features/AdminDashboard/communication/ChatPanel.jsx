@@ -1,10 +1,24 @@
 "use client"
 
+import { useQuery } from "@tanstack/react-query"
 import { useState, useEffect, useRef } from "react"
 import { FiPaperclip, FiMic, FiSend, FiInfo } from "react-icons/fi"
+import axiosApi from "../../../service/axiosInstance"
+import { connectWebSocketForChat } from "./ChatService"
+import { queryClient } from "../../../main"
+
+
 
 const ChatPanel = ({ chatRoom }) => {
-  console.log(chatRoom)
+
+  const [inputMessage, setInputMessage] = useState("")
+  const [loading, setLoading] = useState(false)
+  const messagesEndRef = useRef(null)
+  const [actionPopup, setActionPopup] = useState(false)
+  const socketRef = useRef(null)
+
+
+  console.log("From ChatPanel:", chatRoom)
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -27,10 +41,66 @@ const ChatPanel = ({ chatRoom }) => {
     },
   ])
 
-  const [inputMessage, setInputMessage] = useState("")
-  const [loading, setLoading] = useState(false)
-  const messagesEndRef = useRef(null)
-  const [actionPopup, setActionPopup] = useState(false)
+
+  // ................**Fetch user's chat rooms**.................\\
+  const { data: chatMessages = [], isLoading: chatMessagesLoading, isError: ischatMessagesError, error: chatMessagesError } = useQuery({
+    queryKey: ['messages', chatRoom],
+    queryFn: async () => {
+      const response = await axiosApi.get(`/api/v1/rooms/${chatRoom}/messages/`);
+      // Return array - handle both { results: [...] } and direct array response
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
+    },
+    onSuccess: (data) => {
+      console.log("Fetched chat rooms:", data);
+    },
+    onError: (err) => {
+      console.error("Error fetching chat rooms:", err);
+    }
+  });
+  console.log("-------------------", chatMessages)
+
+  // ..............**Connecting to WebSocket**..................\\
+  useEffect(() => {
+    if (!chatRoom) return;
+
+    socketRef.current = connectWebSocketForChat({
+      roomId: chatRoom,
+
+      onMessage: (message) => {
+        console.log("New msg arives Chatpanel:", message)
+        if (message.type !== 'message') return;
+
+        const newMessage = message.data;
+        // Updated messages and cache with new message
+        queryClient.setQueryData(
+          ['messages', chatRoom],
+          (oldMessages = []) => {
+            // Safety: ensure array
+            if (!Array.isArray(oldMessages)) return oldMessages;
+
+            // Prevent duplicate messages
+            const alreadyExists = oldMessages.some(
+              msg => msg.id === newMessage.id
+            );
+
+            if (alreadyExists) return oldMessages;
+
+            // Add new message to TOP (newest first)
+            return [newMessage, ...oldMessages];
+          }
+        );
+      },
+    });
+
+    return () => {
+      socketRef.current?.close();
+    };
+  }, [chatRoom, queryClient]);
+
+
+
+
+
 
   const currentUser = {
     name: "Dr. Michael Chen",
@@ -133,6 +203,9 @@ const ChatPanel = ({ chatRoom }) => {
 
 
     <div className="flex flex-col  bg-white border border-teal-500 rounded-lg overflow-hidden h-full">
+
+
+      {/* .............** Initial Display Text **........... */}
       {
         !chatRoom ? (
           <div className="flex-1 flex items-center justify-center">
@@ -141,6 +214,10 @@ const ChatPanel = ({ chatRoom }) => {
         ) : null
 
       }
+
+
+
+
       {/* ...............**Messaging part **...............*/}
       <div className={`${!chatRoom ? 'hidden' : 'flex flex-col flex-1 h-full'}`}>
         {/* Header */}

@@ -76,16 +76,17 @@ const ChatPanel = ({ chatRoom, currentUser }) => {
           const exists = old.pages.some((p) =>
             p.results.some((m) => m.id === newMessage.id)
           );
-console.log("exist:",exists)
+
           if (exists) return old;
 
-          const lastIndex = old.pages.length - 1;
-          console.log("Adding new message to cache, lastIndex:", lastIndex)
+          console.log("Adding new message to FIRST page (newest messages)")
 
+          // Always add new messages to the FIRST page (page 0), not last page
+          // First page = newest messages, last page = oldest messages
           return {
             ...old,
             pages: old.pages.map((p, i) =>
-              i === lastIndex
+              i === 0
                 ? { ...p, results: [newMessage, ...p.results] }
                 : p
             ),
@@ -109,25 +110,11 @@ console.log("exist:",exists)
       avatar: safeUser.avatar,
     };
 
-    queryClient.setQueryData(["messages", chatRoom], (old) => {
-      if (!old) return old;
-
-      const lastIndex = old.pages.length - 1;
-
-      return {
-        ...old,
-        pages: old.pages.map((p, i) =>
-          i === lastIndex
-            ? { ...p, results: [optimisticMsg, ...p.results] }
-            : p
-        ),
-      };
-    });
-
     setInputMessage("");
-
+    // .....................** Send Messages **..................... //
     try {
       const formData = new FormData();
+      // Just appent paylod fields to formData
       formData.append("content", inputMessage);
 
       await axiosApi.post(`/api/v1/rooms/${chatRoom}/send/`, formData, {
@@ -142,7 +129,7 @@ console.log("exist:",exists)
   };
 
   return (
-    <div className="flex flex-col h-full border rounded-lg bg-white">
+    <div className="flex flex-col h-full border border-gray-300 rounded-lg bg-white">
       {!chatRoom ? (
         <div className="flex-1 flex items-center justify-center text-gray-500">
           Select a chat
@@ -150,7 +137,7 @@ console.log("exist:",exists)
       ) : (
         <>
           {/* Header */}
-          <div className="p-4 border-b flex justify-between items-center">
+          <div className="p-4 border-b border-gray-300 flex justify-between items-center">
             <div className="flex gap-3 items-center">
               <img
                 src={safeUser.avatar}
@@ -179,7 +166,7 @@ console.log("exist:",exists)
           />
 
           {/* Input Area */}
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-gray-300">
             <div className="flex gap-3">
               <input
                 value={inputMessage}
@@ -192,7 +179,7 @@ console.log("exist:",exists)
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim()}
               >
-                <FiSend />
+                <FiSend  size={24}/>
               </button>
             </div>
           </div>

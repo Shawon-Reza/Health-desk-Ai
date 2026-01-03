@@ -1,0 +1,136 @@
+import { useEffect, useRef, useState } from "react";
+
+const MessageList = ({ 
+  messages, 
+  userId, 
+  onLoadMore, 
+  hasNextPage, 
+  isFetchingNextPage 
+}) => {
+  const messagesEndRef = useRef(null);
+  const containerRef = useRef(null);
+  const isLoadingRef = useRef(false);
+  const prevScrollHeightRef = useRef(0);
+  const [prevMessageCount, setPrevMessageCount] = useState(0);
+  const wasAtBottomBeforeFetchRef = useRef(true);
+
+  // Auto-scroll to bottom ONLY if user was already viewing the bottom (new real-time messages)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Never scroll during pagination
+    if (isFetchingNextPage) {
+      return;
+    }
+
+    // Check if new messages arrived
+    const messageCountChanged = messages.length !== prevMessageCount;
+    
+    if (messageCountChanged && wasAtBottomBeforeFetchRef.current) {
+      // Only scroll to bottom if new messages were added AND user was viewing the bottom
+      const messageDifference = messages.length - prevMessageCount;
+      
+      if (messageDifference > 0) {
+        // New messages arrived and user was at bottom - scroll to bottom
+        setTimeout(() => {
+          container.scrollTop = container.scrollHeight - container.clientHeight;
+        }, 0);
+      }
+      
+      setPrevMessageCount(messages.length);
+    } else if (messageCountChanged) {
+      // Message count changed but user wasn't at bottom (pagination) - just update count
+      setPrevMessageCount(messages.length);
+    }
+  }, [messages.length, isFetchingNextPage, prevMessageCount]);
+
+  // Restore scroll position after older messages load
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || isFetchingNextPage) return;
+
+    // After fetch completes, restore scroll position
+    if (prevScrollHeightRef.current > 0) {
+      const newScrollHeight = container.scrollHeight;
+      const heightDifference = newScrollHeight - prevScrollHeightRef.current;
+      
+      // Scroll down by the height of newly added messages to stay in same visual position
+      container.scrollTop = heightDifference;
+      console.log("📍 Scroll position restored - added", heightDifference, "px");
+      
+      prevScrollHeightRef.current = 0;
+      wasAtBottomBeforeFetchRef.current = false; // User scrolled to top for pagination, not at bottom
+    }
+  }, [isFetchingNextPage]);
+
+  // Infinite scroll - load older messages when scroll to top
+  const handleScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+
+    // Track if user is at the bottom (for auto-scroll later)
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+    wasAtBottomBeforeFetchRef.current = isAtBottom;
+
+    // When user scrolls to top
+    if (scrollTop === 0 && hasNextPage && !isFetchingNextPage && !isLoadingRef.current) {
+      isLoadingRef.current = true;
+      console.log("📍 Top reached - loading older messages");
+      
+      // Store current scroll position before fetch
+      prevScrollHeightRef.current = e.target.scrollHeight;
+      
+      onLoadMore();
+
+      // Reset flag after a delay
+      setTimeout(() => {
+        isLoadingRef.current = false;
+      }, 500);
+    }
+  };
+
+  const MessageBubble = ({ msg }) => {
+    const isMe = Number(msg?.sender?.id) === Number(userId);
+    const text = msg.text || msg.message || msg.content || "";
+
+    return (
+      <div className={`flex mb-4 ${isMe ? "justify-end" : "justify-start"}`}>
+        <div
+          className={`px-4 py-2 rounded-lg max-w-md ${
+            isMe ? "bg-teal-100 text-gray-900" : "bg-blue-100 text-gray-900"
+          }`}
+        >
+          <p className="text-sm">{text}</p>
+          <div className="text-xs text-gray-500 mt-1">
+            {new Date(msg.created_at).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      onScroll={handleScroll}
+      className="flex-1 overflow-y-auto p-4 space-y-2"
+    >
+      {isFetchingNextPage && (
+        <div className="text-center text-sm text-gray-500 py-2">
+          Loading older messages...
+        </div>
+      )}
+
+      {messages.map((msg) => (
+        <MessageBubble key={msg.id} msg={msg} />
+      ))}
+
+      <div ref={messagesEndRef} />
+    </div>
+  );
+};
+
+export default MessageList;

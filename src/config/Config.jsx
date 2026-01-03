@@ -5,9 +5,6 @@ export const user_ROLE = 'userRole';
 
 
 
-
-
-
 // ...................**JWT Decode and Auth Data**...................  //
 // Decode JWT access token safely
 export const decodeJwt = (token) => {

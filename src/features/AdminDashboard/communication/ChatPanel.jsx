@@ -1,169 +1,159 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
-import { useState, useEffect, useRef } from "react"
+import { useInfiniteQuery } from "@tanstack/react-query"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { FiPaperclip, FiMic, FiSend, FiInfo } from "react-icons/fi"
+import { Virtuoso } from "react-virtuoso"
 import axiosApi from "../../../service/axiosInstance"
 import { connectWebSocketForChat } from "./ChatService"
 import { queryClient } from "../../../main"
+import { getAuthData } from "../../../config/Config"
 
 
+
+const MessageBubble = ({ msg, myUserId }) => {
+  const senderId = msg?.sender_id ?? msg?.senderId ?? msg?.sender?.id
+  const isMe = myUserId != null && senderId === myUserId
+  const text = msg?.text ?? msg?.message ?? msg?.content ?? ""
+  const timestamp = msg?.created_at ?? msg?.timestamp
+
+  return (
+    <div className={`flex w-full ${isMe ? "justify-end" : "justify-start"} my-1`}>
+      <div
+        className={`px-4 py-2 rounded-xl max-w-[70%] text-sm leading-relaxed ${isMe ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-900"}`}
+      >
+        <p>{text}</p>
+        {timestamp ? (
+          <span className={`block mt-1 text-[11px] ${isMe ? "text-blue-100" : "text-gray-500"}`}>
+            {new Date(timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  )
+}
 
 const ChatPanel = ({ chatRoom }) => {
 
   const [inputMessage, setInputMessage] = useState("")
   const [loading, setLoading] = useState(false)
-  const messagesEndRef = useRef(null)
   const [actionPopup, setActionPopup] = useState(false)
   const socketRef = useRef(null)
 
+  const { userId: myUserId, userInfo, role: userRole } = getAuthData() ?? {}
 
-  console.log("From ChatPanel:", chatRoom)
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "Dr. Michael Chen",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael",
-      message:
-        "Good morning ! We have a busy schedule today with 15 patients. Let's make sure we're prepared for the new insurance verification Process",
-      timestamp: "9:00 AM",
-      type: "received",
-      date: "Today",
-    },
-    {
-      id: 2,
-      sender: "Dr. Sarah Jhonson",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-      message: "Ok, I'll keep that in Mind!",
-      timestamp: "9:08 AM",
-      type: "sent",
-      date: "Today",
-    },
-  ])
+  const currentUser = {
+    id: myUserId,
+    name: userInfo?.full_name || userInfo?.username || "You",
+    role: userRole || "Member",
+    avatar: userInfo?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=ChatUser",
+  }
 
+  const {
+    data,
+    isLoading: messagesLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["messages", chatRoom],
+    queryFn: async ({ pageParam = null }) => {
+      if (!chatRoom) return { results: [], nextCursor: null }
 
-  // ................**Fetch user's chat rooms**.................\\
-  const { data: chatMessages = [], isLoading: chatMessagesLoading, isError: ischatMessagesError, error: chatMessagesError } = useQuery({
-    queryKey: ['messages', chatRoom],
-    queryFn: async () => {
-      const response = await axiosApi.get(`/api/v1/rooms/${chatRoom}/messages/`);
-      // Return array - handle both { results: [...] } and direct array response
-      return Array.isArray(response.data) ? response.data : response.data.results || [];
+      const params = { limit: 20 }
+      if (pageParam) params.cursor = pageParam
+
+      const response = await axiosApi.get(`/api/v1/rooms/${chatRoom}/messages/`, { params })
+      const payload = response?.data ?? {}
+      const results = Array.isArray(payload) ? payload : payload.results ?? []
+
+      return {
+        results,
+        nextCursor: payload.next_cursor ?? payload.next ?? null,
+      }
     },
-    onSuccess: (data) => {
-      console.log("Fetched chat rooms:", data);
-    },
-    onError: (err) => {
-      console.error("Error fetching chat rooms:", err);
-    }
-  });
-  console.log("-------------------", chatMessages)
+    getNextPageParam: (lastPage) => lastPage?.nextCursor ?? null,
+    enabled: Boolean(chatRoom),
+    initialPageParam: null,
+  })
+
+  const messages = useMemo(() => {
+    const flat = data?.pages?.flatMap((page) => page?.results ?? []) ?? []
+
+    return [...flat].sort((a, b) => {
+      const aTime = new Date(a?.created_at ?? a?.timestamp ?? 0).getTime()
+      const bTime = new Date(b?.created_at ?? b?.timestamp ?? 0).getTime()
+      if (Number.isFinite(aTime) && Number.isFinite(bTime)) return aTime - bTime
+      return (a?.id ?? 0) - (b?.id ?? 0)
+    })
+  }, [data])
 
   // ..............**Connecting to WebSocket**..................\\
   useEffect(() => {
-    if (!chatRoom) return;
+    if (!chatRoom) return undefined
 
     socketRef.current = connectWebSocketForChat({
       roomId: chatRoom,
-
       onMessage: (message) => {
-        console.log("New msg arives Chatpanel:", message)
-        if (message.type !== 'message') return;
+        if (message?.type !== "message") return
 
-        const newMessage = message.data;
-        // Updated messages and cache with new message
-        queryClient.setQueryData(
-          ['messages', chatRoom],
-          (oldMessages = []) => {
-            // Safety: ensure array
-            if (!Array.isArray(oldMessages)) return oldMessages;
+        const newMessage = message?.data ?? message?.message ?? message
 
-            // Prevent duplicate messages
-            const alreadyExists = oldMessages.some(
-              msg => msg.id === newMessage.id
-            );
+        queryClient.setQueryData(["messages", chatRoom], (oldData) => {
+          if (!oldData) return oldData
 
-            if (alreadyExists) return oldMessages;
+          const exists = oldData.pages?.some((page) =>
+            (page?.results ?? []).some((msg) => msg?.id === newMessage?.id)
+          )
+          if (exists) return oldData
 
-            // Add new message to TOP (newest first)
-            return [newMessage, ...oldMessages];
+          const lastIndex = (oldData.pages?.length ?? 0) - 1
+
+          if (lastIndex < 0) {
+            return {
+              pages: [{ results: [newMessage], nextCursor: null }],
+              pageParams: [null],
+            }
           }
-        );
+
+          const updatedPages = oldData.pages.map((page, idx) => {
+            if (idx !== lastIndex) return page
+            return {
+              ...page,
+              results: [...(page?.results ?? []), newMessage],
+            }
+          })
+
+          return { ...oldData, pages: updatedPages }
+        })
       },
-    });
+    })
 
     return () => {
-      socketRef.current?.close();
-    };
-  }, [chatRoom, queryClient]);
-
-
-
-
-
-
-  const currentUser = {
-    name: "Dr. Michael Chen",
-    role: "Admin",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael",
-  }
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
-
-  // Log component initialization
-  useEffect(() => {
-    console.log("[ChatDetail] Component initialized")
-    console.log("[ChatDetail] Current user:", currentUser)
-    console.log("[ChatDetail] Initial messages:", messages)
-  }, [])
-
-  const handleSendMessage = () => {
-    if (!inputMessage.trim()) {
-      console.log("[ChatDetail] Empty message, not sending")
-      return
+      socketRef.current?.close()
     }
+  }, [chatRoom])
 
-    console.log("[ChatDetail] Sending message:", inputMessage)
 
-    // Create new message object
-    const newMessage = {
-      id: messages.length + 1,
-      sender: currentUser.name,
-      avatar: currentUser.avatar,
-      message: inputMessage,
-      timestamp: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
-      type: "sent",
-      date: "Today",
+
+
+
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || !chatRoom) return
+
+    try {
+      setLoading(true)
+      await axiosApi.post(`/api/v1/rooms/${chatRoom}/messages/`, { text: inputMessage.trim() })
+      setInputMessage("")
+      // The WebSocket will append the new message to the list
+    } catch (err) {
+      console.error("Failed to send message", err)
+    } finally {
+      setLoading(false)
     }
-
-    console.log("[ChatDetail] New message object:", newMessage)
-
-    // Add message to state
-    setMessages([...messages, newMessage])
-    setInputMessage("")
-
-    // TODO: Replace with actual backend API call
-    // Example:
-    // const sendMessageToBackend = async () => {
-    //   try {
-    //     const response = await fetch('YOUR_BACKEND_API_URL/messages', {
-    //       method: 'POST',
-    //       headers: { 'Content-Type': 'application/json' },
-    //       body: JSON.stringify({
-    //         message: inputMessage,
-    //         sender: currentUser.name,
-    //         timestamp: new Date().toISOString()
-    //       })
-    //     });
-    //     const data = await response.json();
-    //     console.log('[ChatDetail] Backend response:', data);
-    //   } catch (error) {
-    //     console.error('[ChatDetail] Error sending message:', error);
-    //   }
-    // };
   }
 
   const handleAttachment = () => {
@@ -188,16 +178,6 @@ const ChatPanel = ({ chatRoom }) => {
       handleSendMessage()
     }
   }
-
-  // Group messages by date
-  const groupedMessages = messages.reduce((acc, msg) => {
-    const date = msg.date
-    if (!acc[date]) {
-      acc[date] = []
-    }
-    acc[date].push(msg)
-    return acc
-  }, {})
 
   return (
 
@@ -263,47 +243,35 @@ const ChatPanel = ({ chatRoom }) => {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {Object.entries(groupedMessages).map(([date, dateMessages]) => (
-            <div key={date}>
-              {/* Date Separator */}
-              <div className="flex items-center justify-center my-4">
-                <span className="text-sm text-gray-500">{date}</span>
-              </div>
-
-              {/* Messages for this date */}
-              {dateMessages.map((msg) => (
-                <div key={msg.id} className={`flex gap-3 mb-4 ${msg.type === "sent" ? "justify-end" : "justify-start"}`}>
-                  {msg.type === "received" && (
-                    <img
-                      src={msg.avatar || "/placeholder.svg"}
-                      alt={msg.sender}
-                      className="w-8 h-8 rounded-full flex-shrink-0"
-                    />
-                  )}
-
-                  <div className={`flex flex-col ${msg.type === "sent" ? "items-end" : "items-start"}`}>
-                    <div
-                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.type === "sent" ? "bg-teal-100 text-gray-900" : "bg-blue-100 text-gray-900"
-                        }`}
-                    >
-                      <p className="text-sm">{msg.message}</p>
-                    </div>
-                    <span className="text-xs text-gray-500 mt-1">{msg.timestamp}</span>
-                  </div>
-
-                  {msg.type === "sent" && (
-                    <img
-                      src={msg.avatar || "/placeholder.svg"}
-                      alt={msg.sender}
-                      className="w-8 h-8 rounded-full flex-shrink-0"
-                    />
-                  )}
-                </div>
-              ))}
+        <div className="flex-1 min-h-0">
+          {messagesLoading ? (
+            <div className="h-full flex items-center justify-center text-gray-500">Loading messages...</div>
+          ) : isError ? (
+            <div className="h-full flex items-center justify-center text-red-500">
+              Failed to load messages{error ? `: ${error.message}` : ""}
             </div>
-          ))}
-          <div ref={messagesEndRef} />
+          ) : (
+            <Virtuoso
+              style={{ height: "100%" }}
+              data={messages}
+              itemContent={(index, msg) => <MessageBubble msg={msg} myUserId={myUserId} />}
+              startReached={() => {
+                if (hasNextPage && !isFetchingNextPage) {
+                  fetchNextPage()
+                }
+              }}
+              followOutput="auto"
+              components={{
+                Header: () => (
+                  hasNextPage ? (
+                    <div className="py-2 text-center text-sm text-gray-500">
+                      {isFetchingNextPage ? "Loading older messages..." : "Scroll up for older messages"}
+                    </div>
+                  ) : null
+                ),
+              }}
+            />
+          )}
         </div>
 
         {/* Message Input */}

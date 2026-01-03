@@ -48,11 +48,15 @@ const ChatPanel = ({ chatRoom, currentUser }) => {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
+  console.log("Result:", data)
+
   // Flatten and reverse to show oldest -> newest
   const messages = useMemo(() => {
     const list = data?.pages.flatMap((p) => p.results) ?? [];
     return [...list].reverse();
   }, [data]);
+
+  console.log("Total Messages :", messages)
 
   // WebSocket for real-time messages
   useEffect(() => {
@@ -60,9 +64,11 @@ const ChatPanel = ({ chatRoom, currentUser }) => {
 
     const socket = connectWebSocketForChat({
       roomId: chatRoom,
+
       onMessage: (payload) => {
         if (payload.type !== "message") return;
         const newMessage = payload.data;
+        console.log("New messages:", newMessage)
 
         queryClient.setQueryData(["messages", chatRoom], (old) => {
           if (!old) return old;
@@ -70,15 +76,17 @@ const ChatPanel = ({ chatRoom, currentUser }) => {
           const exists = old.pages.some((p) =>
             p.results.some((m) => m.id === newMessage.id)
           );
+console.log("exist:",exists)
           if (exists) return old;
 
           const lastIndex = old.pages.length - 1;
+          console.log("Adding new message to cache, lastIndex:", lastIndex)
 
           return {
             ...old,
             pages: old.pages.map((p, i) =>
               i === lastIndex
-                ? { ...p, results: [...p.results, newMessage] }
+                ? { ...p, results: [newMessage, ...p.results] }
                 : p
             ),
           };
@@ -110,7 +118,7 @@ const ChatPanel = ({ chatRoom, currentUser }) => {
         ...old,
         pages: old.pages.map((p, i) =>
           i === lastIndex
-            ? { ...p, results: [...p.results, optimisticMsg] }
+            ? { ...p, results: [optimisticMsg, ...p.results] }
             : p
         ),
       };
@@ -119,9 +127,15 @@ const ChatPanel = ({ chatRoom, currentUser }) => {
     setInputMessage("");
 
     try {
-      await axiosApi.post(`/api/v1/rooms/${chatRoom}/messages/`, {
-        message: inputMessage,
+      const formData = new FormData();
+      formData.append("content", inputMessage);
+
+      await axiosApi.post(`/api/v1/rooms/${chatRoom}/send/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
+      console.log("Message send")
     } catch (err) {
       console.error("Send failed", err);
     }

@@ -3,6 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import axiosApi from '../../../service/axiosInstance';
 import { base_URL } from '../../../config/Config';
 import toast from 'daisyui/components/toast';
+import { queryClient } from '../../../main';
 
 const fakeRoles = ['doctor', 'manager', 'staff', 'jr_staff'];
 
@@ -18,19 +19,20 @@ const CreateNewMessageModal = ({ onClose }) => {
     }, [userSearch, selectedRole, selectedUsers, message]);
 
 
-    // ................................*Fetch Users List*.............................. //
+    // .......................*Fetch Clinics & Users List*......................... //
     const { data: userList, isLoading: userListIsLoading, error: userListError } = useQuery({
-        queryKey: ['users', userSearch, selectedRole],
+        queryKey: ['clinics&userlist', userSearch, selectedRole],
         queryFn: async () => {
             // Simulate API call with filtering
             const res = await axiosApi.get(`/api/v1/chat/clinic/members/?search=${userSearch}&role=${selectedRole}`);
-            return res.data.results;
+            return res.data;
         },
     });
+    console.log("=======================",userList)
 
     // ..............*Mutation query function for create Private Chat*.............. //
     // Fixed typo + better name
-    const createPrivateChat = useMutation({
+    const createPrivateChats = useMutation({
         mutationFn: async ({ payload }) => {
             console.log("Creating private chat with payload:", payload);
 
@@ -43,7 +45,6 @@ const CreateNewMessageModal = ({ onClose }) => {
             // Important: Refresh the chat list so the new room appears immediately
             queryClient.invalidateQueries({ queryKey: ['myRooms'] });
             // Optional: Show success toast
-            toast.success("Chat started successfully!");
         },
         onError: (error) => {
             console.error("Error creating private chat:", error);
@@ -72,7 +73,7 @@ const CreateNewMessageModal = ({ onClose }) => {
             content: message,
         };
         // ...................**Call Mutation Function**................... //
-        creatPrivateChats.mutate({ payload });
+        createPrivateChats.mutate({ payload });
 
         // For now, just log the data
         console.log('Send Message:', {
@@ -151,7 +152,7 @@ const CreateNewMessageModal = ({ onClose }) => {
                                 {userList.length === 0 ? (
                                     <div className="text-gray-500 text-sm py-4">No users found</div>
                                 ) : (
-                                    userList.map(user => (
+                                    userList?.results.map(user => (
                                         <div key={user.id} className="flex items-center justify-between gap-3 py-2 hover:bg-gray-50 rounded-lg px-2">
                                             <div className="flex items-center gap-2">
                                                 <img src={`${base_URL}${user.image}`} alt={user.name} className="w-8 h-8 rounded-full object-cover" />

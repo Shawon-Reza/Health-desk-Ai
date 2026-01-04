@@ -18,17 +18,18 @@ const Communication = () => {
     const [selectedChatRoom, setSelectedChatRoom] = useState(null)
 
 
-    const roles = ["All", "Group", "Private"]
+    const roles = ["All", "private", "group"]
     const socketRef = useRef(null)
 
     // ................**Fetch user's chat rooms**.................\\
     const { data: rooms = [], isLoading, isError, error } = useQuery({
-        queryKey: ['myRooms',searchQuery,selectedRole],
+        queryKey: ['myRooms',searchQuery, selectedRole],
         queryFn: async () => {
-            const response = await axiosApi.get(`/api/v1/rooms/?q=${searchQuery}&type=${selectedRole === 'All' ? '' : selectedRole.toLowerCase()}`);
+            const response = await axiosApi.get(`/api/v1/rooms/?q=${searchQuery}&type=${selectedRole === "All" ? "" : selectedRole}`);
             // Return array - handle both { results: [...] } and direct array response
             return Array.isArray(response.data) ? response.data : response.data.results || [];
         },
+        keepPreviousData: true,
         onSuccess: (data) => {
             console.log("Fetched chat rooms:", data);
         },
@@ -37,8 +38,8 @@ const Communication = () => {
         }
     });
     console.log(rooms)
-    // ................**Search + Filter Effect**.................\\
-    useEffect(() => {
+
+      useEffect(() => {
         console.log("[Search + Filter]", { searchQuery, selectedRole })
     }, [searchQuery, selectedRole])
 
@@ -50,7 +51,7 @@ const Communication = () => {
                 console.log("New message :", message)
                 const updated = message.data;
 
-                queryClient.setQueryData(['myRooms'], (oldRooms) => {
+                queryClient.setQueriesData({ queryKey: ['myRooms'] }, (oldRooms) => {
                     // Ensure oldRooms is an array
                     if (!Array.isArray(oldRooms)) return oldRooms;
 
@@ -80,7 +81,7 @@ const Communication = () => {
     }, [queryClient]);
 
 
-
+  
 
     const handleSearch = (e) => {
         setSearchQuery(e.target.value)

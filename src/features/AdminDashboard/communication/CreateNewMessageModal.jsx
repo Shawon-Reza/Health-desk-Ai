@@ -1,46 +1,64 @@
-import React, { useState, useMemo } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import React, { useState, useMemo, useEffect } from 'react';
+import axiosApi from '../../../service/axiosInstance';
+import { base_URL } from '../../../config/Config';
+import toast from 'daisyui/components/toast';
 
-const fakeRoles = ['Admin', 'Doctor', 'Staff', 'Manager'];
-const fakeUsers = [
-    { id: 1, name: 'Dr. Michael Chen', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=1', role: 'Admin' },
-    { id: 2, name: 'Dr. Sarah Lee', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=2', role: 'Doctor' },
-    { id: 3, name: 'John Smith', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=3', role: 'Staff' },
-    { id: 4, name: 'Jane Doe', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=4', role: 'Manager' },
-    { id: 5, name: 'Dr. Michael Chen', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=5', role: 'Admin' },
-    { id: 6, name: 'Alice Johnson', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=6', role: 'Staff' },
-];
+const fakeRoles = ['doctor', 'manager', 'staff', 'jr_staff'];
 
 const CreateNewMessageModal = ({ onClose }) => {
     const [userSearch, setUserSearch] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
     const [message, setMessage] = useState('');
     const [selectedUsers, setSelectedUsers] = useState([]);
-    const [usersList, setUsersList] = useState(fakeUsers);
 
-    // Fetch users when role changes
-    React.useEffect(() => {
-        // Simulate backend fetch: filter by selected role
-        let users = fakeUsers;
-        if (selectedRole) {
-            users = users.filter(u => u.role === selectedRole);
-        }
-        setUsersList(users);
-    }, [selectedRole]);
+    // .................**Console Search and Role**.................. //
+    useEffect(() => {
+        console.log("User search : ", userSearch, " ", "role: ", selectedRole, " ", "selected users: ", selectedUsers, " message: ", message);
+    }, [userSearch, selectedRole, selectedUsers, message]);
 
-    // Filter users by search
-    const filteredUsers = useMemo(() => {
-        let users = usersList;
-        if (userSearch) {
-            users = users.filter(u => u.name.toLowerCase().includes(userSearch.toLowerCase()));
-        }
-        return users;
-    }, [userSearch, usersList]);
+
+    // ................................*Fetch Users List*.............................. //
+    const { data: userList, isLoading: userListIsLoading, error: userListError } = useQuery({
+        queryKey: ['users', userSearch, selectedRole],
+        queryFn: async () => {
+            // Simulate API call with filtering
+            const res = await axiosApi.get(`/api/v1/chat/clinic/members/?search=${userSearch}&role=${selectedRole}`);
+            return res.data.results;
+        },
+    });
+
+    // ..............*Mutation query function for create Private Chat*.............. //
+    // Fixed typo + better name
+    const createPrivateChat = useMutation({
+        mutationFn: async ({ payload }) => {
+            console.log("Creating private chat with payload:", payload);
+
+            const res = await axiosApi.post('/api/v1/rooms/directmesseges/', payload);
+            return res.data; // Always return data
+        },
+        onSuccess: (data) => {
+            console.log("Private chat created successfully:", data);
+
+            // Important: Refresh the chat list so the new room appears immediately
+            queryClient.invalidateQueries({ queryKey: ['myRooms'] });
+            // Optional: Show success toast
+            toast.success("Chat started successfully!");
+        },
+        onError: (error) => {
+            console.error("Error creating private chat:", error);
+            // Better toast message
+            const msg = error?.response?.data?.message || error?.message || "Failed to start chat";
+            toast.error(msg);
+        },
+    });
 
     const handleRoleChange = (e) => {
         setSelectedRole(e.target.value);
     };
 
     const handleUserToggle = (userId) => {
+        console.log("just Select :", userId)
         if (selectedUsers.includes(userId)) {
             setSelectedUsers(selectedUsers.filter(id => id !== userId));
         } else {
@@ -49,6 +67,13 @@ const CreateNewMessageModal = ({ onClose }) => {
     };
 
     const handleSendMessage = () => {
+        const payload = {
+            user_ids: selectedUsers,
+            content: message,
+        };
+        // ...................**Call Mutation Function**................... //
+        creatPrivateChats.mutate({ payload });
+
         // For now, just log the data
         console.log('Send Message:', {
             selectedUsers,
@@ -58,8 +83,10 @@ const CreateNewMessageModal = ({ onClose }) => {
         onClose();
     };
 
+
+
     return (
-        <div className="">
+        <div className="" >
             <h2 className="text-2xl font-bold mb-4 border-b-2 border-gray-300 pb-2">New Direct Message</h2>
             <form className="space-y-4">
                 {/* Search User & Role */}
@@ -107,35 +134,50 @@ const CreateNewMessageModal = ({ onClose }) => {
                     />
                 </div>
 
-                {/* User List */}
-                <div className="mt-6">
-                    <label className="text-sm font-medium mb-2 flex items-center gap-2">
-                        User List
-                    </label>
-                    <div className="border-t pt-2 border-gray-400 max-h-64 overflow-y-auto">
-                        {filteredUsers.length === 0 ? (
-                            <div className="text-gray-500 text-sm py-4">No users found</div>
-                        ) : (
-                            filteredUsers.map(user => (
-                                <div key={user.id} className="flex items-center justify-between gap-3 py-2 hover:bg-gray-50 rounded-lg px-2">
-                                    <div className="flex items-center gap-2">
-                                        <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover" />
-                                        <span className="font-medium text-sm">{user.name}</span>
-                                    </div>
 
-                                    <span className="bg-pink-100 text-pink-600 rounded-full px-3 py-1 text-xs font-semibold text-center">{user.role}</span>
 
-                                    <input
-                                        type="checkbox"
-                                        className="w-5 h-5 rounded border-2 border-teal-500 text-teal-600 focus:ring-2 focus:ring-teal-500 cursor-pointer"
-                                        checked={selectedUsers.includes(user.id)}
-                                        onChange={() => handleUserToggle(user.id)}
-                                    />
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
+                {/* ...................*Display User Lisr*................... */}
+                {
+                    userListIsLoading ? (
+                        <div>Loading users...</div>
+                    ) : userListError ? (
+                        <div>Error loading users</div>
+                    ) : (
+                        <div className="mt-6">
+                            <label className="text-sm font-medium mb-2 flex items-center gap-2">
+                                User List
+                            </label>
+                            <div className="border-t pt-2 border-gray-400 max-h-60 overflow-y-auto">
+                                {userList.length === 0 ? (
+                                    <div className="text-gray-500 text-sm py-4">No users found</div>
+                                ) : (
+                                    userList.map(user => (
+                                        <div key={user.id} className="flex items-center justify-between gap-3 py-2 hover:bg-gray-50 rounded-lg px-2">
+                                            <div className="flex items-center gap-2">
+                                                <img src={`${base_URL}${user.image}`} alt={user.name} className="w-8 h-8 rounded-full object-cover" />
+                                                <span className="font-medium text-sm">{user.name}</span>
+                                            </div>
+
+                                            <div className='space-x-4 flex items-center justify-center'>
+
+                                                <div className='flex justify-center items-center gap-2 '>
+                                                    <span className="bg-pink-100 text-pink-600 rounded-full px-3 py-1 text-xs font-semibold  ">{user.role}</span>
+                                                </div>
+
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-5 h-5 rounded border-2 border-teal-500 text-teal-600 focus:ring-2 focus:ring-teal-500 cursor-pointer"
+                                                    checked={selectedUsers.includes(user.id)}
+                                                    onChange={() => handleUserToggle(user.id)}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    )
+                }
 
                 {/* Action Buttons */}
                 <div className="flex justify-end gap-4 mt-8">
@@ -147,7 +189,7 @@ const CreateNewMessageModal = ({ onClose }) => {
                     </button>
                 </div>
             </form>
-        </div>
+        </div >
     );
 };
 

@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import axiosApi from "../../../service/axiosInstance";
 import { queryClient } from "../../../main";
 import { useDebouncedCallback } from "use-debounce";
+import { base_URL } from "../../../config/Config";
 
 const Communication = () => {
     const [activeTab, setActiveTab] = useState("allChat");
@@ -94,7 +95,7 @@ const Communication = () => {
     }
 
     return (
-        <div className="container mx-auto">
+        <div className=" mx-auto">
             {/* Header */}
             <section className="text-secondary mb-8">
                 <h2 className="text-2xl lg:text-3xl font-bold">Communication Hub</h2>
@@ -187,7 +188,7 @@ const Communication = () => {
                                     >
                                         <div className="relative">
                                             <img
-                                                src={chat.image || "/default-avatar.png"}
+                                                src={`${base_URL}${chat.image }`}
                                                 alt={chat.name}
                                                 className="w-10 h-10 rounded-full object-cover"
                                             />
@@ -234,7 +235,7 @@ const Communication = () => {
 
                 {showCreateMessageModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-                        <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xl relative">
+                        <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xl lg:max-w-3xl xl:max-w-5xl relative mx-5 sm:mx-10">
                             <CreateNewMessageModal onClose={() => setShowCreateMessageModal(false)} />
                         </div>
                     </div>

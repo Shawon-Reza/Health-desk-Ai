@@ -17,13 +17,7 @@ const ChatPanel = ({ chatRoom, currentUser }) => {
   const { userInfo } = getAuthData();
   const userId = userInfo?.user_id;
 
-  const safeUser = {
-    name: currentUser?.name || "User",
-    role: currentUser?.role || "Member",
-    avatar:
-      currentUser?.avatar ||
-      "https://api.dicebear.com/7.x/avataaars/svg?seed=Chat",
-  };
+
 
   // Messages (HTTP with infinite scroll)
   const {
@@ -43,12 +37,15 @@ const ChatPanel = ({ chatRoom, currentUser }) => {
       return {
         results: res.data.results ?? [],
         nextCursor: res.data.next_cursor ?? null,
+        chatInfo: res.data.room ?? null,
       };
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
-  console.log("Result:", data)
+  console.log("Result--------------:", data)
+  console.log("Result*************:", data?.pages[0].chatInfo)
+
 
   // Flatten and reverse to show oldest -> newest
   const messages = useMemo(() => {
@@ -127,6 +124,14 @@ const ChatPanel = ({ chatRoom, currentUser }) => {
       console.error("Send failed", err);
     }
   };
+  // ...........................**Chat info**........................... //
+  // data?.pages[0].chatInfo)
+  const safeUser = {
+    name: data?.pages[0]?.chatInfo?.name || "Unknocwn User",
+    role: data?.pages[0]?.chatInfo?.display_role || "unknown",
+    avatar: `http://10.10.13.2:8000${data?.pages[0]?.chatInfo?.image}` ||
+      "https://api.dicebear.com/7.x/avataaars/svg?seed=Chat",
+  };
 
   return (
     <div className="flex flex-col h-full border border-gray-300 rounded-lg bg-white">
@@ -179,7 +184,7 @@ const ChatPanel = ({ chatRoom, currentUser }) => {
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim()}
               >
-                <FiSend  size={24}/>
+                <FiSend size={24} />
               </button>
             </div>
           </div>

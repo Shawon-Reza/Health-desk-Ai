@@ -18,14 +18,14 @@ const Communication = () => {
     const [selectedChatRoom, setSelectedChatRoom] = useState(null)
 
 
-    const roles = ["All", "Manager", "Staff", "Doctor"]
+    const roles = ["All", "Group", "Private"]
     const socketRef = useRef(null)
 
     // ................**Fetch user's chat rooms**.................\\
     const { data: rooms = [], isLoading, isError, error } = useQuery({
-        queryKey: ['myRooms'],
+        queryKey: ['myRooms',searchQuery,selectedRole],
         queryFn: async () => {
-            const response = await axiosApi.get('/api/v1/rooms/');
+            const response = await axiosApi.get(`/api/v1/rooms/?q=${searchQuery}&type=${selectedRole === 'All' ? '' : selectedRole.toLowerCase()}`);
             // Return array - handle both { results: [...] } and direct array response
             return Array.isArray(response.data) ? response.data : response.data.results || [];
         },
@@ -37,6 +37,10 @@ const Communication = () => {
         }
     });
     console.log(rooms)
+    // ................**Search + Filter Effect**.................\\
+    useEffect(() => {
+        console.log("[Search + Filter]", { searchQuery, selectedRole })
+    }, [searchQuery, selectedRole])
 
     // ................**WebSocket for real-time chat list updates/query Cached**.................\\
     useEffect(() => {
@@ -76,9 +80,7 @@ const Communication = () => {
     }, [queryClient]);
 
 
-    useEffect(() => {
-        console.log("[Search + Filter]", { searchQuery, selectedRole })
-    }, [searchQuery, selectedRole])
+
 
     const handleSearch = (e) => {
         setSearchQuery(e.target.value)

@@ -139,6 +139,7 @@ const MessageList = ({
     };
 
     const MessageBubble = ({ msg }) => {
+        console.log("Message From Bubble::::::::",msg)
         const isMe = Number(msg?.sender?.id) === Number(userId);
         const text = msg.text || msg.message || msg.content || "";
 

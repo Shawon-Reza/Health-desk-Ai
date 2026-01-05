@@ -20,16 +20,14 @@ export default function UserManagement() {
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const [changePasswordUserId, setChangePasswordUserId] = useState(null);
     const [changePasswordUserName, setChangePasswordUserName] = useState('');
-
     const [showRoleDropdown, setShowRoleDropdown] = useState(false);
     const [showClinicDropdown, setShowClinicDropdown] = useState(false);
-
+    const [currentPage, setCurrentPage] = useState(1);
     const roleRef = useRef();
     const clinicRef = useRef();
 
     const roles = [
         "All Roles",
-
         "President",
         "Manager",
         "Doctor",
@@ -47,34 +45,47 @@ export default function UserManagement() {
         error,
         refetch
     } = useGetSubjectMattersAndClinicsList()
-    // ================================================================
+    // =============================================================================
     //================ FETCH USER LIST DATA INCLUDING FILTERING  ==================\\
     const {
-        data: userList = [],
+        data: userListResponse = { results: [], pagination: { count: 0, next: null, previous: null, page: 1, pageSize: 0 } },
         isLoading: userListLoading,
         error: userListError,
         refetch: refetchUserList
     } = useQuery({
-        queryKey: ['userList', searchQuery, selectedRole, selectedClinicId],
+        queryKey: ['userList', searchQuery, selectedRole, selectedClinicId, currentPage],
         queryFn: async () => {
             // Build query parameters
             const params = new URLSearchParams();
             if (searchQuery) params.append('search', searchQuery);
             if (selectedRole && selectedRole !== 'All Roles') params.append('role', selectedRole.toLowerCase());
             if (selectedClinicId) params.append('clinic', selectedClinicId);
+            params.append('page', currentPage);
 
             const queryString = params.toString();
             const url = queryString ? `/api/v1/users/?${queryString}` : '/api/v1/users/';
 
-            const response = await axiosApi.get(url)
-            const dataArray = Array.isArray(response.data) ? response.data : response.data?.results || response.data?.data || []
-            return dataArray
+            const response = await axiosApi.get(url);
+            const rawData = response.data;
+            const results = Array.isArray(rawData) ? rawData : rawData?.results || rawData?.data || [];
+            const count = Number(rawData?.count ?? results.length ?? 0);
+            const pageSize = Number(rawData?.page_size ?? results.length ?? 0);
+            const next = rawData?.next ?? null;
+            const previous = rawData?.previous ?? null;
+
+            return {
+                results,
+                pagination: {
+                    count,
+                    next,
+                    previous,
+                    page: currentPage,
+                    pageSize,
+                },
+            };
         },
-    })
-    console.log("User list :", userList);
-
-
-
+    });
+    console.log("User list :", userListResponse);
 
 
     // map API user shape to table row shape
@@ -112,13 +123,33 @@ export default function UserManagement() {
     };
 
     // when API data arrives, populate the table rows
+    const usersData = Array.isArray(userListResponse) ? userListResponse : userListResponse?.results || [];
+    const pagination = !Array.isArray(userListResponse) && userListResponse?.pagination
+        ? userListResponse.pagination
+        : {
+            count: usersData.length,
+            next: null,
+            previous: null,
+            page: currentPage,
+            pageSize: usersData.length,
+        };
+    const currentPageDisplay = pagination.page || 1;
+    const pageSize = pagination.pageSize || usersData.length || 1;
+    const totalPages = Math.max(1, Math.ceil((pagination.count || 0) / pageSize));
+    const hasPrevious = pagination.previous !== null ? Boolean(pagination.previous) : currentPageDisplay > 1;
+    const hasNext = pagination.next !== null ? Boolean(pagination.next) : currentPageDisplay < totalPages;
+
     useEffect(() => {
-        if (Array.isArray(userList) && userList.length) {
-            setUsers(userList.map((u, idx) => mapUserFromApi(u, idx)));
+        if (Array.isArray(usersData) && usersData.length) {
+            setUsers(usersData.map((u, idx) => mapUserFromApi(u, idx)));
         } else {
             setUsers([]);
         }
-    }, [userList]);
+    }, [usersData]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, selectedRole, selectedClinicId]);
 
     useEffect(() => {
         const filterParams = {
@@ -191,7 +222,7 @@ export default function UserManagement() {
         };
     };
 
-    const handleUserCreated = (created) => {
+    const handleUserCreated = () => {
         console.log("[UserManagement] User created:", created);
         setUsers((prev) => [...prev, mapUserToRow(created)]);
     };
@@ -206,6 +237,12 @@ export default function UserManagement() {
         setSelectedClinic(isAll ? "All Clinics" : (clinicOption.name || clinicOption.title || clinicOption));
         setSelectedClinicId(isAll ? null : clinicOption.id);
         setShowClinicDropdown(false);
+    };
+
+    const handlePageChange = (page) => {
+        if (!Number.isFinite(page)) return;
+        const nextPage = Math.max(1, page);
+        setCurrentPage(nextPage);
     };
 
     const handleClickOutside = (e) => {
@@ -233,7 +270,7 @@ export default function UserManagement() {
 
 
     return (
-        <div className="p-6 space-y-6 max-h-[calc(100dvh-148px)] overflow-auto">
+        <div className=" space-y-6 max-h-[calc(100dvh-148px)] overflow-auto">
             {/* Add New User Modal */}
             <AddNewUserModal
                 isOpen={isAddUserOpen}
@@ -349,15 +386,43 @@ export default function UserManagement() {
             </div>
 
             {/* UserDetailsTable placeholder */}
-            <section className="max-h-[calc(100vh-320px)] overflow-auto bg-white">
+            <section className="max-h-[calc(100vh-400px)] overflow-auto bg-white">
                 <UserDetailsTable
-                    users={userList}
+                    users={usersData}
                     onEditUser={handleEditUser}
                     onChangePassword={handleChangePassword}
                     isLoading={userListLoading}
                     error={userListError}
                 />
             </section>
+
+            {/* Pagination Controls */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="text-sm text-gray-600">
+                    {pagination.count > 0
+                        ? `Showing page ${currentPageDisplay} of ${totalPages} (${pagination.count} users)`
+                        : "No users to display"}
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => handlePageChange(currentPageDisplay - 1)}
+                        disabled={!hasPrevious}
+                        className="px-4 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Previous
+                    </button>
+                    <span className="text-sm text-gray-700">
+                        Page {currentPageDisplay} / {totalPages}
+                    </span>
+                    <button
+                        onClick={() => handlePageChange(currentPageDisplay + 1)}
+                        disabled={!hasNext}
+                        className="px-4 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Next
+                    </button>
+                </div>
+            </div>
 
             {/* Change Password Modal */}
             <ChangePasswordModal

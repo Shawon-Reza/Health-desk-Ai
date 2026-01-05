@@ -10,6 +10,7 @@ import { queryClient } from "../../../main";
 import { useDebouncedCallback } from "use-debounce";
 import { base_URL } from "../../../config/Config";
 
+
 const Communication = () => {
     const [activeTab, setActiveTab] = useState("allChat");
     const [searchQuery, setSearchQuery] = useState("");
@@ -26,18 +27,19 @@ const Communication = () => {
         setSearchQuery(value);
     }, 900);
 
-    // Fetch user's chat rooms with filters
+    // ...................Fetch user's chat rooms with filters.......................\\
     const { data: rooms = [], isLoading } = useQuery({
         queryKey: ["myRooms", searchQuery, selectedRole],
         queryFn: async () => {
             const response = await axiosApi.get(
                 `/api/v1/rooms/?q=${searchQuery}&type=${selectedRole === "All" ? "" : selectedRole}`
             );
-            return Array.isArray(response.data) ? response.data : response.data.results || [];
+            return response.data;
         },
         keepPreviousData: true, // Smooth UX while loading new results
         staleTime: 1000 * 30, // Optional: reduce refetch frequency
     });
+    console.log("--------------------", rooms)
 
     // WebSocket for real-time room updates
     useEffect(() => {
@@ -93,6 +95,19 @@ const Communication = () => {
             </div>
         );
     }
+    console.log("Ai Rooms:--------------", rooms.ai_rooms)
+
+    if (activeTab === "aiAssistant" && rooms?.ai_rooms?.length === 0) {
+        return (
+            <div>
+                <section className="text-secondary mb-8">
+                    <h2 className="text-2xl lg:text-3xl font-bold">Communication Hub</h2>
+                    <p className="text-lg opacity-80">Chat with your team and AI assistant</p>
+                </section>
+            </div>
+        );
+    }
+
 
     return (
         <div className=" mx-auto">
@@ -104,7 +119,7 @@ const Communication = () => {
 
             {/* Main Layout */}
             <section className="flex gap-6 h-[calc(100vh-250px)]">
-                {/* Sidebar */}
+                {/* ......................Sidebar.................... */}
                 <section className="w-[40%] xl:w-[25%] h-full bg-white rounded-xl shadow-md p-4 space-y-4 border border-gray-300">
                     {/* Tabs */}
                     <div className="flex justify-between gap-3 pb-2">
@@ -169,7 +184,7 @@ const Communication = () => {
                         </select>
                     </div>
 
-                    {/* Chat List */}
+                    {/* ........................Chat List.......................... */}
                     <div className={`space-y-2 overflow-auto h-[calc(100vh-450px)] ${activeTab === "allChat" ? "" : "hidden"}`}>
                         <p className={`text-center text-gray-500 ${activeTab === "aiAssistant" ? "" : "hidden"}`}>
                             All chats are shown here
@@ -179,47 +194,48 @@ const Communication = () => {
                             {rooms.length === 0 ? (
                                 <p className="text-center text-gray-500 py-10">No chats found</p>
                             ) : (
-                                rooms.map((chat) => (
-                                    <button
-                                        key={chat.room_id}
-                                        onClick={() => handleChatSelect(chat)}
-                                        className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition ${selectedChatRoom === chat.room_id ? "bg-gray-200" : ""
-                                            }`}
-                                    >
-                                        <div className="relative">
-                                            <img
-                                                src={`${base_URL}${chat.image }`}
-                                                alt={chat.name}
-                                                className="w-10 h-10 rounded-full object-cover"
-                                            />
-                                            {chat?.is_online && (
-                                                <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-primary"></span>
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-center">
-                                                <h4 className="font-medium text-sm truncate">{chat.name}</h4>
-                                                <span className="text-xs text-gray-400">
-                                                    {formatChatTime(chat?.last_message?.created_at)}
-                                                </span>
+                                rooms?.results
+                                    .map((chat) => (
+                                        <button
+                                            key={chat.room_id}
+                                            onClick={() => handleChatSelect(chat)}
+                                            className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition ${selectedChatRoom === chat.room_id ? "bg-gray-200" : ""
+                                                }`}
+                                        >
+                                            <div className="relative">
+                                                <img
+                                                    src={`${base_URL}${chat.image}`}
+                                                    alt={chat.name}
+                                                    className="w-10 h-10 rounded-full object-cover"
+                                                />
+                                                {chat?.is_online && (
+                                                    <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-primary"></span>
+                                                )}
                                             </div>
-                                            <p className={`text-xs text-gray-600 truncate ${chat?.unseen_count > 0 ? "font-bold" : ""}`}>
-                                                {chat?.last_message?.text || "No messages yet"}
-                                            </p>
-                                        </div>
-                                        {chat?.unseen_count > 0 && (
-                                            <span className="relative w-6 h-6 flex items-center justify-center text-xs rounded-full bg-primary text-white font-semibold">
-                                                {chat.unseen_count > 99 ? "99+" : chat.unseen_count}
-                                            </span>
-                                        )}
-                                    </button>
-                                ))
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-center">
+                                                    <h4 className="font-medium text-sm truncate">{chat.name}</h4>
+                                                    <span className="text-xs text-gray-400">
+                                                        {formatChatTime(chat?.last_message?.created_at)}
+                                                    </span>
+                                                </div>
+                                                <p className={`text-xs text-gray-600 truncate ${chat?.unseen_count > 0 ? "font-bold" : ""}`}>
+                                                    {chat?.last_message?.text || "No messages yet"}
+                                                </p>
+                                            </div>
+                                            {chat?.unseen_count > 0 && (
+                                                <span className="relative w-6 h-6 flex items-center justify-center text-xs rounded-full bg-primary text-white font-semibold">
+                                                    {chat.unseen_count > 99 ? "99+" : chat.unseen_count}
+                                                </span>
+                                            )}
+                                        </button>
+                                    ))
                             )}
                         </div>
                     </div>
                 </section>
 
-                {/* Chat Panel */}
+                {/* ............................Chat Panel............................. */}
                 <section className="w-[60%] xl:w-[75%] h-full bg-white rounded-lg shadow-md p-4">
                     <ChatPanel chatRoom={selectedChatRoom} />
                 </section>

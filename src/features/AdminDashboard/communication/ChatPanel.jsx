@@ -142,7 +142,7 @@ const ChatPanel = ({ chatRoom, currentUser }) => {
       ) : (
         <>
           {/* Header */}
-          <div className="p-4 border-b border-gray-300 flex justify-between items-center">
+          <div className="p-4 border-b border-gray-300 flex justify-between items-center relative">
             <div className="flex gap-3 items-center">
               <img
                 src={safeUser.avatar}
@@ -155,10 +155,34 @@ const ChatPanel = ({ chatRoom, currentUser }) => {
               </div>
             </div>
 
-            <FiInfo
-              className="cursor-pointer"
-              onClick={() => setShowActions(!showActions)}
-            />
+            <div className="relative">
+              <FiInfo
+              size={20}
+                className="cursor-pointer"
+                onClick={() => setShowActions(!showActions)}
+              />
+
+              {/*.................Actions Dropdown[add/delete/block] .................*/}
+              {showActions && (
+                <div className="absolute right-0 mt-2 bg-white rounded-lg shadow-lg p-4 w-56 z-50 border border-gray-200">
+                  <h3 className="text-center font-bold text-gray-800 mb-3">Actions</h3>
+                  <div className="space-y-2">
+                    <button className="w-full border-2 border-teal-500 text-teal-600 px-4 py-2 rounded-lg font-semibold hover:bg-teal-50 transition">
+                      Edit Details
+                    </button>
+                    <button className="w-full bg-green-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-600 transition">
+                      Add Member
+                    </button>
+                    <button className="w-full bg-yellow-400 text-white px-4 py-2 rounded-lg font-semibold hover:bg-yellow-500 transition">
+                      Block Member
+                    </button>
+                    <button className="w-full bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition">
+                      Delete Chat
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Message List */}

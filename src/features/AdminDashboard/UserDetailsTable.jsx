@@ -105,7 +105,7 @@ export default function UserDetailsTable({ users = [], onEditUser, onChangePassw
   }
 
   return (
-    <div className="border border-gray-300 rounded-lg p-4 min-h-[500px] overflow-x-auto ">
+    <div className="border border-gray-300 rounded-lg px-4 py-2 min-h-[500px] overflow-x-auto ">
       <h2 className="text-xl font-bold text-gray-900 mb-4">Users Details</h2>
 
       {/* Table Container */}

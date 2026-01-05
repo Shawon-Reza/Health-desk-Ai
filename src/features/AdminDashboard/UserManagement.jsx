@@ -20,14 +20,17 @@ export default function UserManagement() {
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const [changePasswordUserId, setChangePasswordUserId] = useState(null);
     const [changePasswordUserName, setChangePasswordUserName] = useState('');
+
     const [showRoleDropdown, setShowRoleDropdown] = useState(false);
     const [showClinicDropdown, setShowClinicDropdown] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
+
     const roleRef = useRef();
     const clinicRef = useRef();
 
     const roles = [
         "All Roles",
+
         "President",
         "Manager",
         "Doctor",
@@ -45,10 +48,10 @@ export default function UserManagement() {
         error,
         refetch
     } = useGetSubjectMattersAndClinicsList()
-    // =============================================================================
+    // ================================================================
     //================ FETCH USER LIST DATA INCLUDING FILTERING  ==================\\
     const {
-        data: userListResponse = { results: [], pagination: { count: 0, next: null, previous: null, page: 1, pageSize: 0 } },
+        data: userList = { count: 0, next: null, previous: null, results: [] },
         isLoading: userListLoading,
         error: userListError,
         refetch: refetchUserList
@@ -62,30 +65,17 @@ export default function UserManagement() {
             if (selectedClinicId) params.append('clinic', selectedClinicId);
             params.append('page', currentPage);
 
-            const queryString = params.toString();
-            const url = queryString ? `/api/v1/users/?${queryString}` : '/api/v1/users/';
+            const url = `/api/v1/users/?${params.toString()}`;
 
-            const response = await axiosApi.get(url);
-            const rawData = response.data;
-            const results = Array.isArray(rawData) ? rawData : rawData?.results || rawData?.data || [];
-            const count = Number(rawData?.count ?? results.length ?? 0);
-            const pageSize = Number(rawData?.page_size ?? results.length ?? 0);
-            const next = rawData?.next ?? null;
-            const previous = rawData?.previous ?? null;
-
-            return {
-                results,
-                pagination: {
-                    count,
-                    next,
-                    previous,
-                    page: currentPage,
-                    pageSize,
-                },
-            };
+            const response = await axiosApi.get(url)
+            console.log(response.data)
+            return response.data;
         },
-    });
-    console.log("User list :", userListResponse);
+    })
+    console.log("User list :", userList);
+
+
+
 
 
     // map API user shape to table row shape
@@ -123,30 +113,15 @@ export default function UserManagement() {
     };
 
     // when API data arrives, populate the table rows
-    const usersData = Array.isArray(userListResponse) ? userListResponse : userListResponse?.results || [];
-    const pagination = !Array.isArray(userListResponse) && userListResponse?.pagination
-        ? userListResponse.pagination
-        : {
-            count: usersData.length,
-            next: null,
-            previous: null,
-            page: currentPage,
-            pageSize: usersData.length,
-        };
-    const currentPageDisplay = pagination.page || 1;
-    const pageSize = pagination.pageSize || usersData.length || 1;
-    const totalPages = Math.max(1, Math.ceil((pagination.count || 0) / pageSize));
-    const hasPrevious = pagination.previous !== null ? Boolean(pagination.previous) : currentPageDisplay > 1;
-    const hasNext = pagination.next !== null ? Boolean(pagination.next) : currentPageDisplay < totalPages;
-
     useEffect(() => {
-        if (Array.isArray(usersData) && usersData.length) {
-            setUsers(usersData.map((u, idx) => mapUserFromApi(u, idx)));
+        if (Array.isArray(userList?.results) && userList?.results.length) {
+            setUsers(userList.results.map((u, idx) => mapUserFromApi(u, idx)));
         } else {
             setUsers([]);
         }
-    }, [usersData]);
+    }, [userList]);
 
+    // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
     }, [searchQuery, selectedRole, selectedClinicId]);
@@ -222,7 +197,7 @@ export default function UserManagement() {
         };
     };
 
-    const handleUserCreated = () => {
+    const handleUserCreated = (created) => {
         console.log("[UserManagement] User created:", created);
         setUsers((prev) => [...prev, mapUserToRow(created)]);
     };
@@ -239,11 +214,19 @@ export default function UserManagement() {
         setShowClinicDropdown(false);
     };
 
-    const handlePageChange = (page) => {
-        if (!Number.isFinite(page)) return;
-        const nextPage = Math.max(1, page);
-        setCurrentPage(nextPage);
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1) {
+            setCurrentPage(newPage);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     };
+
+    // Calculate pagination info
+    const pageSize = 20; // Items per page from API
+    const totalItems = userList?.count || 0;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const hasNextPage = Boolean(userList?.next);
+    const hasPreviousPage = Boolean(userList?.previous);
 
     const handleClickOutside = (e) => {
         if (
@@ -270,7 +253,8 @@ export default function UserManagement() {
 
 
     return (
-        <div className=" space-y-6 max-h-[calc(100dvh-148px)] overflow-auto">
+        <div className=" space-y-6 max-h-[calc(100dvh-100px)] overflow-auto">
+            
             {/* Add New User Modal */}
             <AddNewUserModal
                 isOpen={isAddUserOpen}
@@ -388,7 +372,7 @@ export default function UserManagement() {
             {/* UserDetailsTable placeholder */}
             <section className="max-h-[calc(100vh-400px)] overflow-auto bg-white">
                 <UserDetailsTable
-                    users={usersData}
+                    users={userList?.results}
                     onEditUser={handleEditUser}
                     onChangePassword={handleChangePassword}
                     isLoading={userListLoading}
@@ -397,27 +381,27 @@ export default function UserManagement() {
             </section>
 
             {/* Pagination Controls */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 ">
                 <div className="text-sm text-gray-600">
-                    {pagination.count > 0
-                        ? `Showing page ${currentPageDisplay} of ${totalPages} (${pagination.count} users)`
+                    {totalItems > 0
+                        ? `Showing page ${currentPage} of ${totalPages} (${totalItems} total users)`
                         : "No users to display"}
                 </div>
                 <div className="flex items-center gap-2">
                     <button
-                        onClick={() => handlePageChange(currentPageDisplay - 1)}
-                        disabled={!hasPrevious}
-                        className="px-4 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={!hasPreviousPage || currentPage === 1}
+                        className="px-4 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         Previous
                     </button>
-                    <span className="text-sm text-gray-700">
-                        Page {currentPageDisplay} / {totalPages}
+                    <span className="text-sm text-gray-700 font-medium">
+                        Page {currentPage} of {totalPages}
                     </span>
                     <button
-                        onClick={() => handlePageChange(currentPageDisplay + 1)}
-                        disabled={!hasNext}
-                        className="px-4 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={!hasNextPage || currentPage === totalPages}
+                        className="px-4 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         Next
                     </button>

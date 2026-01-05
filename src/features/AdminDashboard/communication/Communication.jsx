@@ -4,7 +4,7 @@ import ChatPanel from "./ChatPanel";
 import CreateNewGroupModal from "../Communication/CreateNewGroupModal";
 import CreateNewMessageModal from "../Communication/CreateNewMessageModal";
 import { connectWebSocketForChatList } from "./ChatService";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axiosApi from "../../../service/axiosInstance";
 import { queryClient } from "../../../main";
 import { useDebouncedCallback } from "use-debounce";
@@ -28,18 +28,20 @@ const Communication = () => {
     }, 900);
 
     // ...................Fetch user's chat rooms with filters.......................\\
-    const { data: rooms = [], isLoading } = useQuery({
+    const { data: rooms = { read_only: false, ai_rooms: [], results: [] }, isLoading } = useQuery({
         queryKey: ["myRooms", searchQuery, selectedRole],
         queryFn: async () => {
             const response = await axiosApi.get(
                 `/api/v1/rooms/?q=${searchQuery}&type=${selectedRole === "All" ? "" : selectedRole}`
             );
+            console.log("%%%%%%%%%%%%%%1", response.data)
             return response.data;
         },
         keepPreviousData: true, // Smooth UX while loading new results
         staleTime: 1000 * 30, // Optional: reduce refetch frequency
     });
     console.log("--------------------", rooms)
+
 
     // WebSocket for real-time room updates
     useEffect(() => {
@@ -61,8 +63,55 @@ const Communication = () => {
         return () => socketRef.current?.close();
     }, [queryClient]);
 
+    // .....................Ai Assistant Related Code.....................\\
+    // Here Create Rooms if not exists.......
+    // Mutation to create AI room
+    const createAiRoom = useMutation({
+        mutationFn: async () => {
+            const res = await axiosApi.post('/api/v1/rooms/ai/me/');
+            return res.data;
+        },
+        onSuccess: (data) => {
+            console.log("AI chat room created successfully:", data);
+            // Critical: Refresh the room list so the new AI room appears instantly
+            queryClient.invalidateQueries({ queryKey: ["myRooms"] });
+        },
+        onError: (error) => {
+            console.error("Failed to create AI chat room:", error);
+            // Optional: toast.error("Could not load AI Assistant");
+        },
+    });
+
+    useEffect(() => {
+        if (
+            activeTab === "aiAssistant" &&
+            Array.isArray(rooms?.ai_rooms) &&
+            rooms.ai_rooms.length === 0 &&
+            !createAiRoom.isPending // Prevent duplicate calls
+        ) {
+            console.log("No AI room found → creating one automatically...");
+            createAiRoom.mutate();
+        }
+    }, [activeTab, rooms?.ai_rooms, createAiRoom.isPending]);
+    // --------------------------------------------------------------------------------\\
+    // useEffect(() => {
+    //     if (activeTab === "aiAssistant") {
+    //         const aiRoomId = Array.isArray(rooms?.ai_rooms) && rooms.ai_rooms.length > 0
+    //             ? rooms.ai_rooms[0].room_id
+    //             : null;
+    //         setSelectedChatRoom(aiRoomId);
+    //     } else {
+    //         // Clear selection when leaving AI tab; could also keep previous chat if desired
+    //         setSelectedChatRoom(null);
+    //     }
+    // }, [activeTab, rooms?.ai_rooms]);
+
+
+
+
+
     const handleChatSelect = (chat) => {
-        setSelectedChatRoom(chat.room_id);
+        setSelectedChatRoom(chat?.room_id ?? null);
     };
 
     const handleRoleFilterChange = (role) => {
@@ -82,7 +131,8 @@ const Communication = () => {
         return `${time} · ${day}`;
     };
 
-    if (isLoading && rooms.length === 0) {
+    const isLoadingAndEmpty = isLoading && (!Array.isArray(rooms?.results) || rooms.results.length === 0);
+    if (isLoadingAndEmpty) {
         return (
             <div className="container mx-auto">
                 <section className="text-secondary mb-8">
@@ -92,18 +142,6 @@ const Communication = () => {
                 <div className="flex justify-center items-center h-[calc(100vh-280px)]">
                     <p className="text-gray-500">Loading chat rooms...</p>
                 </div>
-            </div>
-        );
-    }
-    console.log("Ai Rooms:--------------", rooms.ai_rooms)
-
-    if (activeTab === "aiAssistant" && rooms?.ai_rooms?.length === 0) {
-        return (
-            <div>
-                <section className="text-secondary mb-8">
-                    <h2 className="text-2xl lg:text-3xl font-bold">Communication Hub</h2>
-                    <p className="text-lg opacity-80">Chat with your team and AI assistant</p>
-                </section>
             </div>
         );
     }
@@ -185,16 +223,59 @@ const Communication = () => {
                     </div>
 
                     {/* ........................Chat List.......................... */}
-                    <div className={`space-y-2 overflow-auto h-[calc(100vh-450px)] ${activeTab === "allChat" ? "" : "hidden"}`}>
-                        <p className={`text-center text-gray-500 ${activeTab === "aiAssistant" ? "" : "hidden"}`}>
-                            All chats are shown here
-                        </p>
+                    <div className={`space-y-2 overflow-auto h-[calc(100vh-450px)] `}>
+
+
+                        <div className={`text-center text-gray-500 ${activeTab === "aiAssistant" ? "" : "hidden"}`}>
+                            <div className={`${activeTab === "aiAssistant" ? "" : "hidden"}`}>
+                                {(!Array.isArray(rooms?.results) || rooms.results.length === 0) ? (
+                                    <p className="text-center text-gray-500 py-10">No chats found</p>
+                                ) : (
+                                    rooms.ai_rooms
+                                        .map((chat) => (
+                                            <button
+                                                key={chat.room_id}
+                                                onClick={() => handleChatSelect(chat)}
+                                                className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition ${selectedChatRoom === chat.room_id ? "bg-gray-200" : ""
+                                                    }`}
+                                            >
+                                                <div className="relative">
+                                                    <img
+                                                        src={`${base_URL}${chat.image}`}
+                                                        alt={chat.name}
+                                                        className="w-10 h-10 rounded-full object-cover"
+                                                    />
+                                                    {chat?.is_online && (
+                                                        <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-primary"></span>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex justify-between items-center">
+                                                        <h4 className="font-medium text-sm truncate">{chat.name}</h4>
+                                                        <span className="text-xs text-gray-400">
+                                                            {formatChatTime(chat?.last_message?.created_at)}
+                                                        </span>
+                                                    </div>
+                                                    <p className={`text-xs text-gray-600 truncate ${chat?.unseen_count > 0 ? "font-bold" : ""}`}>
+                                                        {chat?.last_message?.text || "No messages yet"}
+                                                    </p>
+                                                </div>
+                                                {chat?.unseen_count > 0 && (
+                                                    <span className="relative w-6 h-6 flex items-center justify-center text-xs rounded-full bg-primary text-white font-semibold">
+                                                        {chat.unseen_count > 99 ? "99+" : chat.unseen_count}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        ))
+                                )}
+                            </div>
+                        </div>
 
                         <div className={`${activeTab === "allChat" ? "" : "hidden"}`}>
-                            {rooms.length === 0 ? (
+                            {(!Array.isArray(rooms?.results) || rooms.results.length === 0) ? (
                                 <p className="text-center text-gray-500 py-10">No chats found</p>
                             ) : (
-                                rooms?.results
+                                rooms.results
                                     .map((chat) => (
                                         <button
                                             key={chat.room_id}
@@ -233,11 +314,17 @@ const Communication = () => {
                             )}
                         </div>
                     </div>
+
+
+
+
+
+
                 </section>
 
                 {/* ............................Chat Panel............................. */}
                 <section className="w-[60%] xl:w-[75%] h-full bg-white rounded-lg shadow-md p-4">
-                    <ChatPanel chatRoom={selectedChatRoom} />
+                    <ChatPanel chatRoom={selectedChatRoom} activeTab={activeTab} />
                 </section>
 
                 {/* Modals */}

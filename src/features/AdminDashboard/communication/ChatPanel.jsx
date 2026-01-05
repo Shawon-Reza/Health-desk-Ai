@@ -8,7 +8,7 @@ import { connectWebSocketForChat } from "./ChatService";
 import { getAuthData } from "../../../config/Config";
 import MessageList from "./MessageList";
 
-const ChatPanel = ({ chatRoom, currentUser }) => {
+const ChatPanel = ({ chatRoom, activeTab }) => {
   const queryClient = useQueryClient();
   const [inputMessage, setInputMessage] = useState("");
   const [showActions, setShowActions] = useState(false);
@@ -65,7 +65,7 @@ const ChatPanel = ({ chatRoom, currentUser }) => {
       onMessage: (payload) => {
         if (payload.type !== "message") return;
         const newMessage = payload.data;
-        console.log("New messages:", newMessage)
+        console.log("@@@@@@@@@@@@@@@@@@@@New messages@@@@@@@@@@@@@@@@@@:", newMessage)
 
         queryClient.setQueryData(["messages", chatRoom], (old) => {
           if (!old) return old;
@@ -157,7 +157,7 @@ const ChatPanel = ({ chatRoom, currentUser }) => {
 
             <div className="relative">
               <FiInfo
-              size={20}
+                size={20}
                 className="cursor-pointer"
                 onClick={() => setShowActions(!showActions)}
               />

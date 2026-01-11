@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { FiEye, FiPause, FiPlay, FiClock, FiCheckCircle } from 'react-icons/fi'
 import { PiGraduationCapLight } from 'react-icons/pi'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import axiosApi from '../../../service/axiosInstance'
+import { toast } from 'react-toastify'
+import { queryClient } from '../../../main'
 
 const GeneratedAssesmentsAndHistories = () => {
     const [loading, setLoading] = useState(true)
@@ -13,7 +15,7 @@ const GeneratedAssesmentsAndHistories = () => {
     const [showAllHistory, setShowAllHistory] = useState(false)
     const navigate = useNavigate();
 
-    // Fetch assessments from API
+    // .............Fetch assessments history from API......................
     const { data: assessmentsData, isLoading: isLoadingAssessments, error: assessmentsError } = useQuery({
         queryKey: ['assessments'],
         queryFn: async () => {
@@ -27,14 +29,52 @@ const GeneratedAssesmentsAndHistories = () => {
 
     useEffect(() => {
         // Set data from API
-        if (assessmentsData?.data?.ongoing?.results) {
+        if (Array.isArray(assessmentsData?.data?.ongoing?.results)) {
             setOngoingAssessments(assessmentsData.data.ongoing.results)
+        } else {
+            setOngoingAssessments([])
         }
-        if (assessmentsData?.data?.completed?.results) {
+        if (Array.isArray(assessmentsData?.data?.completed?.results)) {
             setAssessmentHistory(assessmentsData.data.completed.results)
+        } else {
+            setAssessmentHistory([])
         }
         setLoading(isLoadingAssessments)
     }, [assessmentsData, isLoadingAssessments])
+
+    // ....................Update assessment status mutation.....................\\    
+    const updateStatusMutation = useMutation({
+        mutationFn: async ({ assessmentId, status }) => {
+            const response = await axiosApi.patch(`/api/v1/assessments/${assessmentId}/status/`, {
+                status: status
+            })
+            return response.data
+        },
+        onSuccess: (data, variables) => {
+            console.log('[GeneratedAssesmentsAndHistories] Status updated successfully:', data)
+            console.log('[GeneratedAssesmentsAndHistories] Assessment ID:', variables.assessmentId)
+            console.log('[GeneratedAssesmentsAndHistories] New Status:', variables.status)
+            
+            // Update the assessment in the list
+            setOngoingAssessments(prev => prev.map(assessment => 
+                assessment.id === variables.assessmentId 
+                    ? { ...assessment, status: variables.status }
+                    : assessment
+            ))
+            
+            const statusText = variables.status === 'active' ? 'started' : 'paused'
+            toast.success(`Assessment ${statusText} successfully!`)
+            queryClient.invalidateQueries(['assessments'])
+        },
+        onError: (error) => {
+            console.error('[GeneratedAssesmentsAndHistories] Error updating status:', error?.response?.data?.message)
+            toast.error(
+                error?.response?.data?.message ||
+                error?.message ||
+                "Failed to update assessment status."
+            );
+        }
+    })
 
     const handleViewDetails = (assessmentId) => {
         console.log('[GeneratedAssesmentsAndHistories] View Details:', assessmentId)
@@ -45,12 +85,12 @@ const GeneratedAssesmentsAndHistories = () => {
 
     const handlePauseAssessment = (assessmentId) => {
         console.log('[GeneratedAssesmentsAndHistories] Pause Assessment:', assessmentId)
-        // TODO: Call API to pause assessment
+        updateStatusMutation.mutate({ assessmentId, status: 'paused' })
     }
 
     const handleStartAssessment = (assessmentId) => {
         console.log('[GeneratedAssesmentsAndHistories] Start Assessment:', assessmentId)
-        // TODO: Navigate to assessment taking page
+        updateStatusMutation.mutate({ assessmentId, status: 'active' })
     }
 
     const handleAssesmentClick = (assessmentId) => {
@@ -75,7 +115,7 @@ const GeneratedAssesmentsAndHistories = () => {
             </div>
 
             {/* ..........................Ongoing Assessments............................. */}
-            <div className="bg-primarytransparent rounded-2xl shadow-md border border-teal-100 p-6 md:p-8">
+            <div className=" max-h-[calc(100dvh-50px)] overflow-y-auto bg-primarytransparent rounded-2xl shadow-md border border-teal-100 p-6 md:p-8">
                 <div className="flex items-start gap-3 mb-6">
                     <div className="p-3 bg-white rounded-lg shadow-sm">
                         <PiGraduationCapLight className="w-6 h-6 text-teal-600" />
@@ -86,14 +126,14 @@ const GeneratedAssesmentsAndHistories = () => {
                     </div>
                 </div>
 
-                {/* Ongoing Assessments List */}
+                {/* .....................Ongoing Assessments List................... */}
                 <div className="space-y-4">
                     {ongoingAssessments.length === 0 ? (
                         <p className="text-center text-gray-500 py-8">No ongoing assessments available</p>
                     ) : (
                         (showAllOngoing ? ongoingAssessments : ongoingAssessments.slice(0, 2)).map((assessment) => {
-                            const progressPercentage = assessment.total_members > 0 
-                                ? (assessment.completed_members / assessment.total_members) * 100 
+                            const progressPercentage = assessment.total_members > 0
+                                ? (assessment.completed_members / assessment.total_members) * 100
                                 : 0
 
                             return (
@@ -125,7 +165,7 @@ const GeneratedAssesmentsAndHistories = () => {
                                         </div>
                                     </div>
 
-                                    {/* Progress Section */}
+                                    {/* .................Progress Section................. */}
                                     <div>
                                         <div className="flex justify-between items-center mb-2">
                                             <span className="text-sm font-medium text-gray-700">Progress</span>
@@ -141,7 +181,7 @@ const GeneratedAssesmentsAndHistories = () => {
                                         </div>
                                     </div>
 
-                                    {/* Action Buttons */}
+                                    {/* .................Action Buttons................. */}
                                     <div className="flex flex-wrap gap-3">
                                         <button
                                             onClick={() => handleViewDetails(assessment.id)}
@@ -152,17 +192,19 @@ const GeneratedAssesmentsAndHistories = () => {
                                         </button>
                                         <button
                                             onClick={() => handlePauseAssessment(assessment.id)}
-                                            className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium text-sm"
+                                            disabled={updateStatusMutation.isPending || assessment.status === "draft"}
+                                            className={`flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium text-sm ${assessment.status == "paused" ? 'opacity-50 cursor-not-allowed' : ''} ${updateStatusMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         >
                                             <FiPause className="w-4 h-4" />
-                                            Pause Assessment
+                                            {updateStatusMutation.isPending ? 'Pausing...' : 'Pause Assessment'}
                                         </button>
                                         <button
                                             onClick={() => handleStartAssessment(assessment.id)}
-                                            className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition font-medium text-sm"
+                                            disabled={updateStatusMutation.isPending || assessment.status === "draft"}
+                                            className={`flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition font-medium text-sm  ${assessment.status == "active" ? 'opacity-50 cursor-not-allowed' : ''} ${updateStatusMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         >
                                             <FiPlay className="w-4 h-4" />
-                                            Start Assessment
+                                            {updateStatusMutation.isPending ? 'Starting...' : 'Start Assessment'}
                                         </button>
                                     </div>
                                 </div>
@@ -185,7 +227,7 @@ const GeneratedAssesmentsAndHistories = () => {
             </div>
 
             {/* ............................Assessment History.............................. */}
-            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6 md:p-8">
+            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6 md:p-8  max-h-[calc(100dvh-50px)] overflow-y-auto">
                 <div className="flex items-start gap-3 mb-6">
                     <div className="p-3 bg-teal-50 rounded-lg">
                         <PiGraduationCapLight className="w-6 h-6 text-teal-600" />
@@ -197,7 +239,7 @@ const GeneratedAssesmentsAndHistories = () => {
                 </div>
 
                 {/* History List */}
-                <div className="space-y-4">
+                <div className="space-y-4 ">
                     {assessmentHistory.length === 0 ? (
                         <p className="text-center text-gray-500 py-8">No assessment history available</p>
                     ) : (
@@ -248,7 +290,7 @@ const GeneratedAssesmentsAndHistories = () => {
                         ))
                     )}
                 </div>
-                {/* ............View All Button............... */}
+                {/* ............View more/less Button............... */}
                 {assessmentHistory.length > 2 && (
                     <div className="flex justify-end mt-2">
                         <button

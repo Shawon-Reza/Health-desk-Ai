@@ -4,6 +4,8 @@ import { PiGraduationCapLight } from 'react-icons/pi'
 import { useMutation } from '@tanstack/react-query'
 import useGetSubjectMattersAndClinicsList from '../../../hooks/useGetSubjectMattersAndClinicsList'
 import axiosApi from '../../../service/axiosInstance'
+import { queryClient } from '../../../main'
+import { toast } from 'react-toastify'
 
 const CreateNewAssesment = () => {
     const [formData, setFormData] = useState({
@@ -14,7 +16,7 @@ const CreateNewAssesment = () => {
         message: '',
     })
 
-    const roles = ['Admin', 'President', 'Manager', 'Doctor', 'Staff', 'Jr. Staff']
+    const roles = ['Manager', 'Doctor', 'Staff', 'Jr_staff']
     const {
 
         clinicsList,
@@ -24,7 +26,7 @@ const CreateNewAssesment = () => {
         refetch
     } = useGetSubjectMattersAndClinicsList()
 
-    // Create assessment mutation
+    // .................Create assessment mutation.......................\\
     const createAssessmentMutation = useMutation({
         mutationFn: async (data) => {
             const response = await axiosApi.post('/api/v1/assesments/create/', {
@@ -37,7 +39,9 @@ const CreateNewAssesment = () => {
             return response.data
         },
         onSuccess: (data) => {
+            toast.success('Assessment created successfully!')
             console.log('[CreateNewAssesment] Assessment created successfully:', data)
+            queryClient.invalidateQueries(['assessments'])
             // Reset form
             setFormData({
                 title: '',
@@ -61,7 +65,7 @@ const CreateNewAssesment = () => {
 
     const handleGenerate = (e) => {
         e.preventDefault()
-        console.log("Create assesment data:",formData)
+        console.log("Create assesment data:", formData)
         if (!formData.title || !formData.role || !formData.clinic || !formData.message) {
             console.warn('[CreateNewAssesment] Please fill in all required fields')
             // TODO: Show validation error toast
@@ -118,7 +122,7 @@ const CreateNewAssesment = () => {
                                 >
                                     <option value="" disabled>Select a role</option>
                                     {roles.map(role => (
-                                        <option key={role} value={role}>{role}</option>
+                                        <option key={role} value={role.toLowerCase(role)}>{role}</option>
                                     ))}
                                 </select>
                                 <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />

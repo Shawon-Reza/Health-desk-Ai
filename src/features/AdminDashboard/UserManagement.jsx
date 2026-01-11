@@ -126,6 +126,7 @@ export default function UserManagement() {
         setCurrentPage(1);
     }, [searchQuery, selectedRole, selectedClinicId]);
 
+    // Log filter parameters when they change
     useEffect(() => {
         const filterParams = {
             search: searchQuery,

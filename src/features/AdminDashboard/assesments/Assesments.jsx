@@ -1,6 +1,7 @@
-import React from 'react'
+
 import CreateNewAssesment from './CreateNewAssesment'
 import GeneratedAssesmentsAndHistories from './GeneratedAssesmentsAndHistories'
+
 
 const Assesments = () => {
     return (

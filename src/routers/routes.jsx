@@ -14,10 +14,12 @@ import Security from "../features/AdminDashboard/Security";
 import AITrainingPage from "../features/AdminDashboard/AITrainingPage";
 import UserManagement from "../features/AdminDashboard/UserManagement";
 import UserProfileFromAdmin from "../features/AdminDashboard/UserProfileFromAdmin";
-import Assesments from "../features/AdminDashboard/Assesments";
+import Assesments from "../features/AdminDashboard/assesments/Assesments";
 import ReviewAssesmentResult from "../features/AdminDashboard/ReviewAssesmentResult";
-import CreatedAssesmentDetails from "../features/AdminDashboard/CreatedAssesmentDetails";
+import CreatedAssesmentDetails from "../features/AdminDashboard/assesments/CreatedAssesmentDetails";
 import Communication from "../features/AdminDashboard/Communication/Communication";
+import ViewAllAssesmentHistory from "../features/AdminDashboard/assesments/ViewAllAssesmentHistory";
+import ViewAllOngoingAssesments from "../features/AdminDashboard/assesments/ViewAllOngoingAssesments";
 
 export const router = createBrowserRouter([
     {
@@ -62,6 +64,7 @@ export const router = createBrowserRouter([
                 path: "ai-training",
                 element: <AITrainingPage></AITrainingPage>,
             },
+            // --------------Assessments Routes Start ------------------- \\
             {
                 path: "assessments",
                 element: <Assesments></Assesments>,
@@ -74,6 +77,15 @@ export const router = createBrowserRouter([
                 path: "assessments/history/:assessmentId",
                 element: <ReviewAssesmentResult></ReviewAssesmentResult>,
             },
+            {
+                path: "assessments/view-all-assessment-ongoing",
+                element: <ViewAllOngoingAssesments></ViewAllOngoingAssesments>,
+            },
+            {
+                path: "assessments/view-all-assessment-history",
+                element: <ViewAllAssesmentHistory></ViewAllAssesmentHistory>,
+            },
+            // --------------Assessments Routes End------------------- \\
             {
                 path: "settings",
                 element: <Settings></Settings>,

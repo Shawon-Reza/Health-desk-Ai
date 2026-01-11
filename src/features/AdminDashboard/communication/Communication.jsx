@@ -270,7 +270,7 @@ const Communication = () => {
                                 )}
                             </div>
                         </div>
-
+                        {/* ......................... */}
                         <div className={`${activeTab === "allChat" ? "" : "hidden"}`}>
                             {(!Array.isArray(rooms?.results) || rooms.results.length === 0) ? (
                                 <p className="text-center text-gray-500 py-10">No chats found</p>

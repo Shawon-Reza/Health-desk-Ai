@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from "react";
+import Markdown from 'https://esm.sh/react-markdown@10'
+import remarkGfm from 'remark-gfm';
 
 const MessageList = ({
     messages,
@@ -139,18 +141,40 @@ const MessageList = ({
     };
 
     const MessageBubble = ({ msg }) => {
-        console.log("Message From Bubble::::::::",msg)
-        const isMe = Number(msg?.sender?.id) === Number(userId);
-        const text = msg.text || msg.message || msg.content || "";
+        console.log("message ::::::", msg)
+        const isAI = msg?.is_ai === true;
+        const isMe = !isAI && Number(msg?.sender?.id) === Number(userId);
+        const text = msg?.content || "";
 
         return (
             <div className={`flex mb-4 ${isMe ? "justify-end" : "justify-start"}`}>
                 <div
-                    className={`px-4 py-2 rounded-lg max-w-md ${isMe ? "bg-teal-100 text-gray-900" : "bg-blue-100 text-gray-900"
-                        }`}
+                    className={`px-4 py-2 rounded-lg max-w-md
+          ${isAI && "bg-purple-100 border border-purple-300"}
+          ${isMe && "bg-teal-100 text-gray-900"}
+          ${!isMe && !isAI && "bg-blue-100 text-gray-900"}
+        `}
                 >
-                    <p className="text-sm">{text}</p>
-                    <div className="text-xs text-gray-500 mt-1">
+                    {/* ...............AI label................ */}
+                    {isAI && (
+                        <div className="text-xs font-semibold text-purple-600 mb-1">
+                            🤖 AI Assistant
+                        </div>
+                    )}
+
+                    {/* ................Convert Markdown to HTML................. */}
+                    <div className="text-sm prose prose-sm max-w-none">
+                        {isAI ? (
+                            <Markdown remarkPlugins={[remarkGfm]}>
+                                {text}
+                            </Markdown>
+                        ) : (
+                            <p>{text}</p>
+                        )}
+                    </div>
+
+                    {/* TIME */}
+                    <div className="text-xs text-gray-500 mt-1 text-right">
                         {new Date(msg.created_at).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",

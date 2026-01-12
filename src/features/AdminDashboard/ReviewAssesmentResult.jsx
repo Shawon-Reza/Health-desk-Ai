@@ -1,78 +1,51 @@
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { FiArrowLeft, FiUser, FiCheckCircle } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
+import axiosApi from '../../service/axiosInstance'
 
 const ReviewAssesmentResult = () => {
-    const [loading, setLoading] = useState(true)
-    const [assessment, setAssessment] = useState(null)
-    const [participants, setParticipants] = useState([])
     const navigate = useNavigate();
 
-    // Mock data - replace with API call
-    const mockAssessment = {
-        id: 'assess-2024-01',
-        title: 'January 2024 Knowledge Assessment',
-        role: 'Manager',
-        status: 'Completed',
-        dueDate: '2024-01-31',
-        completed: 15,
-        total: 15,
-        averageScore: 92
-    }
+    // Fetch assessment data via useQuery
+    const { data: fetchedAssessment, isLoading, error: assessmentError } = useQuery({
+        queryKey: ['assessment', 2],
+        queryFn: async () => {
+            const res = await axiosApi.get('/api/v1/assessments/2/')
+            return res.data
+        },
+        onSuccess: (data) => {
+            console.log('[ReviewAssesmentResult] API data for /api/v1/assessments/2/:', data)
+        },
+        onError: (err) => {
+            console.error('[ReviewAssesmentResult] Error fetching assessment 2:', err)
+        },
+    })
 
-    const mockParticipants = [
-        {
-            id: '03',
-            name: 'Dr. Aliza',
-            clinic: 'Downtown Medical Center',
-            questionsAnswered: 15,
-            totalQuestions: 15,
-            score: 100
-        },
-        {
-            id: '04',
-            name: 'Dr. Zara Khan',
-            clinic: 'Downtown Medical Center',
-            questionsAnswered: 12,
-            totalQuestions: 15,
-            score: 96
-        },
-        {
-            id: '05',
-            name: 'Dr. Aliza',
-            clinic: 'Downtown Medical Center',
-            questionsAnswered: 10,
-            totalQuestions: 15,
-            score: 90
-        },
-        {
-            id: '06',
-            name: 'Dr. Aliza',
-            clinic: 'Downtown Medical Center',
-            questionsAnswered: 15,
-            totalQuestions: 15,
-            score: 88
-        },
-        {
-            id: '07',
-            name: 'Dr. Aliza',
-            clinic: 'Downtown Medical Center',
-            questionsAnswered: 11,
-            totalQuestions: 15,
-            score: 80
-        }
-    ]
+    // Map API data to component state
+    const assessmentData = fetchedAssessment?.data?.assessment
+    const participantsData = fetchedAssessment?.data?.participants || []
 
-    useEffect(() => {
-        console.log('[ReviewAssesmentResult] Fetching assessment data...')
-        // Simulate API fetch
-        setTimeout(() => {
-            setAssessment(mockAssessment)
-            setParticipants(mockParticipants)
-            setLoading(false)
-        }, 500)
-    }, [])
+    const assessment = assessmentData ? {
+        id: assessmentData.id,
+        title: assessmentData.title,
+        role: assessmentData.role,
+        status: assessmentData.status,
+        dueDate: assessmentData.due_date,
+        completed: assessmentData.completed_members,
+        total: assessmentData.total_members,
+        averageScore: assessmentData.average_score
+    } : null
+
+    const participants = participantsData.map(p => ({
+        id: p.id_no,
+        name: p.user_name,
+        clinic: p.clinic,
+        questionsAnswered: p.answered,
+        totalQuestions: p.answered,
+        score: p.score
+    }))
 
     const handleBack = () => {
         console.log('[ReviewAssesmentResult] Back clicked')
@@ -87,12 +60,20 @@ const ReviewAssesmentResult = () => {
         // e.g., navigate(`/assessments/${assessment.id}/participant/${participantId}`)
     }
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="">
                 <div className="h-8 w-20 bg-gray-200 rounded animate-pulse mb-6" />
                 <div className="h-12 w-96 bg-gray-200 rounded animate-pulse mb-8" />
                 <div className="h-64 bg-gray-100 rounded-2xl animate-pulse" />
+            </div>
+        )
+    }
+
+    if (!assessment) {
+        return (
+            <div className="text-center py-8 text-gray-500">
+                No assessment data available
             </div>
         )
     }

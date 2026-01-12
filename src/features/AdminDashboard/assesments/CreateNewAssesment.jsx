@@ -33,7 +33,7 @@ const CreateNewAssesment = () => {
                 title: data.title,
                 clinic: parseInt(data.clinic),
                 role: data.role.toLowerCase(),
-                // description: data.message,
+                description: data.message,
                 count: parseInt(data.numberOfQuestions)
             })
             return response.data
@@ -178,7 +178,7 @@ const CreateNewAssesment = () => {
                                 rows="2"
                             />
                             <div className="flex items-center justify-end gap-2 px-3 pb-2">
-                                <button
+                                {/* <button
                                     type="button"
                                     className="p-1.5 text-gray-500 hover:text-teal-600 transition"
                                     aria-label="Attach file"
@@ -191,14 +191,15 @@ const CreateNewAssesment = () => {
                                     aria-label="Voice input"
                                 >
                                     <FiMic className="w-4 h-4" />
-                                </button>
-                                <button
+                                </button> */}
+                                {/* ........................Send icon.................... */}
+                                {/* <button
                                     type="button"
                                     className="p-1.5 text-primary hover:text-teal-700 transition"
                                     aria-label="Send message"
                                 >
                                     <FiSend className="w-4 h-4" />
-                                </button>
+                                </button> */}
                             </div>
                         </div>
                     </div>

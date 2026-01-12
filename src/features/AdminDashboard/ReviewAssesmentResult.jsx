@@ -8,7 +8,7 @@ import axiosApi from '../../service/axiosInstance'
 const ReviewAssesmentResult = () => {
     const navigate = useNavigate();
 
-    // Fetch assessment data via useQuery
+    // ....................Fetch assessment Participants data via useQuery........................\\
     const { data: fetchedAssessment, isLoading, error: assessmentError } = useQuery({
         queryKey: ['assessment', 2],
         queryFn: async () => {
@@ -22,6 +22,7 @@ const ReviewAssesmentResult = () => {
             console.error('[ReviewAssesmentResult] Error fetching assessment 2:', err)
         },
     })
+    console.log('[ReviewAssesmentResult] Fetched Assessment Data:', fetchedAssessment?.data?.participants)
 
     // Map API data to component state
     const assessmentData = fetchedAssessment?.data?.assessment
@@ -40,6 +41,7 @@ const ReviewAssesmentResult = () => {
 
     const participants = participantsData.map(p => ({
         id: p.id_no,
+        user_id: p.user_id,
         name: p.user_name,
         clinic: p.clinic,
         questionsAnswered: p.answered,
@@ -56,6 +58,7 @@ const ReviewAssesmentResult = () => {
 
     const handleViewAnswers = (participantId) => {
         console.log('[ReviewAssesmentResult] View Answers for:', participantId)
+        navigate(`view-answers/${participantId}`)
         // TODO: Navigate to detailed answers page
         // e.g., navigate(`/assessments/${assessment.id}/participant/${participantId}`)
     }
@@ -192,7 +195,7 @@ const ReviewAssesmentResult = () => {
                                             {participant.clinic}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {participant.questionsAnswered}/{participant.totalQuestions}
+                                            {participant.questionsAnswered}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-lg font-bold text-emerald-500">
@@ -201,7 +204,7 @@ const ReviewAssesmentResult = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <button
-                                                onClick={() => handleViewAnswers(participant.id)}
+                                                onClick={() => handleViewAnswers(participant.user_id)}
                                                 className="px-4 py-2 text-sm font-medium text-teal-600 border-2 border-teal-200 rounded-lg hover:bg-teal-50 transition"
                                             >
                                                 View Answers

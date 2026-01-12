@@ -20,6 +20,7 @@ import CreatedAssesmentDetails from "../features/AdminDashboard/assesments/Creat
 import Communication from "../features/AdminDashboard/Communication/Communication";
 import ViewAllAssesmentHistory from "../features/AdminDashboard/assesments/ViewAllAssesmentHistory";
 import ViewAllOngoingAssesments from "../features/AdminDashboard/assesments/ViewAllOngoingAssesments";
+import { AssessmentViewAnswers } from "../features/AdminDashboard/assesments/AssessmentViewAnswers";
 
 export const router = createBrowserRouter([
     {
@@ -78,6 +79,10 @@ export const router = createBrowserRouter([
                 element: <ReviewAssesmentResult></ReviewAssesmentResult>,
             },
             {
+                path: "assessments/history/:assessmentId/view-answers/:participantId",
+                element: <AssessmentViewAnswers></AssessmentViewAnswers>,
+            },
+            {
                 path: "assessments/view-all-assessment-ongoing",
                 element: <ViewAllOngoingAssesments></ViewAllOngoingAssesments>,
             },
@@ -85,6 +90,7 @@ export const router = createBrowserRouter([
                 path: "assessments/view-all-assessment-history",
                 element: <ViewAllAssesmentHistory></ViewAllAssesmentHistory>,
             },
+
             // --------------Assessments Routes End------------------- \\
             {
                 path: "settings",

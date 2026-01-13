@@ -25,7 +25,6 @@ const Communication = () => {
     const socketRef = useRef(null);
     const location = useLocation();
     const { userId } = useParams();
-    console.log("111111111111111111111111111111111111111111111111111111111111", userId)
     const path = location.pathname.split('/')[2];
 
     // console.log("Im From Communication. My Location :---------", location.pathname)

@@ -10,6 +10,7 @@ const AiTrainingChat = () => {
     const [chatMessages, setChatMessages] = useState([])
     const [messageInput, setMessageInput] = useState("")
     const chatEndRef = useRef(null)
+    const chatContainerRef = useRef(null)
     const fileInputRef = useRef(null)
 
     // .......................Get Room ID for AI Training Chat.........................\\
@@ -70,10 +71,6 @@ const AiTrainingChat = () => {
         console.log("[AiTrainingChat] Chat Room ID:", chatRoom)
     }, [])
 
-    // Auto-scroll to bottom of chat
-    useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: "smooth" })
-    }, [chatMessages])
 
     // Handle send message
     const handleSendMessage = async () => {
@@ -95,6 +92,13 @@ const AiTrainingChat = () => {
                 },
             });
             console.log("[AiTrainingChat] Message sent successfully")
+            
+            // Scroll to bottom after sending message
+            requestAnimationFrame(() => {
+                if (chatContainerRef.current) {
+                    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+                }
+            });
         } catch (err) {
             console.error("[AiTrainingChat] Send message failed:", err);
             // Optionally restore message on error
@@ -155,7 +159,7 @@ const AiTrainingChat = () => {
             </div>
 
             {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto mb-4 space-y-4">
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto mb-4 space-y-4">
                 {chatMessages.length === 0 ? (
                     <div className="flex items-center justify-center h-full text-gray-500 text-center">
                         <p>No messages yet.Please first uploade documents then Start a conversation!</p>

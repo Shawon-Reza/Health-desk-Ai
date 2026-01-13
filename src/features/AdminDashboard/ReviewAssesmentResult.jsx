@@ -2,17 +2,19 @@
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { FiArrowLeft, FiUser, FiCheckCircle } from 'react-icons/fi'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import axiosApi from '../../service/axiosInstance'
 
 const ReviewAssesmentResult = () => {
     const navigate = useNavigate();
+    const {assessmentId} = useParams();
+    // console.log(assessmentId)
 
     // ....................Fetch assessment Participants data via useQuery........................\\
     const { data: fetchedAssessment, isLoading, error: assessmentError } = useQuery({
-        queryKey: ['assessment', 2],
+        queryKey: ['assessment', assessmentId],
         queryFn: async () => {
-            const res = await axiosApi.get('/api/v1/assessments/2/')
+            const res = await axiosApi.get(`/api/v1/assessments/${assessmentId}/`)
             return res.data
         },
         onSuccess: (data) => {

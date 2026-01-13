@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useQuery } from "@tanstack/react-query"
+import axiosApi from "../../../service/axiosInstance"
 import { FiUsers, FiUserCheck, FiHome, FiBell, FiMessageCircle, FiShield } from "react-icons/fi"
-import { useNavigate } from "react-router-dom"
+import { Outlet, useNavigate } from "react-router-dom"
 
 const DashboardContent = () => {
   // ============ STATE MANAGEMENT ============
@@ -11,6 +13,23 @@ const DashboardContent = () => {
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate();
 
+  // ...................Fetch my assessments (logs only, UI unchanged)....................\\
+  const { data: myAssessments, isLoading: myAssessmentsLoading, error: myAssessmentsError } = useQuery({
+    queryKey: ['my-assessments'],
+    queryFn: async () => {
+      const res = await axiosApi.get('/api/v1/my-assessments/')
+      return res.data
+    },
+    onSuccess: (data) => {
+      console.log('[DashboardContent] /api/v1/my-assessments response:', data)
+    },
+    onError: (err) => {
+      console.error('[DashboardContent] Error fetching my assessments:', err)
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+  console.log("Consol*********************:", myAssessments?.data)
+
   // ============ MOCK DATA - Replace with backend API calls ============
   const mockDashboardStats = {
     totalUsers: 1458,
@@ -18,6 +37,7 @@ const DashboardContent = () => {
     totalClinics: 5,
     taggedMessages: 5,
   }
+
 
   const mockRecentActivity = [
     {
@@ -106,56 +126,135 @@ const DashboardContent = () => {
     // Add pagination logic here
   }
 
-  // ============ STAT CARD COMPONENT ============
+  // ============ HELPER COMPONENTS ============
   const StatCard = ({ icon: Icon, label, value, borderColor, bgColor }) => (
-    <div className={`bg-white rounded-lg p-6 shadow-sm border-l-4 ${borderColor} hover:shadow-md transition-shadow`}>
+    <div className={`bg-white rounded-lg shadow-md p-6 ${borderColor}`}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-gray-600 text-sm font-medium">{label}</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
         </div>
-        <div className={`${bgColor} p-3 rounded-lg`}>
-          <Icon className="w-6 h-6 text-gray-700" />
-        </div>
+        <Icon className={`w-12 h-12 ${bgColor} text-gray-700 p-2 rounded-lg`} />
       </div>
     </div>
   )
 
-  // ============ ACTIVITY ITEM COMPONENT ============
   const ActivityItem = ({ activity }) => (
-    <div className="flex items-start gap-4 py-4 border-b border-gray-300 last:border-b-0">
+    <div className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
       <img
-        src={activity.avatar || "/placeholder.svg"}
+        src={activity.avatar}
         alt={activity.name}
-        className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+        className="w-10 h-10 rounded-full"
       />
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-gray-900">{activity.name}</p>
-        <p className="text-sm text-gray-600">{activity.action}</p>
+      <div className="flex-1">
+        <p className="text-sm font-semibold text-gray-900">{activity.name}</p>
+        <p className="text-xs text-gray-600">{activity.action}</p>
       </div>
-      <p className="text-xs text-gray-500 whitespace-nowrap ml-2">{activity.timestamp}</p>
+      <span className="text-xs text-gray-500">{activity.timestamp}</span>
     </div>
   )
 
-  // ============ QUICK ACTION BUTTON COMPONENT ============
   const QuickActionButton = ({ action }) => {
     const Icon = action.icon
     return (
       <button
         onClick={() => handleQuickAction(action.label)}
-        className={`w-full ${action.color} ${action.hoverColor} text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2`}
+        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white font-semibold transition-colors ${action.color} ${action.hoverColor}`}
       >
         <Icon className="w-5 h-5" />
-        <span>{action.label}</span>
+        {action.label}
       </button>
     )
   }
 
-  // ============ RENDER ============
+  // ============ ASSESSMENT CARD COMPONENT ============
+  const AssessmentCard = ({ assessment }) => {
+    const daysLeft = assessment.end_date
+      ? Math.max(0, Math.ceil((new Date(assessment.end_date) - new Date()) / (1000 * 60 * 60 * 24)))
+      : 0
+
+    const isOverdue = daysLeft === 0 && new Date(assessment.end_date) < new Date()
+    const progressPercentage = assessment.participant_count > 0
+      ? Math.round(((assessment.completed_count + assessment.in_progress_count) / assessment.participant_count) * 100)
+      : 0
+
+    return (
+      <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-2xl p-6 border border-cyan-200 hover:shadow-lg transition-shadow">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-teal-100 rounded-lg">
+              <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900">{assessment.title}</h3>
+              <p className="text-sm text-gray-600">{assessment.participant_count} participants</p>
+            </div>
+          </div>
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${isOverdue
+            ? "bg-red-100 text-red-700"
+            : "bg-yellow-100 text-yellow-700"
+            }`}>
+            {isOverdue ? "Overdue" : `Due in ${daysLeft}d`}
+          </span>
+        </div>
+
+        {/* Progress Section */}
+        <div className="mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-700">Progress</span>
+            <span className="text-sm font-semibold text-teal-600">{progressPercentage}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-teal-500 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            {assessment.completed_count} completed • {assessment.in_progress_count} in progress • {assessment.not_started_count} not started
+          </p>
+        </div>
+
+        {/* Status & Dates */}
+        <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+          <div className="bg-white rounded-lg p-2">
+            <p className="text-xs text-gray-600">Status</p>
+            <p className="text-sm font-semibold text-gray-900 capitalize">{assessment.status}</p>
+          </div>
+          <div className="bg-white rounded-lg p-2">
+            <p className="text-xs text-gray-600">Start</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {new Date(assessment.start_date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+            </p>
+          </div>
+          <div className="bg-white rounded-lg p-2">
+            <p className="text-xs text-gray-600">End</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {new Date(assessment.end_date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+            </p>
+          </div>
+        </div>
+
+        {/* Action Button */}
+        {/* assessments/give-answers/:assessmentId */}
+        <button
+          onClick={() => {
+            navigate(`/admin/assessments/give-answers/${assessment.id}`);
+          }}
+          className="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+          <span>▶</span> Start Assessment
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div className="  font-sans">
+    <div className="font-sans">
       {/* Header */}
-      <div className=" border-gray-200 sticky top-0 z-30">
+      <div className="border-gray-200 sticky top-0 z-30">
         <div className="px-6 py-8">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Here's an overview of your members activities.</p>
@@ -163,7 +262,7 @@ const DashboardContent = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className=" ">
+      <div className="">
         {loading ? (
           <div className="text-center py-12">
             <p className="text-gray-600">Loading dashboard data...</p>
@@ -230,15 +329,43 @@ const DashboardContent = () => {
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
                 <div className="space-y-3">
-                  {quickActions.map((action) => (
+                  {quickActions?.map((action) => (
                     <QuickActionButton key={action.id} action={action} />
                   ))}
                 </div>
               </div>
             </div>
+
+            {/* Assessments Section */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Assessments</h2>
+              <p className="text-gray-600 mb-6">Give proper answers and improve your knowledge</p>
+
+              {myAssessmentsLoading ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-600">Loading assessments...</p>
+                </div>
+              ) : myAssessmentsError ? (
+                <div className="text-center py-12">
+                  <p className="text-red-600">Failed to load assessments</p>
+                </div>
+              ) : myAssessments?.data && myAssessments.data.length > 0 ? (
+                <div className="grid grid-cols-1 gap-6">
+                  {myAssessments?.data?.map((assessment) => (
+                    <AssessmentCard key={assessment.id} assessment={assessment} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                  <p className="text-gray-500 text-lg">No assessments found</p>
+                  <p className="text-gray-400 text-sm">Check back later for new assessments</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
+
     </div>
   )
 }

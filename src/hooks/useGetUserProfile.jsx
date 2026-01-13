@@ -33,6 +33,7 @@ const useGetUserProfile = () => {
         queryFn: async () => {
             if (!userId) throw new Error('User ID not found in token')
             const response = await axiosApi.get(`/api/v1/users/${userId}/`)
+   
             return response.data
         },
         enabled: !!userId

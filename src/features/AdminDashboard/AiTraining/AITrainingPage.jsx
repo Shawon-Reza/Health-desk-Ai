@@ -1,6 +1,6 @@
 
-import AITrainingCenter from './AITrainingCenter'
-import UploadedDocuments from './UploadedDocuments'
+import AITrainingCenter from '../AITrainingCenter'
+import UploadedDocuments from '../UploadedDocuments'
 
 const AITrainingPage = () => {
     return (

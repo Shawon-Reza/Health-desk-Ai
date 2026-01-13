@@ -3,17 +3,18 @@ import { NavLink, useNavigate } from "react-router-dom"
 import logo from "../../assets/python2.png"
 import { TbLayoutSidebarFilled } from 'react-icons/tb'
 import { BsLayoutSidebarInset } from 'react-icons/bs'
-import { PiFilesThin } from "react-icons/pi";
+import { PiFilesThin,PiHospitalLight  } from "react-icons/pi";
+import { LuBrainCircuit } from "react-icons/lu";
+import { GiGiftOfKnowledge } from "react-icons/gi";
 
 const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: FiGrid },
     { id: "communication", label: "Communication", icon: FiMessageSquare },
-    { id: "manage-clinic", label: "Manage Clinic", icon: FiLock },
-    { id: "subject-matters", label: "Subject Matters", icon: FiLock },
+    { id: "manage-clinic", label: "Manage Clinic", icon: PiHospitalLight  },
+    { id: "subject-matters", label: "Subject Matters", icon: GiGiftOfKnowledge  },
     { id: "user-management", label: "User Management", icon: FiUsers },
-    { id: "ai-training", label: "AI Training", icon: FiLock },
+    { id: "ai-training", label: "AI Training", icon: LuBrainCircuit  },
     { id: "assessments", label: "Assessments", icon: PiFilesThin },
-
     { id: "settings", label: "Settings", icon: FiSettings },
 ]
 

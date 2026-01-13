@@ -5,6 +5,8 @@ import AdminDashboardSidebar from './AdminDashboardSidebar'
 import useIsBelowMd from '../../Components/hooks/useIsBelowMd'
 import { TbLayoutSidebarFilled } from 'react-icons/tb'
 import { BsLayoutSidebarInset } from 'react-icons/bs'
+import useGetUserProfile from '../../hooks/useGetUserProfile'
+import { base_URL } from '../../config/Config'
 
 const AdminDashboard = () => {
     const isMobile = useIsBelowMd()
@@ -13,6 +15,11 @@ const AdminDashboard = () => {
         const saved = localStorage.getItem('sidebarCollapsed')
         return saved ? JSON.parse(saved) : false
     })
+
+    const { userProfileData } = useGetUserProfile();
+
+    console.log(userProfileData)
+
 
     // Keep sidebar open on larger screens, closed by default on small screens
     useEffect(() => {
@@ -95,14 +102,18 @@ const AdminDashboard = () => {
 
 
                             <div className="flex items-center gap-5">
-                                <div className="relative p-3 rounded-full bg-[#00A4A61A] cursor-pointer">
+                                {/* <div className="relative p-3 rounded-full bg-[#00A4A61A] cursor-pointer">
                                     <IoNotificationsOutline size={21} />
                                     <div className="absolute top-2 right-2 rounded-full p-1 bg-red-500 h-1 w-1" />
-                                </div>
+                                </div> */}
+                                {/* <div className="relative p-3 rounded-full bg-[#00A4A61A] cursor-pointer">
+                                    <IoNotificationsOutline size={21} />
+                                    <div className="absolute top-2 right-2 rounded-full p-1 bg-red-500 h-1 w-1" />
+                                </div> */}
 
                                 <figure className="w-11 h-11 cursor-pointer">
                                     <img
-                                        src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlciUyMHByb2ZpbGV8ZW58MHx8MHx8fDA%3D&fm=jpg&q=60&w=3000"
+                                        src={`${base_URL}${userProfileData?.picture}` || "/placeholder.svg"}
                                         alt=""
                                         className="rounded-full object-cover"
                                     />

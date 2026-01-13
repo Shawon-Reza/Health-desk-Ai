@@ -4,14 +4,14 @@ import ResetPasswordPage from "../features/auth/ResetPasswordPage";
 import ForgotPasswordPage from "../features/auth/ForgotPasswordPage";
 import AdminDashboard from "../features/AdminDashboard/AdminDashboard";
 import NotFoundpage from "../Components/NotFoundpage";
-import DashboardContent from "../features/AdminDashboard/DashboardContent";
+import DashboardContent from "../features/AdminDashboard/DashboardContent/DashboardContent";
 import ClinicManagement from "../features/AdminDashboard/ClinicManagement";
 import SubjectMatters from "../features/AdminDashboard/SubjectMatters";
 import Settings from "../features/AdminDashboard/Settings";
 import ProfilePersonalInformationForm from "../features/AdminDashboard/ProfilePersonalInformationForm";
 import Notifications from "../features/AdminDashboard/Notifications";
 import Security from "../features/AdminDashboard/Security";
-import AITrainingPage from "../features/AdminDashboard/AITrainingPage";
+import AITrainingPage from "../features/AdminDashboard/AiTraining/AITrainingPage";
 import UserManagement from "../features/AdminDashboard/UserManagement";
 import UserProfileFromAdmin from "../features/AdminDashboard/UserProfileFromAdmin";
 import Assesments from "../features/AdminDashboard/assesments/Assesments";
@@ -21,6 +21,7 @@ import Communication from "../features/AdminDashboard/Communication/Communicatio
 import ViewAllAssesmentHistory from "../features/AdminDashboard/assesments/ViewAllAssesmentHistory";
 import ViewAllOngoingAssesments from "../features/AdminDashboard/assesments/ViewAllOngoingAssesments";
 import { AssessmentViewAnswers } from "../features/AdminDashboard/assesments/AssessmentViewAnswers";
+import GiveAssessmentsAnsware from "../features/AdminDashboard/DashboardContent/GiveAssessmentsAnsware";
 
 export const router = createBrowserRouter([
     {
@@ -40,6 +41,10 @@ export const router = createBrowserRouter([
             {
                 path: "dashboard",
                 element: <DashboardContent></DashboardContent>,
+            },
+            {
+                path: "assessments/give-answers/:assessmentId",
+                element: <GiveAssessmentsAnsware></GiveAssessmentsAnsware>,
             },
             {
                 path: "communication",

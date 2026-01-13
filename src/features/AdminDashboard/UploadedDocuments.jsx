@@ -1,82 +1,51 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { FiUser, FiMoreVertical, FiChevronDown } from "react-icons/fi"
+import axiosApi from "../../service/axiosInstance"
 
 const UploadedDocuments = () => {
   const [documents, setDocuments] = useState([])
   const [filteredDocuments, setFilteredDocuments] = useState([])
   const [selectedRole, setSelectedRole] = useState("All Roles")
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
-  const [loading, setLoading] = useState(true)
-
-  // Mock data - Replace with API call
-  const mockDocuments = [
-    {
-      id: 1,
-      slNo: "02",
-      name: "Dr. Zara Khan",
-      documentType: "Questions",
-      uploadedDate: "16 oct, 2025",
-      uploadedBy: "President",
-      role: "President",
-    },
-    {
-      id: 2,
-      slNo: "03",
-      name: "Dr. Aliza",
-      documentType: "Answers",
-      uploadedDate: "16 oct, 2025",
-      uploadedBy: "Manager",
-      role: "Manager",
-    },
-    {
-      id: 3,
-      slNo: "05",
-      name: "Dr. Aliza",
-      documentType: "Questions",
-      uploadedDate: "16 oct, 2025",
-      uploadedBy: "President",
-      role: "President",
-    },
-    {
-      id: 4,
-      slNo: "07",
-      name: "Dr. Aliza",
-      documentType: "Answers",
-      uploadedDate: "16 oct, 2025",
-      uploadedBy: "Manager",
-      role: "Manager",
-    },
-  ]
-
-  const roles = ["All Roles", "President", "Manager"]
 
   // Fetch documents from backend
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["aiTrainingDocs"],
+    queryFn: async () => {
+      const response = await axiosApi.get("/api/v1/mytrainingrooms/docs/")
+      console.log("[UploadedDocuments] API data:", response.data)
+      return response.data
+    },
+  })
+
+  // Normalize API data into table-friendly shape
+  const normalizedDocs = useMemo(() => {
+    const results = data?.results || []
+    return results.map((doc, index) => ({
+      id: doc.file_id,
+      slNo: String(index + 1).padStart(2, "0"),
+      name: doc.file_name || "Untitled",
+      documentType: doc.document_type || "--",
+      uploadedDate: doc.uploaded_date,
+      uploadedBy: doc.uploaded_by_role || "--",
+      role: doc.uploaded_by_role || "--",
+      fileUrl: doc.file_url,
+    }))
+  }, [data])
+
+  const roles = useMemo(() => {
+    const unique = new Set(["All Roles", ...normalizedDocs.map((d) => d.role)])
+    return Array.from(unique)
+  }, [normalizedDocs])
+
+  // Sync state with fetched data
   useEffect(() => {
-    console.log("[v0] UploadedDocuments component mounted")
-    fetchDocuments()
-  }, [])
-
-  const fetchDocuments = async () => {
-    try {
-      setLoading(true)
-      console.log("[v0] Fetching documents from backend...")
-
-      // Replace with actual API call
-      // const response = await fetch('/api/documents');
-      // const data = await response.json();
-
-      // Using mock data for now
-      setDocuments(mockDocuments)
-      setFilteredDocuments(mockDocuments)
-      console.log("[v0] Documents fetched successfully:", mockDocuments)
-    } catch (error) {
-      console.error("[v0] Error fetching documents:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
+    setDocuments(normalizedDocs)
+    setFilteredDocuments(normalizedDocs)
+  }, [normalizedDocs])
 
   // Handle role filter
   const handleRoleFilter = (role) => {
@@ -86,11 +55,11 @@ const UploadedDocuments = () => {
 
     if (role === "All Roles") {
       setFilteredDocuments(documents)
-      console.log("[v0] Showing all documents")
+      console.log("[UploadedDocuments] Showing all documents")
     } else {
       const filtered = documents.filter((doc) => doc.role === role)
       setFilteredDocuments(filtered)
-      console.log("[v0] Filtered documents:", filtered)
+      console.log("[UploadedDocuments] Filtered documents:", filtered)
     }
   }
 
@@ -118,8 +87,12 @@ const UploadedDocuments = () => {
     }
   }
 
-  if (loading) {
+  if (isLoading) {
     return <div className="p-6">Loading documents...</div>
+  }
+
+  if (error) {
+    return <div className="p-6 text-red-600">Failed to load documents.</div>
   }
 
   return (

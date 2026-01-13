@@ -3,23 +3,28 @@ import { NavLink, useNavigate } from "react-router-dom"
 import logo from "../../assets/python2.png"
 import { TbLayoutSidebarFilled } from 'react-icons/tb'
 import { BsLayoutSidebarInset } from 'react-icons/bs'
-import { PiFilesThin,PiHospitalLight  } from "react-icons/pi";
+import { PiFilesThin, PiHospitalLight } from "react-icons/pi";
 import { LuBrainCircuit } from "react-icons/lu";
 import { GiGiftOfKnowledge } from "react-icons/gi";
+import useGetUserProfile from "../../hooks/useGetUserProfile"
 
 const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: FiGrid },
     { id: "communication", label: "Communication", icon: FiMessageSquare },
-    { id: "manage-clinic", label: "Manage Clinic", icon: PiHospitalLight  },
-    { id: "subject-matters", label: "Subject Matters", icon: GiGiftOfKnowledge  },
+    { id: "manage-clinic", label: "Manage Clinic", icon: PiHospitalLight },
+    { id: "subject-matters", label: "Subject Matters", icon: GiGiftOfKnowledge },
     { id: "user-management", label: "User Management", icon: FiUsers },
-    { id: "ai-training", label: "AI Training", icon: LuBrainCircuit  },
+    { id: "ai-training", label: "AI Training", icon: LuBrainCircuit },
     { id: "assessments", label: "Assessments", icon: PiFilesThin },
     { id: "settings", label: "Settings", icon: FiSettings },
 ]
 
 export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCollapse }) {
     const navigate = useNavigate()
+    const { userProfileData } = useGetUserProfile();
+    console.log(userProfileData?.role);
+
+
 
     return (
         <aside className="w-full  bg-primary text-white flex flex-col h-screen">
@@ -46,28 +51,125 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
 
             {/* Navigation Menu */}
             <nav className="flex-1 p-4 space-y-2.5 overflow-y-auto">
-                {menuItems.map((item) => {
-                    const Icon = item.icon
-                    const to = `/admin/${item.id}`
+                <NavLink
+                    to="/admin/dashboard"
+                    onClick={onClick}
+                    title={isCollapsed ? 'Dashboard' : ''}
+                    className={({ isActive }) =>
+                        `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
+                        }`
+                    }
+                >
+                    <FiGrid size={21} />
+                    {!isCollapsed && (
+                        <span className="font-semibold text-sm sm:text-xl xl:text-2xl">Dashboard</span>
+                    )}
+                </NavLink>
 
-                    return (
-                        <NavLink
-                            key={item.id}
-                            to={to}
-                            onClick={onClick}
-                            title={isCollapsed ? item.label : ''}
-                            className={({ isActive }) =>
-                                `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
-                                }`
-                            }
-                        >
-                            <Icon size={21} />
-                            {!isCollapsed && (
-                                <span className="font-semibold text-sm sm:text-xl xl:text-2xl">{item.label}</span>
-                            )}
-                        </NavLink>
-                    )
-                })}
+                <NavLink
+                    to="/admin/communication"
+                    onClick={onClick}
+                    title={isCollapsed ? 'Communication' : ''}
+                    className={({ isActive }) =>
+                        `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
+                        }`
+                    }
+                >
+                    <FiMessageSquare size={21} />
+                    {!isCollapsed && (
+                        <span className="font-semibold text-sm sm:text-xl xl:text-2xl">Communication</span>
+                    )}
+                </NavLink>
+
+                <NavLink
+                    to="/admin/manage-clinic"
+                    onClick={onClick}
+                    title={isCollapsed ? 'Manage Clinic' : ''}
+                    className={({ isActive }) =>
+                        `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
+                        }`
+                    }
+                >
+                    <PiHospitalLight size={21} />
+                    {!isCollapsed && (
+                        <span className="font-semibold text-sm sm:text-xl xl:text-2xl">Manage Clinic</span>
+                    )}
+                </NavLink>
+
+                <NavLink
+                    to="/admin/subject-matters"
+                    onClick={onClick}
+                    title={isCollapsed ? 'Subject Matters' : ''}
+                    className={({ isActive }) =>
+                        `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
+                        }`
+                    }
+                >
+                    <GiGiftOfKnowledge size={21} />
+                    {!isCollapsed && (
+                        <span className="font-semibold text-sm sm:text-xl xl:text-2xl">Subject Matters</span>
+                    )}
+                </NavLink>
+
+                <NavLink
+                    to="/admin/user-management"
+                    onClick={onClick}
+                    title={isCollapsed ? 'User Management' : ''}
+                    className={({ isActive }) =>
+                        `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
+                        }`
+                    }
+                >
+                    <FiUsers size={21} />
+                    {!isCollapsed && (
+                        <span className="font-semibold text-sm sm:text-xl xl:text-2xl">User Management</span>
+                    )}
+                </NavLink>
+
+                <NavLink
+                    to="/admin/ai-training"
+                    onClick={onClick}
+                    title={isCollapsed ? 'AI Training' : ''}
+                    className={({ isActive }) =>
+                        `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
+                        }`
+                    }
+                >
+                    <LuBrainCircuit size={21} />
+                    {!isCollapsed && (
+                        <span className="font-semibold text-sm sm:text-xl xl:text-2xl">AI Training</span>
+                    )}
+                </NavLink>
+
+                <NavLink
+                    to="/admin/assessments"
+                    onClick={onClick}
+                    title={isCollapsed ? 'Assessments' : ''}
+                    className={({ isActive }) =>
+                        `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
+                        }`
+                    }
+                >
+                    <PiFilesThin size={21} />
+                    {!isCollapsed && (
+                        <span className="font-semibold text-sm sm:text-xl xl:text-2xl">Assessments</span>
+                    )}
+                </NavLink>
+
+                <NavLink
+                    to="/admin/settings"
+                    onClick={onClick}
+                    title={isCollapsed ? 'Settings' : ''}
+                    className={({ isActive }) =>
+                        `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
+                        }`
+                    }
+                >
+                    <FiSettings size={21} />
+                    {!isCollapsed && (
+                        <span className="font-semibold text-sm sm:text-xl xl:text-2xl">Settings</span>
+                    )}
+                </NavLink>
             </nav>
 
             {/* Footer */}

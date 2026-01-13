@@ -22,6 +22,8 @@ import ViewAllAssesmentHistory from "../features/AdminDashboard/assesments/ViewA
 import ViewAllOngoingAssesments from "../features/AdminDashboard/assesments/ViewAllOngoingAssesments";
 import { AssessmentViewAnswers } from "../features/AdminDashboard/assesments/AssessmentViewAnswers";
 import GiveAssessmentsAnsware from "../features/AdminDashboard/DashboardContent/GiveAssessmentsAnsware";
+import PrivateRoute from "./PrivetRoute";
+import { ROLES } from "./roles";
 
 export const router = createBrowserRouter([
     {
@@ -52,15 +54,15 @@ export const router = createBrowserRouter([
             },
             {
                 path: "manage-clinic",
-                element: <ClinicManagement></ClinicManagement>,
+                element: <PrivateRoute roles={[ROLES.OWNER,ROLES.PRESIDENT]} ><ClinicManagement></ClinicManagement></PrivateRoute>,
             },
             {
                 path: "subject-matters",
-                element: <SubjectMatters></SubjectMatters>,
+                element: <PrivateRoute roles={[ROLES.OWNER,ROLES.PRESIDENT]} ><SubjectMatters></SubjectMatters></PrivateRoute>,
             },
             {
                 path: "user-management",
-                element: <UserManagement></UserManagement>,
+                element: <PrivateRoute roles={[ROLES.OWNER,ROLES.PRESIDENT]} ><UserManagement></UserManagement></PrivateRoute>,
             },
             {
                 path: "user-management/user/:userId",
@@ -68,7 +70,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "ai-training",
-                element: <AITrainingPage></AITrainingPage>,
+                element: <PrivateRoute roles={[ROLES.OWNER,ROLES.PRESIDENT]} ><AITrainingPage></AITrainingPage></PrivateRoute>,
             },
             // --------------Assessments Routes Start ------------------- \\
             {

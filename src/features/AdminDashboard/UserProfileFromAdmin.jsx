@@ -156,7 +156,7 @@ const UserProfileFromAdmin = () => {
                 </div>
 
                 <div className="relative">
-                    <button 
+                    <button
                         onClick={handleToggleActionsMenu}
                         className='text-lg font-medium px-4 xl:px-12 py-2 bg-primary text-white rounded-md w-max hover:opacity-90 transition'
                     >
@@ -208,8 +208,9 @@ const UserProfileFromAdmin = () => {
             {/* Chat History Section */}
             <div className="mt-8">
                 <h2 className="text-xl font-semibold text-[#2F2F2F] mb-3">Viewing Chat History</h2>
-
+                {/* ............................User Chat History ........................ */}
                 <Communication />
+
 
 
 

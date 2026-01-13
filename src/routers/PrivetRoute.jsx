@@ -1,16 +1,42 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from "react-router-dom";
+import useGetUserProfile from "../hooks/useGetUserProfile";
 
-const PrivateRoute = ({ children }) => {
-    // Check if user is logged in by looking for auth token in localStorage
-    const auth = localStorage.getItem('auth');
-    const isLoggedIn = auth ? JSON.parse(auth)?.access : null;
+const PrivateRoute = ({ children, roles = [] }) => {
+    const location = useLocation();
 
-    // If user is logged in, render the component, otherwise redirect to login
-    return isLoggedIn ? children : <Navigate to="/login" replace />;
+    // Get user from profile
+    const { userProfileData, userProfileLoading, userProfileError, accessToken } = useGetUserProfile();
+    const userRole = userProfileData?.role;
 
-    
+    console.log("User Role from PrivateRoute:", userRole);
 
-    
+    // While loading profile, keep user on the page to avoid flicker/redirect on refresh
+    if (userProfileLoading) {
+        return (
+            <div className="w-full h-screen flex items-center justify-center">
+                <p className="text-gray-600">Loading...</p>
+            </div>
+        );
+    }
+
+    // If no token or profile failed, redirect to login
+    if (!accessToken || userProfileError || !userProfileData) {
+        return (
+            <Navigate
+                to="/login"
+                replace
+                state={{ from: location }}
+            />
+        );
+    }
+
+    // Check role
+    if (roles.length && !roles.includes(userRole)) {
+        return <Navigate to="/login" replace />;
+    }
+
+    // ✅ Allowed
+    return children;
 };
 
 export default PrivateRoute;

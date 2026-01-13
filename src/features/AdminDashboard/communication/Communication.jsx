@@ -9,6 +9,8 @@ import axiosApi from "../../../service/axiosInstance";
 import { queryClient } from "../../../main";
 import { useDebouncedCallback } from "use-debounce";
 import { base_URL } from "../../../config/Config";
+import { useLocation, useParams } from "react-router-dom";
+
 
 
 const Communication = () => {
@@ -21,6 +23,13 @@ const Communication = () => {
 
     const roles = ["All", "private", "group"];
     const socketRef = useRef(null);
+    const location = useLocation();
+    const { userId } = useParams();
+    console.log("111111111111111111111111111111111111111111111111111111111111", userId)
+    const path = location.pathname.split('/')[2];
+
+    // console.log("Im From Communication. My Location :---------", location.pathname)
+    console.log("Im From Communication. My Location :---------", path)
 
     // Debounced search handler - prevents input from losing focus
     const handleSearchInput = useDebouncedCallback((value) => {
@@ -29,11 +38,19 @@ const Communication = () => {
 
     // ...................Fetch user's chat rooms with filters.......................\\
     const { data: rooms = { read_only: false, ai_rooms: [], results: [] }, isLoading } = useQuery({
-        queryKey: ["myRooms", searchQuery, selectedRole],
+        queryKey: ["myRooms", searchQuery, selectedRole, path,userId],
         queryFn: async () => {
-            const response = await axiosApi.get(
-                `/api/v1/rooms/?q=${searchQuery}&type=${selectedRole === "All" ? "" : selectedRole}`
-            );
+            let url;
+
+            if (path === "user-management") {
+                // For user management, fetch rooms for user ID 15
+                url = `/api/v1/users/${userId}/rooms/?q=${searchQuery}&type=${selectedRole === "All" ? "" : selectedRole}`;
+            } else {
+                // For other pages, fetch with search and filter
+                url = `/api/v1/rooms/?q=${searchQuery}&type=${selectedRole === "All" ? "" : selectedRole}`;
+            }
+
+            const response = await axiosApi.get(url);
             console.log("%%%%%%%%%%%%%%1", response.data)
             return response.data;
         },
@@ -93,20 +110,6 @@ const Communication = () => {
             createAiRoom.mutate();
         }
     }, [activeTab, rooms?.ai_rooms, createAiRoom.isPending]);
-    // --------------------------------------------------------------------------------\\
-    // useEffect(() => {
-    //     if (activeTab === "aiAssistant") {
-    //         const aiRoomId = Array.isArray(rooms?.ai_rooms) && rooms.ai_rooms.length > 0
-    //             ? rooms.ai_rooms[0].room_id
-    //             : null;
-    //         setSelectedChatRoom(aiRoomId);
-    //     } else {
-    //         // Clear selection when leaving AI tab; could also keep previous chat if desired
-    //         setSelectedChatRoom(null);
-    //     }
-    // }, [activeTab, rooms?.ai_rooms]);
-
-
 
 
 

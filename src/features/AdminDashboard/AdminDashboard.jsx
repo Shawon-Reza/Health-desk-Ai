@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react'
 import { IoNotificationsOutline } from 'react-icons/io5'
 import { Outlet } from 'react-router-dom'
 import AdminDashboardSidebar from './AdminDashboardSidebar'
+import ProfileDropdown from './ProfileDropdown'
 import useIsBelowMd from '../../Components/hooks/useIsBelowMd'
 import { TbLayoutSidebarFilled } from 'react-icons/tb'
 import { BsLayoutSidebarInset } from 'react-icons/bs'
 import useGetUserProfile from '../../hooks/useGetUserProfile'
-import { base_URL } from '../../config/Config'
 
 const AdminDashboard = () => {
     const isMobile = useIsBelowMd()
@@ -111,13 +111,7 @@ const AdminDashboard = () => {
                                     <div className="absolute top-2 right-2 rounded-full p-1 bg-red-500 h-1 w-1" />
                                 </div> */}
 
-                                <figure className="w-11 h-11 cursor-pointer">
-                                    <img
-                                        src={`${base_URL}${userProfileData?.picture}` || "/placeholder.svg"}
-                                        alt=""
-                                        className="rounded-full object-cover"
-                                    />
-                                </figure>
+                                <ProfileDropdown userProfileData={userProfileData} />
 
                                 {/* Sidebar toggle icon only on small screens */}
                                 {isMobile && (

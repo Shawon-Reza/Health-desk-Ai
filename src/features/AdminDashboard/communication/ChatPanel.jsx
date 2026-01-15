@@ -7,6 +7,7 @@ import axiosApi from "../../../service/axiosInstance";
 import { connectWebSocketForChat } from "./ChatService";
 import { getAuthData } from "../../../config/Config";
 import MessageList from "./MessageList";
+import { useLocation } from "react-router-dom";
 
 const ChatPanel = ({ chatRoom, activeTab }) => {
   const queryClient = useQueryClient();
@@ -16,8 +17,8 @@ const ChatPanel = ({ chatRoom, activeTab }) => {
   // Auth
   const { userInfo } = getAuthData();
   const userId = userInfo?.user_id;
-
-
+  const location = useLocation();
+  const path = location.pathname.split('/')[2];
 
   // Messages (HTTP with infinite scroll)
   const {
@@ -158,7 +159,7 @@ const ChatPanel = ({ chatRoom, activeTab }) => {
             <div className="relative">
               <FiInfo
                 size={20}
-                className="cursor-pointer"
+                className={`cursor-pointer ${path === "user-management" ? "hidden" : ""}`}
                 onClick={() => setShowActions(!showActions)}
               />
 

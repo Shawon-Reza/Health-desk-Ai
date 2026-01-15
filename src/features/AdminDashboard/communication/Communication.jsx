@@ -187,13 +187,13 @@ const Communication = () => {
                     <div className={`${activeTab === "allChat" ? "" : "hidden"} flex justify-between gap-3 pb-2`}>
                         <button
                             onClick={() => setShowCreateGroupModal(true)}
-                            className="pb-1 font-medium text-primary border-2 rounded-lg px-2 border-primary"
+                            className={`pb-1 font-medium text-primary border-2 rounded-lg px-2 border-primary ${path === "user-management" ? "hidden" : ""}`}
                         >
                             New Group
                         </button>
                         <button
                             onClick={() => setShowCreateMessageModal(true)}
-                            className="pb-1 font-medium text-primary border-2 rounded-lg px-2 border-primary"
+                            className={`pb-1 font-medium text-primary border-2 rounded-lg px-2 border-primary ${path === "user-management" ? "hidden" : ""}`}
                         >
                             New Message
                         </button>

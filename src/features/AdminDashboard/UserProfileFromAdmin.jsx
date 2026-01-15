@@ -8,7 +8,9 @@ import axiosApi from '../../service/axiosInstance';
 
 import UserManageMentSetAction from './UserManageMentSetAction';
 import Communication from './Communication/Communication';
+import UserDetailsSection from './UserDetailsSection';
 import useGetUserProfile from '../../hooks/useGetUserProfile';
+import useUserPermissions from '../../hooks/useUserPermissions';
 
 
 // Small, reusable stat card component
@@ -61,11 +63,11 @@ const UserProfileFromAdmin = () => {
         accessChatHistory: false,
         createAssessment: false
     })
-  
+
     const { userId } = useParams();
     const queryClient = useQueryClient();
 
-    // Fetch user data from API
+    // ............................Fetch user data from API...................................\\
     const { data: user, isLoading: loading, error } = useQuery({
         queryKey: ['user-profile-admin', userId],
         queryFn: async () => {
@@ -76,7 +78,31 @@ const UserProfileFromAdmin = () => {
         enabled: !!userId,
     });
 
-    console.log(user)
+    console.log("   User Data:", user)
+
+    // ............................Fetch user permission data from API...................................\\
+    // const { data: userPermission, isLoading: loadingPermission, error: errorPermission } = useQuery({
+    //     queryKey: ['user-Permissions', userId],
+    //     queryFn: async () => {
+    //         const res = await axiosApi.get(`/api/v1/permissions/users/${userId}/`);
+    //         console.log('[UserProfileFromAdmin] Fetched user data:', res.data);
+    //         return res.data;
+    //     },
+    //     enabled: !!userId,
+    // });
+    // console.log("   User Permission:", userPermission)
+    const {
+        data: permissionData,
+        isLoading: permissionLoading,
+        error: permissionError
+    } = useUserPermissions(userId);
+
+    console.log("User Permissions:", permissionData?.groupPerms);
+
+
+
+
+
 
     // Status mutation for toggling active/inactive
     const statusMutation = useMutation({
@@ -108,9 +134,9 @@ const UserProfileFromAdmin = () => {
 
     const handleToggleStatus = () => {
         if (!user?.id) return;
-        statusMutation.mutate({ 
-            userId: user.id, 
-            nextStatus: !user.is_active 
+        statusMutation.mutate({
+            userId: user.id,
+            nextStatus: !user.is_active
         });
     }
 
@@ -168,17 +194,22 @@ const UserProfileFromAdmin = () => {
                 <div className="relative">
                     <button
                         onClick={handleToggleActionsMenu}
-                        className='text-lg font-medium px-4 xl:px-12 py-2 bg-primary text-white rounded-md w-max hover:opacity-90 transition'
+                        disabled={user?.role !== 'manager'}
+                        className={`text-lg font-medium px-4 xl:px-12 py-2 bg-primary text-white rounded-md w-max hover:opacity-90 transition
+                        ${user?.role !== 'manager' ? 'opacity-50 cursor-not-allowed' : ''}
+                  `}
                     >
                         Actions
                     </button>
+
 
                     {/* Actions Dropdown */}
                     <UserManageMentSetAction
                         isOpen={showActionsMenu}
                         onClose={handleCloseActionsMenu}
                         userId={user?.id}
-                        initialPermissions={userPermissions}
+                        permissionData={permissionData}
+                        permissionLoading={permissionLoading}
                         onSave={handleSavePermissions}
                     />
                 </div>
@@ -196,14 +227,13 @@ const UserProfileFromAdmin = () => {
                         <button
                             onClick={handleToggleStatus}
                             disabled={statusMutation.isPending}
-                            className={`ml-3 px-3 py-1.5 text-xs rounded-lg border transition-colors ${
-                                statusMutation.isPending 
-                                    ? 'opacity-60 cursor-not-allowed border-gray-200 text-gray-500' 
-                                    : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                            }`}
+                            className={`ml-3 px-3 py-1.5 text-xs rounded-lg border transition-colors ${statusMutation.isPending
+                                ? 'opacity-60 cursor-not-allowed border-gray-200 text-gray-500'
+                                : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                                }`}
                         >
-                            {statusMutation.isPending 
-                                ? 'Updating...' 
+                            {statusMutation.isPending
+                                ? 'Updating...'
                                 : user?.is_active ? 'Set Inactive' : 'Set Active'}
                         </button>
                     </div>
@@ -211,153 +241,12 @@ const UserProfileFromAdmin = () => {
             </div>
 
             {/* User Details Section */}
-            <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Personal Information */}
-                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <FiFileText className="text-primary" />
-                        Personal Information
-                    </h3>
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                            {user?.picture && (
-                                <img 
-                                    src={`http://10.10.13.2:8000${user.picture}`} 
-                                    alt={user?.full_name}
-                                    className="w-16 h-16 rounded-full object-cover border-2 border-primary"
-                                />
-                            )}
-                            <div>
-                                <p className="text-sm text-gray-600">Name</p>
-                                <p className="font-semibold text-gray-900">{user?.full_name}</p>
-                            </div>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-600">Email</p>
-                            <p className="font-medium text-gray-900">{user?.email}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-600">Phone</p>
-                            <p className="font-medium text-gray-900">{user?.phone || '--'}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-600">Role</p>
-                            <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-teal-100 text-teal-700 capitalize">
-                                {user?.role}
-                            </span>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-600">Joining Date</p>
-                            <p className="font-medium text-gray-900">
-                                {user?.joining_date ? new Date(user.joining_date).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                }) : '--'}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Clinic & Knowledge */}
-                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <FiFileText className="text-primary" />
-                        Professional Details
-                    </h3>
-                    <div className="space-y-3">
-                        <div>
-                            <p className="text-sm text-gray-600 mb-2">Clinics</p>
-                            {user?.clinics && user.clinics.length > 0 ? (
-                                <div className="space-y-1">
-                                    {user.clinics.map((clinic, index) => (
-                                        <span key={index} className="inline-block px-3 py-1 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 mr-2 mb-2">
-                                            {clinic}
-                                        </span>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-gray-500">No clinics assigned</p>
-                            )}
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-600 mb-2">Knowledge Level</p>
-                            <div className="flex items-center gap-2">
-                                <div className="flex-1 bg-gray-200 rounded-full h-3">
-                                    <div 
-                                        className="bg-gradient-to-r from-teal-400 to-teal-600 h-3 rounded-full transition-all"
-                                        style={{ width: `${(user?.knowledge_level || 0) * 10}%` }}
-                                    />
-                                </div>
-                                <span className="text-sm font-bold text-teal-600">{user?.knowledge_level || 0}/10</span>
-                            </div>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-600 mb-2">Subject Matters</p>
-                            {user?.subject_matters && user.subject_matters.length > 0 ? (
-                                <div className="space-y-1">
-                                    {user.subject_matters.map((matter, index) => (
-                                        <span key={index} className="inline-block px-3 py-1 rounded-lg text-sm font-medium bg-purple-50 text-purple-700 mr-2 mb-2">
-                                            {matter}
-                                        </span>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-gray-500">No subject matters</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Notification Preferences */}
-                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <FiMessageCircle className="text-primary" />
-                        Preferences
-                    </h3>
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-2">
-                                <FiMessageCircle className="text-gray-600" />
-                                <span className="text-sm font-medium text-gray-700">Tagged Messages</span>
-                            </div>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                user?.notify_tagged_messages 
-                                    ? 'bg-green-100 text-green-700' 
-                                    : 'bg-gray-100 text-gray-600'
-                            }`}>
-                                {user?.notify_tagged_messages ? 'Enabled' : 'Disabled'}
-                            </span>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-2">
-                                <FiFileText className="text-gray-600" />
-                                <span className="text-sm font-medium text-gray-700">Assessments</span>
-                            </div>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                user?.notify_assessments 
-                                    ? 'bg-green-100 text-green-700' 
-                                    : 'bg-gray-100 text-gray-600'
-                            }`}>
-                                {user?.notify_assessments ? 'Enabled' : 'Disabled'}
-                            </span>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-2">
-                                <FiUserX className="text-gray-600" />
-                                <span className="text-sm font-medium text-gray-700">Account Status</span>
-                            </div>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                user?.is_active 
-                                    ? 'bg-green-100 text-green-700' 
-                                    : 'bg-red-100 text-red-600'
-                            }`}>
-                                {user?.is_active ? 'Active' : 'Inactive'}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <UserDetailsSection
+                user={user}
+                permissionData={permissionData}
+                permissionLoading={permissionLoading}
+                permissionError={permissionError}
+            />
 
             {/* Chat History Section */}
             <div className="mt-8">

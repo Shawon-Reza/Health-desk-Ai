@@ -1,42 +1,58 @@
-import { Navigate, useLocation } from "react-router-dom";
+import { useLocation, Navigate } from "react-router-dom";
 import useGetUserProfile from "../hooks/useGetUserProfile";
+import useUserPermissionsForOwn from "../hooks/useUserPermissionsForOwn";
 
-const PrivateRoute = ({ children, roles = [] }) => {
-    const location = useLocation();
 
-    // Get user from profile
-    const { userProfileData, userProfileLoading, userProfileError, accessToken } = useGetUserProfile();
-    const userRole = userProfileData?.role;
+const AccessGuard = ({ children, roles = [], permission }) => {
+  console.log(permission)
+  const location = useLocation();
+  const { userProfileData, userProfileLoading, userProfileError, accessToken } = useGetUserProfile();
+  const userRole = userProfileData?.role;
 
-    console.log("User Role from PrivateRoute:", userRole);
 
-    // While loading profile, keep user on the page to avoid flicker/redirect on refresh
-    if (userProfileLoading) {
-        return (
-            <div className="w-full h-screen flex items-center justify-center">
-                <p className="text-gray-600">Loading...</p>
-            </div>
-        );
-    }
+  // ...............Fetch user permissions...................\\
+  const { data: permissionData, isLoading: isLoadingPermission, isError: isErrorPermission } = useUserPermissionsForOwn();
 
-    // If no token or profile failed, redirect to login
-    if (!accessToken || userProfileError || !userProfileData) {
-        return (
-            <Navigate
-                to="/login"
-                replace
-                state={{ from: location }}
-            />
-        );
-    }
+  const userPermissions = permissionData?.enabledPermissions || [];
+  const isCheckingPermissions = permission && (isLoadingPermission || !permissionData);
 
-    // Check role
-    if (roles.length && !roles.includes(userRole)) {
-        return <Navigate to="/login" replace />;
-    }
+  console.log("Permission:", permissionData?.enabledPermissions);
+  // ......................................................\\
 
-    // ✅ Allowed
+
+
+  // Loading state
+  if (userProfileLoading || isCheckingPermissions) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    );
+  }
+
+  // Not logged in or error
+  if (!accessToken || userProfileError || !userProfileData) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  // Owner always allowed
+  if (userRole === "owner") {
     return children;
+  }
+
+  // Role-based check
+  if (roles.length && roles.includes(userRole)) {
+    return children;
+  }
+
+
+  // Permission-based check
+  if (permission && userPermissions.includes(permission)) {
+    return children;
+  }
+
+  // Access denied
+  return <Navigate to="/login" replace />;
 };
 
-export default PrivateRoute;
+export default AccessGuard;

@@ -7,6 +7,8 @@ import { PiFilesThin, PiHospitalLight } from "react-icons/pi";
 import { LuBrainCircuit } from "react-icons/lu";
 import { GiGiftOfKnowledge } from "react-icons/gi";
 import useGetUserProfile from "../../hooks/useGetUserProfile"
+import useUserPermissions from "../../hooks/useUserPermissions"
+import useUserPermissionsForOwn from "../../hooks/useUserPermissionsForOwn"
 
 const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: FiGrid },
@@ -24,7 +26,59 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
     const { userProfileData } = useGetUserProfile();
     console.log(userProfileData?.role);
 
+    // ...............Fetch user permissions...................\\
+    const { data: permissionData, isLoading: isLoadingPermission, isError: isErrorPermission } = useUserPermissionsForOwn();
+    console.log("Permission:", permissionData?.enabledPermissions
+    );
+    // ......................................................................\\
+    // ................Access Control Logic For Sidebar display/Hidden..................\\
+    const accessControl = {
+        assessmentAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president" ||
+            permissionData?.enabledPermissions?.includes("assessment"),
 
+        aiTrainingAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president" ||
+            permissionData?.enabledPermissions?.includes("ai_training"),
+
+        userManagementAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president" ||
+            permissionData?.enabledPermissions?.includes("user_management"),
+
+        communicationAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president" ||
+            permissionData?.enabledPermissions?.includes("chat"),
+
+        blockAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president" ||
+            permissionData?.enabledPermissions?.includes("block_user"),
+        clinicAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president",
+
+        subjectsMattersAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president",
+        assignedClinicsAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president"
+    };
+
+    console.log(accessControl);
+
+
+
+
+
+
+
+
+    // .......................................................................\\
 
     return (
         <aside className="w-full  bg-primary text-white flex flex-col h-screen">
@@ -87,7 +141,7 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
                     title={isCollapsed ? 'Manage Clinic' : ''}
                     className={({ isActive }) =>
                         `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
-                        }`
+                        } ${accessControl.clinicAccess ? '' : 'hidden'}`
                     }
                 >
                     <PiHospitalLight size={21} />
@@ -97,12 +151,27 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
                 </NavLink>
 
                 <NavLink
+                    to="/admin/assigned-clinic"
+                    onClick={onClick}
+                    title={isCollapsed ? 'Assigned Clinic' : ''}
+                    className={({ isActive }) =>
+                        `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
+                        } ${!accessControl?.assignedClinicsAccess ? '' : 'hidden'}`
+                    }
+                >
+                    <PiHospitalLight size={21} />
+                    {!isCollapsed && (
+                        <span className="font-semibold text-sm sm:text-xl xl:text-2xl">Assigned Clinic</span>
+                    )}
+                </NavLink>
+
+                <NavLink
                     to="/admin/subject-matters"
                     onClick={onClick}
                     title={isCollapsed ? 'Subject Matters' : ''}
                     className={({ isActive }) =>
                         `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
-                        }`
+                        } ${accessControl.subjectsMattersAccess ? '' : 'hidden'}`
                     }
                 >
                     <GiGiftOfKnowledge size={21} />
@@ -117,7 +186,7 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
                     title={isCollapsed ? 'User Management' : ''}
                     className={({ isActive }) =>
                         `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
-                        }`
+                        } ${accessControl.userManagementAccess ? '' : 'hidden'}`
                     }
                 >
                     <FiUsers size={21} />
@@ -132,7 +201,7 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
                     title={isCollapsed ? 'AI Training' : ''}
                     className={({ isActive }) =>
                         `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
-                        }`
+                        } ${accessControl.aiTrainingAccess ? '' : 'hidden'}`
                     }
                 >
                     <LuBrainCircuit size={21} />
@@ -147,7 +216,7 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
                     title={isCollapsed ? 'Assessments' : ''}
                     className={({ isActive }) =>
                         `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
-                        }`
+                        } ${accessControl.assessmentAccess ? '' : 'hidden'}`
                     }
                 >
                     <PiFilesThin size={21} />

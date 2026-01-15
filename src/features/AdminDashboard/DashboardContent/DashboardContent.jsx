@@ -3,15 +3,22 @@
 import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import axiosApi from "../../../service/axiosInstance"
-import { FiUsers, FiUserCheck, FiHome, FiBell, FiMessageCircle, FiShield } from "react-icons/fi"
+import { FiUsers, FiMessageCircle, FiShield, FiHome } from "react-icons/fi"
 import { Outlet, useNavigate } from "react-router-dom"
+import useGetUserProfile from "../../../hooks/useGetUserProfile"
+import AdminAndPresedentDashboardDetails from "./AdminAndPresedentDashboardDetails"
 
 const DashboardContent = () => {
   // ============ STATE MANAGEMENT ============
-  const [dashboardData, setDashboardData] = useState(null)
   const [recentActivity, setRecentActivity] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate();
+
+  const { userProfileData } = useGetUserProfile();
+  console.log(userProfileData?.role);
+  const notDisplayAssessmentSection = userProfileData?.role === "owner" || userProfileData?.role === "president";
+  console.log(notDisplayAssessmentSection)
+
 
   // ...................Fetch my assessments (logs only, UI unchanged)....................\\
   const { data: myAssessments, isLoading: myAssessmentsLoading, error: myAssessmentsError } = useQuery({
@@ -30,38 +37,26 @@ const DashboardContent = () => {
   })
   console.log("Consol*********************:", myAssessments?.data)
 
-  // ============ MOCK DATA - Replace with backend API calls ============
-  const mockDashboardStats = {
-    totalUsers: 1458,
-    activeUsers: 999,
-    totalClinics: 5,
-    taggedMessages: 5,
-  }
+  // ..............................................................\\
 
+  // ============ Fetch Dashboard Contents  ============
+  const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError } = useQuery({
+    queryKey: ['dashboard-content'],
+    queryFn: async () => {
+      const res = await axiosApi.get('/api/v1/dashboard/')
+      console.log('[DashboardContent] /api/v1/dashboard/ response:', res.data)
+      return res.data
+    },
+    onSuccess: (data) => {
+      console.log('[DashboardContent] Dashboard data loaded successfully:', data)
+    },
+    onError: (err) => {
+      console.error('[DashboardContent] Error fetching dashboard data:', err)
+    },
+  })
 
-  const mockRecentActivity = [
-    {
-      id: 1,
-      name: "Dr. Michael Chen",
-      action: "Mentioned you on message",
-      timestamp: "10 minutes ago",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael",
-    },
-    {
-      id: 2,
-      name: "Dr. Ron Vhen",
-      action: "Joined as a staff",
-      timestamp: "15 minutes ago",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ron",
-    },
-    {
-      id: 3,
-      name: "Dr. Pappu Roy",
-      action: "Mentioned you on message",
-      timestamp: "20 minutes ago",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Pappu",
-    },
-  ]
+  console.log("Dashboard Data:", dashboardData?.data?.recent_activity)
+
 
   const quickActions = [
     {
@@ -97,20 +92,16 @@ const DashboardContent = () => {
   // ============ LIFECYCLE HOOKS ============
   useEffect(() => {
     console.log("[v0] Initializing Dashboard Component")
-    console.log("[v0] Fetching dashboard data from backend...")
+    console.log("[v0] Setting recent activity from API data...")
 
-    // Simulate API delay - Replace with actual API call
-    setTimeout(() => {
-      setDashboardData(mockDashboardStats)
-      setRecentActivity(mockRecentActivity)
+    if (dashboardData?.data?.recent_activity && Array.isArray(dashboardData.data.recent_activity)) {
+      setRecentActivity(dashboardData.data.recent_activity)
       setLoading(false)
-
-      // Console log all data for debugging
-      console.log("[v0] Dashboard Data Loaded:", mockDashboardStats)
-      console.log("[v0] Recent Activity Loaded:", mockRecentActivity)
-      console.log("[v0] Quick Actions Available:", quickActions)
-    }, 500)
-  }, [])
+      console.log("[v0] Recent Activity Loaded:", dashboardData.data.recent_activity)
+    } else {
+      setLoading(false)
+    }
+  }, [dashboardData])
 
   // ============ EVENT HANDLERS ============
   const handleQuickAction = (actionLabel) => {
@@ -127,32 +118,21 @@ const DashboardContent = () => {
   }
 
   // ============ HELPER COMPONENTS ============
-  const StatCard = ({ icon: Icon, label, value, borderColor, bgColor }) => (
-    <div className={`bg-white rounded-lg shadow-md p-6 ${borderColor}`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-gray-600 text-sm font-medium">{label}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
-        </div>
-        <Icon className={`w-12 h-12 ${bgColor} text-gray-700 p-2 rounded-lg`} />
-      </div>
-    </div>
-  )
+  const ActivityItem = ({ activity }) => {
 
-  const ActivityItem = ({ activity }) => (
-    <div className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-      <img
-        src={activity.avatar}
-        alt={activity.name}
-        className="w-10 h-10 rounded-full"
-      />
-      <div className="flex-1">
-        <p className="text-sm font-semibold text-gray-900">{activity.name}</p>
-        <p className="text-xs text-gray-600">{activity.action}</p>
+    return (
+      <div className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+        <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+          {activity?.actor?.name?.charAt(0) || 'U'}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-900 truncate">{activity?.actor?.name || 'Unknown User'}</p>
+          <p className="text-xs text-gray-600">{activity?.title || 'Activity'}</p>
+        </div>
+        <span className="text-xs text-gray-500 whitespace-nowrap ml-2">{activity?.time_ago || 'Recently'}</span>
       </div>
-      <span className="text-xs text-gray-500">{activity.timestamp}</span>
-    </div>
-  )
+    )
+  }
 
   const QuickActionButton = ({ action }) => {
     const Icon = action.icon
@@ -263,45 +243,16 @@ const DashboardContent = () => {
 
       {/* Main Content Area */}
       <div className="">
-        {loading ? (
+        {dashboardLoading ? (
           <div className="text-center py-12">
             <p className="text-gray-600">Loading dashboard data...</p>
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatCard
-                icon={FiUsers}
-                label="Total Users"
-                value={dashboardData?.totalUsers}
-                borderColor="border-l-4 border-blue-500"
-                bgColor="bg-blue-100"
-              />
-              <StatCard
-                icon={FiUserCheck}
-                label="Active User"
-                value={dashboardData?.activeUsers}
-                borderColor="border-l-4 border-green-500"
-                bgColor="bg-green-100"
-              />
-              <StatCard
-                icon={FiHome}
-                label="Total Clinic"
-                value={dashboardData?.totalClinics}
-                borderColor="border-l-4 border-teal-500"
-                bgColor="bg-teal-100"
-              />
-              <StatCard
-                icon={FiBell}
-                label="Tagged Message"
-                value={dashboardData?.taggedMessages}
-                borderColor="border-l-4 border-yellow-500"
-                bgColor="bg-yellow-100"
-              />
-            </div>
+            {/* Stats Grid - Only for Owner/President */}
+            <AdminAndPresedentDashboardDetails cardData={dashboardData?.data?.cards} />
 
-            {/* Recent Activity & Quick Actions */}
+            {/*===============Recent Activity & Quick Actions=========== */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Recent Activity */}
               <div className="lg:col-span-2 bg-white rounded-lg shadow-lg p-6">
@@ -337,7 +288,7 @@ const DashboardContent = () => {
             </div>
 
             {/* Assessments Section */}
-            <div>
+            <div className={`${notDisplayAssessmentSection ? 'hidden' : ''} bg-white rounded-lg shadow-lg p-6`}>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Assessments</h2>
               <p className="text-gray-600 mb-6">Give proper answers and improve your knowledge</p>
 

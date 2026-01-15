@@ -24,6 +24,7 @@ import { AssessmentViewAnswers } from "../features/AdminDashboard/assesments/Ass
 import GiveAssessmentsAnsware from "../features/AdminDashboard/DashboardContent/GiveAssessmentsAnsware";
 import PrivateRoute from "./PrivetRoute";
 import { ROLES } from "./roles";
+import AssignedClinic from "../features/AdminDashboard/AssignedClinic";
 
 export const router = createBrowserRouter([
     {
@@ -54,15 +55,19 @@ export const router = createBrowserRouter([
             },
             {
                 path: "manage-clinic",
-                element: <PrivateRoute roles={[ROLES.OWNER,ROLES.PRESIDENT]} ><ClinicManagement></ClinicManagement></PrivateRoute>,
+                element: <PrivateRoute roles={[ROLES.OWNER, ROLES.PRESIDENT]} ><ClinicManagement></ClinicManagement></PrivateRoute>,
+            },
+            {
+                path: "assigned-clinic",
+                element: <PrivateRoute roles={[ROLES.DOCTOR,ROLES.MANAGER, ROLES.STAFF ,ROLES.JR_STAFF]} ><AssignedClinic></AssignedClinic></PrivateRoute>,
             },
             {
                 path: "subject-matters",
-                element: <PrivateRoute roles={[ROLES.OWNER,ROLES.PRESIDENT]} ><SubjectMatters></SubjectMatters></PrivateRoute>,
+                element: <PrivateRoute roles={[ROLES.OWNER, ROLES.PRESIDENT]}  ><SubjectMatters></SubjectMatters></PrivateRoute>,
             },
             {
                 path: "user-management",
-                element: <PrivateRoute roles={[ROLES.OWNER,ROLES.PRESIDENT]} ><UserManagement></UserManagement></PrivateRoute>,
+                element: <PrivateRoute roles={[ROLES.OWNER, ROLES.PRESIDENT]} permission={"user_management"} ><UserManagement></UserManagement></PrivateRoute>,
             },
             {
                 path: "user-management/user/:userId",
@@ -70,12 +75,12 @@ export const router = createBrowserRouter([
             },
             {
                 path: "ai-training",
-                element: <PrivateRoute roles={[ROLES.OWNER,ROLES.PRESIDENT]} ><AITrainingPage></AITrainingPage></PrivateRoute>,
+                element: <PrivateRoute roles={[ROLES.OWNER, ROLES.PRESIDENT]} permission={"ai_training"} ><AITrainingPage></AITrainingPage></PrivateRoute>,
             },
             // --------------Assessments Routes Start ------------------- \\
             {
                 path: "assessments",
-                element: <Assesments></Assesments>,
+                element:<PrivateRoute roles={[ROLES.OWNER, ROLES.PRESIDENT]} permission={"assessment"} ><Assesments></Assesments></PrivateRoute>,
             },
             {
                 path: "assessments/created/:assessmentId",

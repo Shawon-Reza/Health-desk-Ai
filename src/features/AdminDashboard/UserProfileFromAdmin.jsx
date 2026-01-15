@@ -197,7 +197,7 @@ const UserProfileFromAdmin = () => {
                         disabled={user?.role !== 'manager'}
                         className={`text-lg font-medium px-4 xl:px-12 py-2 bg-primary text-white rounded-md w-max hover:opacity-90 transition
                         ${user?.role !== 'manager' ? 'opacity-50 cursor-not-allowed' : ''}
-                  `}
+                   `}
                     >
                         Actions
                     </button>
@@ -207,7 +207,7 @@ const UserProfileFromAdmin = () => {
                     <UserManageMentSetAction
                         isOpen={showActionsMenu}
                         onClose={handleCloseActionsMenu}
-                        userId={user?.id}
+                        userId={userId}
                         permissionData={permissionData}
                         permissionLoading={permissionLoading}
                         onSave={handleSavePermissions}

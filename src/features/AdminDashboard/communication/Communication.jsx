@@ -10,6 +10,8 @@ import { queryClient } from "../../../main";
 import { useDebouncedCallback } from "use-debounce";
 import { base_URL } from "../../../config/Config";
 import { useLocation, useParams } from "react-router-dom";
+import useGetUserProfile from "../../../hooks/useGetUserProfile";
+import useUserPermissionsForOwn from "../../../hooks/useUserPermissionsForOwn";
 
 
 
@@ -35,9 +37,61 @@ const Communication = () => {
         setSearchQuery(value);
     }, 900);
 
+    //...................................Get User Profile Data.....................................\\
+    const { userProfileData } = useGetUserProfile();
+    console.log(userProfileData?.role);
+
+    // .....................................Fetch user permissions..................................\\
+    const { data: permissionData, isLoading: isLoadingPermission, isError: isErrorPermission } = useUserPermissionsForOwn();
+    console.log("Permission:", permissionData?.enabledPermissions
+    );
+    // ......................................................................\\
+    // ...................Access Control Logic For Sidebar display/Hidden........................\\
+    const accessControl = {
+        assessmentAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president" ||
+            permissionData?.enabledPermissions?.includes("assessment"),
+
+        aiTrainingAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president" ||
+            permissionData?.enabledPermissions?.includes("ai_training"),
+
+        userManagementAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president" ||
+            permissionData?.enabledPermissions?.includes("user_management"),
+
+        communicationAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president"
+        // ||
+        // permissionData?.enabledPermissions?.includes("chat"), 
+        ,
+
+        blockAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president" ||
+            permissionData?.enabledPermissions?.includes("block_user"),
+        clinicAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president",
+
+        subjectsMattersAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president",
+        assignedClinicsAccess:
+            userProfileData?.role === "owner" ||
+            userProfileData?.role === "president"
+    };
+
+    console.log(accessControl);
+
+
     // ...................Fetch user's chat rooms with filters.......................\\
     const { data: rooms = { read_only: false, ai_rooms: [], results: [] }, isLoading } = useQuery({
-        queryKey: ["myRooms", searchQuery, selectedRole, path,userId],
+        queryKey: ["myRooms", searchQuery, selectedRole, path, userId],
         queryFn: async () => {
             let url;
 
@@ -187,7 +241,7 @@ const Communication = () => {
                     <div className={`${activeTab === "allChat" ? "" : "hidden"} flex justify-between gap-3 pb-2`}>
                         <button
                             onClick={() => setShowCreateGroupModal(true)}
-                            className={`pb-1 font-medium text-primary border-2 rounded-lg px-2 border-primary ${path === "user-management" ? "hidden" : ""}`}
+                            className={`pb-1 font-medium text-primary border-2 rounded-lg px-2 border-primary ${path === "user-management" ? "hidden" : ""} ${accessControl?.communicationAccess ? "" : "hidden"}`}
                         >
                             New Group
                         </button>
@@ -325,7 +379,7 @@ const Communication = () => {
                 </section>
 
                 {/* ............................Chat Panel............................. */}
-                <section className="w-[60%] xl:w-[75%] h-full bg-white rounded-lg shadow-md p-4">
+                <section className="w-[60%] xl:w-[75%] h-full bg-white rounded-lg shadow-md p-4 ">
                     <ChatPanel chatRoom={selectedChatRoom} activeTab={activeTab} />
                 </section>
 

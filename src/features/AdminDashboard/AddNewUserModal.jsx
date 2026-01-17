@@ -18,8 +18,8 @@ import {
 import { QueryClient, useMutation } from '@tanstack/react-query'
 import axiosApi from '../../service/axiosInstance'
 import useGetSubjectMattersAndClinicsList from '../../hooks/useGetSubjectMattersAndClinicsList'
-import toast from 'daisyui/components/toast'
 import { queryClient } from '../../main'
+import { toast } from 'react-toastify'
 
 const Field = ({ label, icon: Icon, children }) => (
   <div>
@@ -164,10 +164,10 @@ const AddNewUserModal = ({
     onSuccess: (data) => {
       console.log(mode === 'edit' ? 'User updated successfully:' : 'User created successfully:', data)
       onCreated && onCreated(data)
-      onRefetch && onRefetch()
+      // onRefetch && onRefetch()
       onClose && onClose()
       queryClient.invalidateQueries({ queryKey: ['userList'] })
-      // toast.success(`User ${mode === 'edit' ? 'updated' : 'created'} successfully!`)
+      toast.success(`User ${mode === 'edit' ? 'updated' : 'created'} successfully!`)
     },
     onError: (error) => {
       console.error(`[AddNewUserModal] ${mode === 'edit' ? 'PUT' : 'POST'} failed:`, error)

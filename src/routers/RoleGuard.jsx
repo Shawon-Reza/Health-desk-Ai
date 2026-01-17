@@ -9,5 +9,5 @@ const RoleGuard = ({ roles = [], children }) => {
 
     return children;
 };
-
+ 
 export default RoleGuard;

@@ -96,7 +96,7 @@ const UploadedDocuments = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 max-h-[calc(100vh-100px)] overflow-y-auto">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Uploaded Documents</h1>

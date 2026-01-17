@@ -12,7 +12,7 @@ const AssignedClinic = () => {
         queryFn: async () => {
             const response = await axiosApi.get('/api/v1/clinics/')
             console.log('[Clinics API Response]:', response.data)
-            return response.data
+            return Array.isArray(response.data) ? response.data : response.data?.results || response.data?.data || []
         },
     })
 

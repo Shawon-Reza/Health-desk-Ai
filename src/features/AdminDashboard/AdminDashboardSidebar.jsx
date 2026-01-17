@@ -6,9 +6,9 @@ import { BsLayoutSidebarInset } from 'react-icons/bs'
 import { PiFilesThin, PiHospitalLight } from "react-icons/pi";
 import { LuBrainCircuit } from "react-icons/lu";
 import { GiGiftOfKnowledge } from "react-icons/gi";
-import useGetUserProfile from "../../hooks/useGetUserProfile"
 import useUserPermissions from "../../hooks/useUserPermissions"
 import useUserPermissionsForOwn from "../../hooks/useUserPermissionsForOwn"
+import useGetUserProfile from "../../hooks/useGetUserProfile"
 
 const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: FiGrid },
@@ -23,15 +23,18 @@ const menuItems = [
 
 export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCollapse }) {
     const navigate = useNavigate()
+
+    //...................................Get User Profile Data...................................\\
+
     const { userProfileData } = useGetUserProfile();
     console.log(userProfileData?.role);
-
-    // ...............Fetch user permissions...................\\
+    // .................................Fetch user permissions..................................\\
     const { data: permissionData, isLoading: isLoadingPermission, isError: isErrorPermission } = useUserPermissionsForOwn();
     console.log("Permission:", permissionData?.enabledPermissions
     );
+
     // ......................................................................\\
-    // ................Access Control Logic For Sidebar display/Hidden..................\\
+    // ...................Access Control Logic For Sidebar display/Hidden........................\\
     const accessControl = {
         assessmentAccess:
             userProfileData?.role === "owner" ||

@@ -59,9 +59,9 @@ export const connectWebSocketForChatList = ({ onMessage, onSeen }) => {
 
 
 
-// ---------------------- **WebSocket Connection for Chat** ------------------------- //
+// ---------------------- **WebSocket Connection FUnction for Chat** ------------------------- //
 export const connectWebSocketForChat = ({ roomId, onMessage, onSeen }) => {
-
+console.log("Rooam Id :",roomId)
     // If Room ID is not provided, do not attempt to connect and return null
     if (!roomId) {
         console.error("No roomId provided, cannot connect WebSocket for Chat");
@@ -81,7 +81,7 @@ export const connectWebSocketForChat = ({ roomId, onMessage, onSeen }) => {
         return null;
     }
 
-    // ........................WebSocket Connection.......................... //
+    // ........................WebSocket Connecting.......................... //
     const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
     const wsUrl = `${wsProtocol}://10.10.13.2:8000/ws/chat/${roomId}/?token=${token}`;
     const socket = new WebSocket(wsUrl);

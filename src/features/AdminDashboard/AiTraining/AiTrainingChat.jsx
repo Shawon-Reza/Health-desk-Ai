@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { FiPaperclip, FiMic, FiSend, FiThumbsUp, FiThumbsDown } from "react-icons/fi"
 import { connectWebSocketForChat } from "../Communication/ChatService";
 import axiosApi from "../../../service/axiosInstance"
+import Markdown from 'https://esm.sh/react-markdown@10'
+import remarkGfm from 'remark-gfm';
 
 const AiTrainingChat = () => {
     const socketRef = useRef(null);
@@ -38,22 +40,22 @@ const AiTrainingChat = () => {
 
             onMessage: (payload) => {
                 console.log("[AiTrainingChat] WebSocket payload received:", payload)
-                
+
                 // Handle different message structures from backend
                 const newMessage = payload.message || payload.data || payload;
-                
+
                 // Skip if not a valid message object
                 if (!newMessage || !newMessage.id) return;
-                
+
                 console.log("[AiTrainingChat] New message processed:", newMessage)
 
                 setChatMessages((prev) => [...prev, {
                     id: newMessage.id,
                     sender: newMessage.is_ai ? "ai" : "user",
                     message: newMessage.text || newMessage.message || newMessage.content,
-                    timestamp: new Date(newMessage.timestamp || newMessage.created_at).toLocaleTimeString([], { 
-                        hour: "2-digit", 
-                        minute: "2-digit" 
+                    timestamp: new Date(newMessage.timestamp || newMessage.created_at).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit"
                     }),
                     userName: newMessage.sender_name || newMessage.user?.name || "User",
                     avatar: newMessage.is_ai ? "🤖" : "👩‍⚕️",
@@ -84,15 +86,17 @@ const AiTrainingChat = () => {
 
         try {
             const formData = new FormData();
-            formData.append("content", messageText);
+            formData.append("prompt", messageText);
+            // {{baseurl}}/api/v1/mytrainingrooms/11/ask/
 
-            await axiosApi.post(`/api/v1/rooms/${chatRoom}/send/`, formData, {
+            console.log("formData:", formData)
+            await axiosApi.post(`/api/v1/mytrainingrooms/${chatRoom}/ask/`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
             });
             console.log("[AiTrainingChat] Message sent successfully")
-            
+
             // Scroll to bottom after sending message
             requestAnimationFrame(() => {
                 if (chatContainerRef.current) {
@@ -150,7 +154,7 @@ const AiTrainingChat = () => {
     }
 
     return (
-        <div className="border border-teal-500 rounded-lg p-6 flex flex-col">
+        <div className="border border-teal-500 rounded-lg p-6 flex flex-col max-h-[700px]">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
                 <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center text-white font-semibold">
                     🤖
@@ -167,6 +171,7 @@ const AiTrainingChat = () => {
                 ) : (
                     <>
                         {chatMessages.map((msg) => (
+
                             <div key={msg.id} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
                                 <div className={`flex gap-3 max-w-xs ${msg.sender === "user" ? "flex-row-reverse" : ""}`}>
                                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg flex-shrink-0">
@@ -178,7 +183,12 @@ const AiTrainingChat = () => {
                                             className={`rounded-lg px-4 py-2 ${msg.sender === "user" ? "bg-teal-100 text-gray-900" : "bg-gray-100 text-gray-900"
                                                 }`}
                                         >
-                                            <p className="text-sm">{msg.message}</p>
+                                            {/* Message text */}
+                                            {/* <p className="text-sm">{msg.message}</p> */}
+                                            <Markdown remarkPlugins={[remarkGfm]}>
+                                                {msg.message}
+                                            </Markdown>
+
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1">{msg.timestamp}</p>
                                         {msg.sender === "ai" && (
@@ -216,7 +226,7 @@ const AiTrainingChat = () => {
                     placeholder="Type a message..."
                     className="flex-1 bg-transparent outline-none text-gray-900 placeholder-gray-500"
                 />
-              
+
                 <button onClick={handleSendMessage} className="text-teal-500 hover:text-teal-600 transition-colors">
                     <FiSend size={20} />
                 </button>

@@ -131,13 +131,13 @@ export default function AITrainingCenter() {
     const isFormValid = title.trim() !== "" && providedTopics.trim() !== "" && uploadQueue.length > 0 && !!chatRoom
 
     return (
-        <div className=" p-4 md:p-8">
+        <div className=" p-4 md:p-8 ">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Training Center</h1>
                 <p className="text-gray-600">Upload and manage training materials for the chatbot</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-h-[700px]">
                 {/* Left Section - Upload Documents */}
                 <div className="border border-teal-500 rounded-lg p-6">
                     <h2 className="text-xl font-semibold text-gray-900 mb-4">Upload Documents</h2>

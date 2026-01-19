@@ -14,6 +14,7 @@ const AiTrainingChat = () => {
     const chatEndRef = useRef(null)
     const chatContainerRef = useRef(null)
     const fileInputRef = useRef(null)
+    const [isAiTyping, setIsAiTyping] = useState(false)
 
     // .......................Get Room ID for AI Training Chat.........................\\
     const { data: roomData, isLoading: isLoadingRoom, error: roomError } = useQuery({
@@ -40,6 +41,7 @@ const AiTrainingChat = () => {
 
             onMessage: (payload) => {
                 console.log("[AiTrainingChat] WebSocket payload received:", payload)
+                setIsAiTyping(false)
 
                 // Handle different message structures from backend
                 const newMessage = payload.message || payload.data || payload;
@@ -96,6 +98,7 @@ const AiTrainingChat = () => {
                 },
             });
             console.log("[AiTrainingChat] Message sent successfully")
+            setIsAiTyping(true)
 
             // Scroll to bottom after sending message
             requestAnimationFrame(() => {

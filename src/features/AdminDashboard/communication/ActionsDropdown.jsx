@@ -5,15 +5,18 @@ import { queryClient } from '../../../main';
 import { toast } from 'react-toastify';
 import axiosApi from '../../../service/axiosInstance';
 import EditGroupModal from './EditGroupModal';
+import AddMemberModal from './AddMemberModal';
 
 const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMember, onDeleteChat, chatInfo }) => {
   if (!showActions) return null;
 
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
 
   console.log("CHat Info :", chatInfo)
   const roomId = chatInfo?.id;
-  console.log("Room Id :", roomId)
+  const clinic_id = chatInfo?.clinic_id;
+  console.log("Room Id from dropdown :", roomId)
 
 
   const isPrivate = chatInfo?.type === 'private';
@@ -40,65 +43,82 @@ const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMembe
     },
   });
 
-  // ......................................*Fetch Clinics & Users List*.......................................... //
-  const { data: userList, isLoading: userListIsLoading, error: userListError } = useQuery({
-    queryKey: ['clinics&userlist'],
+  // ......................................*Fetch Clinic Members*.......................................... //
+  const { data: clinicMembers, isLoading: isLoadingMembers, error: membersError } = useQuery({
+    queryKey: ['clinicMembers_for_addMembers', clinic_id],
     queryFn: async () => {
-      const res = await axiosApi.get('/api/v1/chat/clinic/members/'
-      );
+      const res = await axiosApi.get(`/api/v1/chat/clinic/members/?clinic_id=${clinic_id}`);
+      console.log("Clinic Members Data:", res.data);
       return res.data;
     },
+    enabled: !!clinic_id, // Only fetch if clinic_id exists
     keepPreviousData: true,
   });
-  console.log("User list data:", userList?.data);
+  console.log("Clinic Members:=========================================================", clinicMembers?.results);
+
+
+
 
 
   // ........................................ Action Dropdown UI ........................................ //
   return (
     <>
-      <div className="absolute right-0 mt-2 bg-white rounded-lg shadow-lg p-4 w-56 z-50 border border-gray-200">
+      <div className="absolute right-0 mt-2 bg-white rounded-lg shadow-lg p-4 w-56 z-50 border border-gray-200 ">
         <h3 className="text-center font-bold text-gray-800 mb-3">Actions</h3>
         <div className="space-y-2">
-        {!isPrivate && (
+          {!isPrivate && (
+            <button
+              onClick={() => setShowEditModal(true)}
+              className="w-full border-2 border-teal-500 text-teal-600 px-4 py-2 rounded-lg font-semibold hover:bg-teal-50 transition"
+            >
+              Edit Details
+            </button>
+          )}
+          {!isPrivate && (
+            <button
+              onClick={() => setShowAddMemberModal(true)}
+              className="w-full bg-green-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-600 transition"
+            >
+              Add Member
+            </button>
+          )}
           <button
-            onClick={() => setShowEditModal(true)}
-            className="w-full border-2 border-teal-500 text-teal-600 px-4 py-2 rounded-lg font-semibold hover:bg-teal-50 transition"
+            onClick={onBlockMember}
+            className="w-full bg-yellow-400 text-white px-4 py-2 rounded-lg font-semibold hover:bg-yellow-500 transition"
           >
-            Edit Details
+            Block Member
           </button>
-        )}
-        {!isPrivate && (
           <button
-            onClick={onAddMember}
-            className="w-full bg-green-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-600 transition"
+            onClick={() => deleteChatMutation.mutate()}
+            disabled={deleteChatMutation.isPending}
+            className="w-full bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Add Member
+            {deleteChatMutation.isPending ? 'Deleting...' : 'Delete Chat'}
           </button>
-        )}
-        <button
-          onClick={onBlockMember}
-          className="w-full bg-yellow-400 text-white px-4 py-2 rounded-lg font-semibold hover:bg-yellow-500 transition"
-        >
-          Block Member
-        </button>
-        <button
-          onClick={() => deleteChatMutation.mutate()}
-          disabled={deleteChatMutation.isPending}
-          className="w-full bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {deleteChatMutation.isPending ? 'Deleting...' : 'Delete Chat'}
-        </button>
-      </div>
-    </div>
-
-    {/* Edit Group Modal */}
-    {showEditModal && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-        <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xl relative">
-          <EditGroupModal onClose={() => setShowEditModal(false)} roomId={roomId} />
         </div>
       </div>
-    )}
+
+      {/* Edit Group Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-xl relative">
+            <EditGroupModal onClose={() => setShowEditModal(false)} roomId={roomId} />
+          </div>
+        </div>
+      )}
+
+      {/* Add Member Modal */}
+      {showAddMemberModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl relative mx-5 sm:mx-10">
+            <AddMemberModal 
+              onClose={() => setShowAddMemberModal(false)} 
+              roomId={roomId} 
+              userList={clinicMembers} 
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 };

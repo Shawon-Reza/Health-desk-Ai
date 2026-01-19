@@ -157,7 +157,7 @@ const ChatPanel = ({ chatRoom, activeTab }) => {
               </div>
             </div>
 
-            <div className="relative">
+            <div className={`relative ${data?.pages[0].chatInfo?.type === "ai" ? "hidden" : ""}`}>
               <FiInfo
                 size={20}
                 className={`cursor-pointer ${path === "user-management" ? "hidden" : ""}`}

@@ -170,10 +170,10 @@ const ChatPanel = ({ chatRoom, activeTab }) => {
                 onAddMember={() => console.log("Add Member")}
                 onBlockMember={() => console.log("Block Member")}
                 onDeleteChat={() => console.log("Delete Chat")}
+                chatInfo={data?.pages[0].chatInfo}
               />
             </div>
           </div>
-
           {/* Message List */}
           <MessageList
             messages={messages}

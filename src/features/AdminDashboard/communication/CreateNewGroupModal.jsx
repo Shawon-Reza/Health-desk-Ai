@@ -30,6 +30,7 @@ const CreateNewGroupModal = ({ onClose }) => {
     });
     console.log("User list data:", userList)
 
+
     
     // ........................**Post Request For Create Group**.................. //
     const createGroupByClinic = useMutation({

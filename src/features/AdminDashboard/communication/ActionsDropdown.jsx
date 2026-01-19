@@ -6,20 +6,54 @@ import { toast } from 'react-toastify';
 import axiosApi from '../../../service/axiosInstance';
 import EditGroupModal from './EditGroupModal';
 import AddMemberModal from './AddMemberModal';
+import BlockMemberModal from './BlockMemberModal';
 
 const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMember, onDeleteChat, chatInfo }) => {
   if (!showActions) return null;
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [showBlockMemberModal, setShowBlockMemberModal] = useState(false);
 
-  console.log("CHat Info :", chatInfo)
+  console.log("CHat Info >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>:", chatInfo)
   const roomId = chatInfo?.id;
   const clinic_id = chatInfo?.clinic_id;
+  const room_type = chatInfo?.type;
+
+
   console.log("Room Id from dropdown :", roomId)
+  console.log("Room room_type from dropdown :", room_type)
+  console.log("Room room_type from chatInfo======================== :", chatInfo)
 
 
   const isPrivate = chatInfo?.type === 'private';
+
+  //..............................................Block/Unblock Chat Mutation..............................................//
+  const blockChatMutation = useMutation({
+    mutationFn: async (action) => {
+      const payload = {
+        user_id: chatInfo?.other_user_id, // or however the other user ID is stored in chatInfo
+        action: action, // "block" or "unblock"
+      };
+
+      console.log("Block/Unblock chat with payload:", payload);
+
+      const res = await axiosApi.post(`/api/v1/block/`, payload);
+      return res.data;
+    },
+    onSuccess: (data) => {
+      const action = data.action || "Block/Unblock";
+      console.log('Chat action successful:', data);
+      toast.success(`Chat ${action}ed successfully`);
+      // Refresh the chat list
+      queryClient.invalidateQueries({ queryKey: ['myRooms'] });
+    },
+    onError: (error) => {
+      console.error('Error blocking/unblocking chat:', error);
+      const msg = error?.response?.data?.message || error?.message || 'Failed to update chat';
+      toast.error(msg);
+    },
+  });
 
   //..............................................Delete Chat Mutation..............................................//
   const deleteChatMutation = useMutation({
@@ -54,7 +88,20 @@ const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMembe
     enabled: !!clinic_id, // Only fetch if clinic_id exists
     keepPreviousData: true,
   });
-  console.log("Clinic Members:=========================================================", clinicMembers?.results);
+  console.log("Clinic Members:", clinicMembers?.results);
+
+  // ......................................*Fetch Room Members*.......................................... //
+  const { data: roomMembers, isLoading: isLoadingRoomMembers, error: roomMembersError } = useQuery({
+    queryKey: ['roomMembers', roomId],
+    queryFn: async () => {
+      const res = await axiosApi.get(`/api/v1/rooms/${roomId}/members/`);
+      console.log("Room Members Data:", res.data);
+      return res.data;
+    },
+    enabled: !!roomId, // Only fetch if roomId exists
+    keepPreviousData: true,
+  });
+  console.log("Room Members:================================================================", roomMembers?.results);
 
 
 
@@ -82,12 +129,25 @@ const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMembe
               Add Member
             </button>
           )}
-          <button
-            onClick={onBlockMember}
-            className="w-full bg-yellow-400 text-white px-4 py-2 rounded-lg font-semibold hover:bg-yellow-500 transition"
-          >
-            Block Member
-          </button>
+          {isPrivate && (
+            <button
+              onClick={() => blockChatMutation.mutate(chatInfo?.chat_blocked ? 'unblock' : 'block')}
+              disabled={blockChatMutation.isPending}
+              className="w-full bg-yellow-400 text-white px-4 py-2 rounded-lg font-semibold hover:bg-yellow-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {blockChatMutation.isPending ? 'Processing...' : (chatInfo?.chat_blocked ? 'Unblock Chat' : 'Block Chat')}
+            </button>
+          )}
+          {!isPrivate && (
+            <button
+              onClick={() => setShowBlockMemberModal(true)}
+              className="w-full bg-yellow-400 text-white px-4 py-2 rounded-lg font-semibold hover:bg-yellow-500 transition"
+            >
+              Block Member
+            </button>
+          )}
+
+
           <button
             onClick={() => deleteChatMutation.mutate()}
             disabled={deleteChatMutation.isPending}
@@ -111,10 +171,24 @@ const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMembe
       {showAddMemberModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
           <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl relative mx-5 sm:mx-10">
-            <AddMemberModal 
-              onClose={() => setShowAddMemberModal(false)} 
-              roomId={roomId} 
-              userList={clinicMembers} 
+            <AddMemberModal
+              onClose={() => setShowAddMemberModal(false)}
+              roomId={roomId}
+              userList={clinicMembers}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Block Member Modal */}
+      {showBlockMemberModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl relative mx-5 sm:mx-10">
+            <BlockMemberModal
+              onClose={() => setShowBlockMemberModal(false)}
+              roomId={roomId}
+              roomMembers={roomMembers}
+              room_type={room_type}
             />
           </div>
         </div>

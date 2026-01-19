@@ -89,7 +89,7 @@ const Communication = () => {
     console.log(accessControl);
 
 
-    // ...................Fetch user's chat rooms with filters.......................\\
+    // ...................Fetch user's chat rooms list with filters.......................\\
     const { data: rooms = { read_only: false, ai_rooms: [], results: [] }, isLoading } = useQuery({
         queryKey: ["myRooms", searchQuery, selectedRole, path, userId],
         queryFn: async () => {

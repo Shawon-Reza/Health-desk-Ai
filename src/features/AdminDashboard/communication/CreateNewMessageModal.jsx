@@ -2,8 +2,8 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import React, { useState, useMemo, useEffect } from 'react';
 import axiosApi from '../../../service/axiosInstance';
 import { base_URL } from '../../../config/Config';
-import toast from 'daisyui/components/toast';
 import { queryClient } from '../../../main';
+import { toast } from 'react-toastify';
 
 const fakeRoles = ['doctor', 'manager', 'staff', 'jr_staff'];
 
@@ -59,12 +59,21 @@ const CreateNewMessageModal = ({ onClose }) => {
     };
 
     const handleUserToggle = (userId) => {
-        console.log("just Select :", userId)
+        console.log("just Select :", userId);
+        // If clicking the already-selected user, allow deselect
         if (selectedUsers.includes(userId)) {
             setSelectedUsers(selectedUsers.filter(id => id !== userId));
-        } else {
-            setSelectedUsers([...selectedUsers, userId]);
+            return;
         }
+
+        // Prevent selecting more than one user
+        if (selectedUsers.length >= 1) {
+            toast.error("You already selected a user for chat");
+            return;
+        }
+
+        // Select this user as the sole selection
+        setSelectedUsers([userId]);
     };
 
     const handleSendMessage = () => {

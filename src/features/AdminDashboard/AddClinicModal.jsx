@@ -74,9 +74,9 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
             });
         },
         onError: (error) => {
-            const message = error?.response?.data?.detail || error.message || "Failed to create clinic";
+            const message = error?.response?.data?.message || error.message || "Failed to create clinic";
             toast.error(message);
-            console.log(error);
+            console.log(error?.response?.data?.message || error.message);
         },
     });
 
@@ -99,7 +99,7 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
             onClose();
         },
         onError: (error) => {
-            const message = error?.response?.data?.detail || error.message || "Failed to update clinic";
+            const message = error?.response?.data?.message || error.message || "Failed to update clinic";
             toast.error(message);
             console.log(error);
         },

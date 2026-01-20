@@ -5,7 +5,7 @@ import { base_URL } from '../../../config/Config';
 import { toast } from 'react-toastify';
 import { queryClient } from '../../../main';
 
-const BlockMemberModal = ({ onClose, roomId, roomMembers,room_type }) => {
+const BlockMemberModal = ({ onClose, roomId, roomMembers, room_type }) => {
   console.log("Block Member Modal opened with Room ID:", roomId);
   console.log("Block Member Modal opened with Room Type:", room_type);
 
@@ -16,7 +16,7 @@ const BlockMemberModal = ({ onClose, roomId, roomMembers,room_type }) => {
   const filteredMembers = roomMembers?.results?.filter(member =>
     !member.is_owner && // Don't show owner in the list
     (member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchQuery.toLowerCase()))
+      member.email.toLowerCase().includes(searchQuery.toLowerCase()))
   ) || [];
 
   // Handle member selection
@@ -34,6 +34,28 @@ const BlockMemberModal = ({ onClose, roomId, roomMembers,room_type }) => {
     console.log("Selected Members to Block:", selectedMembers);
     console.log("Room ID:", roomId);
   }, [selectedMembers, roomId]);
+
+  // Mutation for toggling block/unblock on double-click
+  const toggleBlockMutation = useMutation({
+    mutationFn: async (userId) => {
+      console.log("Toggling block for user:", userId);
+      const payload = { user_id: userId };
+      const response = await axiosApi.post(`/api/v1/rooms/${roomId}/toggle-block/`, payload);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      console.log('Member block status toggled successfully:', data);
+      toast.success('Member block status updated');
+      // Refresh the room members list
+      queryClient.invalidateQueries({ queryKey: ['roomMembers'] });
+      queryClient.invalidateQueries({ queryKey: ['myRooms'] });
+    },
+    onError: (error) => {
+      console.error('Error toggling block status:', error);
+      const msg = error?.response?.data?.message || error?.message || 'Failed to toggle block status';
+      toast.error(msg);
+    },
+  });
 
   // Mutation for blocking members
   const blockMemberMutation = useMutation({
@@ -67,6 +89,12 @@ const BlockMemberModal = ({ onClose, roomId, roomMembers,room_type }) => {
       toast.error(msg);
     },
   });
+
+  // Handle double-click to toggle block/unblock
+  const handleToggleBlock = (userId) => {
+    console.log("Double-click - Toggling block for user:", userId);
+    toggleBlockMutation.mutate(userId);
+  };
 
   const handleBlockMembers = () => {
     if (selectedMembers.length === 0) {
@@ -110,9 +138,10 @@ const BlockMemberModal = ({ onClose, roomId, roomMembers,room_type }) => {
               filteredMembers.map(member => (
                 <div
                   key={member.id}
-                  className={`flex items-center justify-between gap-3 p-2 hover:bg-gray-50 rounded-lg border ${
-                    member.is_blocked ? 'border-red-300 bg-red-50' : 'border-gray-200'
-                  }`}
+                  className={`flex items-center justify-between gap-3 p-2 hover:bg-gray-50 rounded-lg border cursor-pointer ${member.is_blocked ? 'border-red-300 bg-red-50' : 'border-gray-200'
+                    }`}
+                  onDoubleClick={() => handleToggleBlock(member.id)}
+                  title="Double-click to toggle block/unblock"
                 >
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold flex-shrink-0">
@@ -125,9 +154,13 @@ const BlockMemberModal = ({ onClose, roomId, roomMembers,room_type }) => {
                   </div>
 
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {member.is_blocked && (
+                    {member.is_blocked ? (
                       <span className="bg-red-100 text-red-600 rounded-full px-2 py-1 text-xs font-semibold">
                         Blocked
+                      </span>
+                    ) : (
+                      <span className="bg-green-100 text-green-600 rounded-full px-2 py-1 text-xs font-semibold">
+                        Active
                       </span>
                     )}
                     <span className="bg-pink-100 text-pink-600 rounded-full px-2 py-1 text-xs font-semibold">

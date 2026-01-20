@@ -25,6 +25,7 @@ import GiveAssessmentsAnsware from "../features/AdminDashboard/DashboardContent/
 import PrivateRoute from "./PrivetRoute";
 import { ROLES } from "./roles";
 import AssignedClinic from "../features/AdminDashboard/AssignedClinic";
+import ClinicwiseChatHistory from "../features/AdminDashboard/ClinicwiseChatHistory/ClinicwiseChatHistory";
 
 export const router = createBrowserRouter([
     {
@@ -52,6 +53,10 @@ export const router = createBrowserRouter([
             {
                 path: "communication",
                 element: <Communication></Communication>,
+            },
+            {
+                path: "clinicwise-chat-history",
+                element: <ClinicwiseChatHistory></ClinicwiseChatHistory>,
             },
             {
                 path: "manage-clinic",

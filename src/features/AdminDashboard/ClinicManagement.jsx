@@ -9,12 +9,15 @@ import { useQuery, useMutation } from "@tanstack/react-query"
 import axiosApi from "../../service/axiosInstance"
 import { toast } from "react-toastify"
 import Swal from "sweetalert2"
+import { GoHistory } from "react-icons/go";
+import { useNavigate } from "react-router-dom"
 
 const ClinicManagement = () => {
     // ============ STATE MANAGEMENT ============
     const [isAddClinicOpen, setIsAddClinicOpen] = useState(false)
     const [isEditClinicOpen, setIsEditClinicOpen] = useState(false)
     const [selectedClinic, setSelectedClinic] = useState(null)
+    const navigate = useNavigate()
 
     // ============ FETCH CLINICS DATA ============
     const { data: clinics, isLoading: loading, error, refetch } = useQuery({
@@ -81,7 +84,8 @@ const ClinicManagement = () => {
 
     // ============ CLINIC CARD COMPONENT ============
     const ClinicCard = ({ clinic }) => (
-        <div className=" bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+
+        <div className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow flex flex-col">
             {/* Card Header with Title and Actions */}
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -113,7 +117,7 @@ const ClinicManagement = () => {
             </div>
 
             {/* Card Content */}
-            <div className="space-y-3">
+            <div className="space-y-3 flex-1">
 
 
                 {/* Phone & Fax Row */}
@@ -178,13 +182,21 @@ const ClinicManagement = () => {
                     </div>
                 </div>
             </div>
+            <div className="mt-4">
+                <button className="w-full bg-green-50 text-green-600 py-3 rounded-lg font-semibold border border-green-200 hover:bg-green-100 transition-colors flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                    {
+                        clinic.is_deleted ? 'Inactive' : 'Active'
+                    }
+                </button>
+            </div>
         </div>
     )
 
 
 
 
-    // ============ RENDER ============
+    // =============================================== RENDER ====================================================
     return (
         <div className="min-h-screen  font-sans">
             {/* Add Clinic Modal */}
@@ -200,19 +212,30 @@ const ClinicManagement = () => {
 
             {/* Header */}
             <div className="border-b border-gray-200 sticky top-0 z-30">
+
                 <div className=" px-6 py-8 flex items-center justify-between bg-[#F0FDF4]">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Clinic Management</h1>
                         <p className="text-gray-600 mt-1">Manage your clinic and address</p>
                     </div>
-                    <button
-                        onClick={handleAddClinic}
-                        className="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg transition-colors hover:opacity-90"
-                        style={{ backgroundColor: "var(--color-primary)" }}
-                    >
-                        <FiPlus className="w-5 h-5" />
-                        Add Clinic
-                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => navigate('/admin/clinicwise-chat-history')}
+                            className="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg transition-colors hover:opacity-90"
+                            style={{ backgroundColor: "var(--color-primary)" }}
+                        >
+                            <GoHistory className="w-5 h-5" />
+                            Clinics chat history
+                        </button>
+                        <button
+                            onClick={handleAddClinic}
+                            className="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg transition-colors hover:opacity-90"
+                            style={{ backgroundColor: "var(--color-primary)" }}
+                        >
+                            <FiPlus className="w-5 h-5" />
+                            Add Clinic
+                        </button>
+                    </div>
                 </div>
             </div>
 

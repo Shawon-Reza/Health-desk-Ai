@@ -28,16 +28,49 @@ const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMembe
 
   const isPrivate = chatInfo?.type === 'private';
 
+
+
+  // ......................................*Fetch Clinic Members*.......................................... //
+  const { data: clinicMembers, isLoading: isLoadingMembers, error: membersError } = useQuery({
+    queryKey: ['clinicMembers_for_addMembers', clinic_id],
+    queryFn: async () => {
+      const res = await axiosApi.get(`/api/v1/chat/clinic/members/?clinic_id=${clinic_id}`);
+      console.log("Clinic Members Data:", res.data);
+      return res.data;
+    },
+    enabled: !!clinic_id, // Only fetch if clinic_id exists
+    keepPreviousData: true,
+  });
+  console.log("Clinic Members:", clinicMembers?.results);
+
+  // ........................................Fetch Chat Room Members*.......................................... //
+  const { data: roomMembers, isLoading: isLoadingRoomMembers, error: roomMembersError } = useQuery({
+    queryKey: ['roomMembers', roomId],
+    queryFn: async () => {
+      const res = await axiosApi.get(`/api/v1/rooms/${roomId}/members/`);
+      console.log("Room Members Data:", res.data);
+      return res.data;
+    },
+    enabled: !!roomId, // Only fetch if roomId exists
+    keepPreviousData: true,
+  });
+  console.log("Room Members:================================================================", roomMembers?.results);
+  // ...........................................Get Private Chat Another Member ID................................... //
+  const privetChatAnotherMemberId = roomMembers?.results[1]?.id
+  console.log("Room privetChatAnotherMemberId:================================================================", privetChatAnotherMemberId);
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //..............................................Block/Unblock Chat Mutation..............................................//
+  //  queryKey: ["myRooms", searchQuery, selectedRole, path, userId],
+  // queryKey: ["messages", chatRoom],
   const blockChatMutation = useMutation({
     mutationFn: async (action) => {
       const payload = {
-        user_id: chatInfo?.other_user_id, // or however the other user ID is stored in chatInfo
+        user_id: privetChatAnotherMemberId, // or however the other user ID is stored in chatInfo
         action: action, // "block" or "unblock"
       };
 
       console.log("Block/Unblock chat with payload:", payload);
-
       const res = await axiosApi.post(`/api/v1/block/`, payload);
       return res.data;
     },
@@ -47,6 +80,7 @@ const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMembe
       toast.success(`Chat ${action}ed successfully`);
       // Refresh the chat list
       queryClient.invalidateQueries({ queryKey: ['myRooms'] });
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
     },
     onError: (error) => {
       console.error('Error blocking/unblocking chat:', error);
@@ -77,36 +111,6 @@ const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMembe
     },
   });
 
-  // ......................................*Fetch Clinic Members*.......................................... //
-  const { data: clinicMembers, isLoading: isLoadingMembers, error: membersError } = useQuery({
-    queryKey: ['clinicMembers_for_addMembers', clinic_id],
-    queryFn: async () => {
-      const res = await axiosApi.get(`/api/v1/chat/clinic/members/?clinic_id=${clinic_id}`);
-      console.log("Clinic Members Data:", res.data);
-      return res.data;
-    },
-    enabled: !!clinic_id, // Only fetch if clinic_id exists
-    keepPreviousData: true,
-  });
-  console.log("Clinic Members:", clinicMembers?.results);
-
-  // ......................................*Fetch Room Members*.......................................... //
-  const { data: roomMembers, isLoading: isLoadingRoomMembers, error: roomMembersError } = useQuery({
-    queryKey: ['roomMembers', roomId],
-    queryFn: async () => {
-      const res = await axiosApi.get(`/api/v1/rooms/${roomId}/members/`);
-      console.log("Room Members Data:", res.data);
-      return res.data;
-    },
-    enabled: !!roomId, // Only fetch if roomId exists
-    keepPreviousData: true,
-  });
-  console.log("Room Members:================================================================", roomMembers?.results);
-
-
-
-
-
   // ........................................ Action Dropdown UI ........................................ //
   return (
     <>
@@ -129,6 +133,8 @@ const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMembe
               Add Member
             </button>
           )}
+
+          {/* ..............................................Block/Unblock Chat.....................................................*/}
           {isPrivate && (
             <button
               onClick={() => blockChatMutation.mutate(chatInfo?.chat_blocked ? 'unblock' : 'block')}
@@ -138,6 +144,8 @@ const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMembe
               {blockChatMutation.isPending ? 'Processing...' : (chatInfo?.chat_blocked ? 'Unblock Chat' : 'Block Chat')}
             </button>
           )}
+
+
           {!isPrivate && (
             <button
               onClick={() => setShowBlockMemberModal(true)}

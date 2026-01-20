@@ -40,6 +40,7 @@ const ChatPanel = ({ chatRoom, activeTab }) => {
         results: res.data.results ?? [],
         nextCursor: res.data.next_cursor ?? null,
         chatInfo: res.data.room ?? null,
+
       };
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -145,7 +146,7 @@ const ChatPanel = ({ chatRoom, activeTab }) => {
         <>
           {/* Header */}
           <div className="p-4 border-b border-gray-300 flex justify-between items-center relative">
-            <div className="flex gap-3 items-center">
+            <div className="flex gap-3 items-start">
               <img
                 src={safeUser.avatar}
                 className="w-10 h-10 rounded-full"
@@ -155,6 +156,15 @@ const ChatPanel = ({ chatRoom, activeTab }) => {
                 <div className="font-semibold">{safeUser.name}</div>
                 <div className="text-xs text-pink-600">{safeUser.role}</div>
               </div>
+              {
+                data?.pages[0]?.chatInfo?.chat_blocked && (
+                  <div>
+                    <p className="text-red-500 font-semibold">Blocked</p>
+                  </div>
+                )
+              }
+
+
             </div>
 
             <div className={`relative ${data?.pages[0].chatInfo?.type === "ai" ? "hidden" : ""}`}>
@@ -183,15 +193,16 @@ const ChatPanel = ({ chatRoom, activeTab }) => {
             isFetchingNextPage={isFetchingNextPage}
           />
 
-          {/* Input Area */}
+          {/* ........................................................Input Area For send text................................................ */}
           <div className="p-4 border-t border-gray-300">
             <div className="flex gap-3">
               <input
+                disabled={data?.pages[0].chatInfo?.chat_blocked}
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                placeholder="Type a message..."
-                className="flex-1 outline-none"
+                placeholder={`${data?.pages[0].chatInfo?.chat_blocked ? 'Chat is blocked. You are not allowed to send messages until unblocked.' : 'Type your message...'}`}
+                className={`flex-1 outline-none ${data?.pages[0].chatInfo?.chat_blocked ? 'placeholder:text-red-500' : ''}`}
               />
               <button
                 onClick={handleSendMessage}

@@ -168,7 +168,7 @@ const Communication = () => {
 
     const handleChatSelect = (chat) => {
         setSelectedChat(chat ?? null);
-        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",chat)
+        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", chat)
     };
 
     const handleRoleFilterChange = (role) => {
@@ -303,7 +303,7 @@ const Communication = () => {
                                                         className="w-10 h-10 rounded-full object-cover"
                                                     />
                                                     {chat?.is_online && (
-                                                        <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-primary"></span>
+                                                        <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-green-500"></span>
                                                     )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
@@ -318,7 +318,7 @@ const Communication = () => {
                                                     </p>
                                                 </div>
                                                 {chat?.unseen_count > 0 && (
-                                                    <span className="relative w-6 h-6 flex items-center justify-center text-xs rounded-full bg-primary text-white font-semibold">
+                                                    <span className="relative w-6 h-6 flex items-center justify-center text-xs rounded-full bg-green-500 text-white font-semibold">
                                                         {chat.unseen_count > 99 ? "99+" : chat.unseen_count}
                                                     </span>
                                                 )}
@@ -347,7 +347,7 @@ const Communication = () => {
                                                     className="w-10 h-10 rounded-full object-cover"
                                                 />
                                                 {chat?.is_online && (
-                                                    <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-primary"></span>
+                                                    <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-green-500"></span>
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -362,7 +362,7 @@ const Communication = () => {
                                                 </p>
                                             </div>
                                             {chat?.unseen_count > 0 && (
-                                                <span className="relative w-6 h-6 flex items-center justify-center text-xs rounded-full bg-primary text-white font-semibold">
+                                                <span className="relative w-6 h-6 flex items-center justify-center text-xs rounded-full bg-green-500 text-white font-semibold">
                                                     {chat.unseen_count > 99 ? "99+" : chat.unseen_count}
                                                 </span>
                                             )}

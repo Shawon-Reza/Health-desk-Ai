@@ -147,7 +147,9 @@ const MessageList = ({
     const MessageBubble = ({ msg }) => {
         console.log("message ::::::", msg)
         const isAI = msg?.is_ai === true;
-        const isMe = !isAI && Number(msg?.sender?.id) === Number(userId);
+        const isMe = roomType === "ai"
+            ? !isAI // In AI chats, any non-AI message is from the user
+            : (!isAI && Number(msg?.sender?.id) === Number(userId));
         const text = msg?.content || "";
 
         return (

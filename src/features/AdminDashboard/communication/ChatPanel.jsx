@@ -1,7 +1,7 @@
 "use client";
 
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { FiSend, FiInfo } from "react-icons/fi";
 import axiosApi from "../../../service/axiosInstance";
 import { connectWebSocketForChat } from "./ChatService";
@@ -12,13 +12,14 @@ import ActionsDropdown from "./ActionsDropdown";
 
 const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
-  console.log("======================================================",chatRoom)
-  console.log("====================================================== Room Type:",roomType)
-  console.log("======================================================",activeTab)
+  console.log("======================================================", chatRoom)
+  console.log("====================================================== Room Type:", roomType)
+  console.log("======================================================", activeTab)
   const queryClient = useQueryClient();
   const [inputMessage, setInputMessage] = useState("");
   const [showActions, setShowActions] = useState(false);
   const [isAiTyping, setIsAiTyping] = useState(false);
+  const textareaRef = useRef(null);
 
   // Auth
   const { userInfo } = getAuthData();
@@ -122,12 +123,12 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
     };
 
     setInputMessage("");
-    
+
     // Show AI typing indicator if this is an AI chat
     if (roomType === "ai") {
       setIsAiTyping(true);
     }
-    
+
     // .....................** Send Messages **..................... //
     try {
       const formData = new FormData();
@@ -146,6 +147,24 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
       if (roomType === "ai") {
         setIsAiTyping(false);
       }
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const el = e.target;
+    setInputMessage(el.value);
+    // Auto-resize up to 150px height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      const nextHeight = Math.min(textareaRef.current.scrollHeight, 150);
+      textareaRef.current.style.height = `${nextHeight}px`;
+    }
+  };
+
+  const handleInputKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
   // ...........................**Chat info**........................... //
@@ -219,13 +238,22 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
           {/* ........................................................Input Area For send text................................................ */}
           <div className="p-4 border-t border-gray-300">
             <div className="flex gap-3">
-              <input
-                disabled={data?.pages[0].chatInfo?.chat_blocked}
+              <textarea
+                ref={textareaRef}
+                rows={1}
+                disabled={data?.pages[0].chatInfo?.chat_blocked || path === "user-management" || data?.pages[0].chatInfo?.can_send === false}
                 value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                placeholder={`${data?.pages[0].chatInfo?.chat_blocked ? 'Chat is blocked. You are not allowed to send messages until unblocked.' : 'Type your message...'}`}
-                className={`flex-1 outline-none ${data?.pages[0].chatInfo?.chat_blocked ? 'placeholder:text-red-500' : ''}`}
+                onChange={handleInputChange}
+                onKeyDown={handleInputKeyDown}
+                placeholder={`${
+                  data?.pages[0].chatInfo?.chat_blocked 
+                    ? 'Chat is blocked. You are not allowed to send messages until unblocked.' 
+                    : data?.pages[0].chatInfo?.can_send === false
+                    ? 'User is currently inactive. Cannot send messages.'
+                    : 'Type your message...'
+                }`}
+                className={`flex-1 outline-none resize-none overflow-y-auto ${data?.pages[0].chatInfo?.chat_blocked || data?.pages[0].chatInfo?.can_send === false ? 'placeholder:text-red-500' : ''}`}
+                style={{ maxHeight: "150px" }}
               />
               <button
                 onClick={handleSendMessage}
@@ -234,6 +262,11 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
                 <FiSend size={24} />
               </button>
             </div>
+            {path === "user-management" && (
+              <p className="mt-2 text-sm text-red-600 font-medium">
+                You are not allowed to send messages.
+              </p>
+            )}
           </div>
         </>
       )}

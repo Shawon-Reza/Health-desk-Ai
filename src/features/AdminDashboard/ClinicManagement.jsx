@@ -48,6 +48,30 @@ const ClinicManagement = () => {
         },
     })
 
+    // =============================================== TOGGLE ACTIVE/INACTIVE CLINIC MUTATION ==========================================\\
+    const toggleClinicStatusMutation = useMutation({
+        mutationFn: async ({ clinicId, isCurrentlyDeleted }) => {
+            const response = await axiosApi.post(
+                `/api/v1/clinics/${clinicId}/active/`,
+                { is_deleted: !isCurrentlyDeleted }
+            )
+            console.log('[Toggle Clinic Status Response]:', response.data)
+            return response.data
+        },
+        onSuccess: (data, { clinicId, isCurrentlyDeleted }) => {
+            refetch()
+            const newStatus = !isCurrentlyDeleted
+            toast.success(
+                `Clinic ${newStatus ? 'deactivated' : 'activated'} successfully!`
+            )
+        },
+        onError: (error) => {
+            const message = error?.response?.data?.detail || error.message || "Failed to update clinic status"
+            toast.error(message)
+            console.log(error)
+        },
+    })
+
     // ============ EVENT HANDLERS ============
     const handleAddClinic = () => {
         setSelectedClinic(null)
@@ -183,11 +207,31 @@ const ClinicManagement = () => {
                 </div>
             </div>
             <div className="mt-4">
-                <button className="w-full bg-green-50 text-green-600 py-3 rounded-lg font-semibold border border-green-200 hover:bg-green-100 transition-colors flex items-center justify-center gap-2">
-                    <span className="w-2 h-2 bg-green-600 rounded-full"></span>
-                    {
-                        clinic.is_deleted ? 'Inactive' : 'Active'
+                <button
+                    onDoubleClick={() =>
+                        toggleClinicStatusMutation.mutate({
+                            clinicId: clinic.id,
+                            isCurrentlyDeleted: clinic.is_deleted,
+                        })
                     }
+                    disabled={toggleClinicStatusMutation.isPending}
+                    className={`w-full py-3 rounded-lg font-semibold border transition-colors flex items-center justify-center gap-2 ${
+                        clinic.is_deleted
+                            ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                            : 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100'
+                    } ${
+                        toggleClinicStatusMutation.isPending
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'cursor-pointer'
+                    }`}
+                    title="Double-click to toggle status"
+                >
+                    <span
+                        className={`w-2 h-2 rounded-full ${
+                            clinic.is_deleted ? 'bg-red-600' : 'bg-green-600'
+                        }`}
+                    ></span>
+                    {clinic.is_deleted ? 'Inactive' : 'Active'}
                 </button>
             </div>
         </div>

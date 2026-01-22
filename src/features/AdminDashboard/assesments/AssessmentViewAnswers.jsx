@@ -24,7 +24,7 @@ export const AssessmentViewAnswers = () => {
             console.error('[AssessmentViewAnswers] Error fetching answers:', err);
         },
     });
-    console.log("answersData", answersData);
+    console.log("answersData", answersData?.data?.summary);
 
     const responseData = answersData?.data;
     const user = responseData?.user;
@@ -108,7 +108,7 @@ export const AssessmentViewAnswers = () => {
                         <div className="flex-1">
                             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">Assessment</h3>
                             <p className="text-xl font-bold text-gray-900">{assessment?.title}</p>
-                            <p className="text-sm text-gray-600 mt-1">Score: {assessment?.total_score}/{assessment?.max_score}</p>
+                            <p className="text-sm text-gray-600 mt-1">Score: {answersData?.data?.summary?.percentage}</p>
                         </div>
                     </div>
                 </div>
@@ -167,14 +167,44 @@ export const AssessmentViewAnswers = () => {
                                 </div>
                             </div>
 
-                            {/* Answer Content */}
+                            {/* Answer Content - Multiple Choice Options */}
                             <div className="ml-11">
-                                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                    {answer.answer_text ? (
-                                        <p className="text-gray-700 text-sm leading-relaxed">{answer.answer_text}</p>
-                                    ) : (
-                                        <p className="text-gray-400 text-sm italic">No answer provided</p>
-                                    )}
+                                <div className="space-y-2">
+                                    {answer.options && answer.options.map((option) => (
+                                        <div
+                                            key={option.id}
+                                            className={`p-3 rounded-lg border-2 transition ${
+                                                answer.selected_option_id === option.id
+                                                    ? 'border-teal-500 bg-teal-50'
+                                                    : 'border-gray-200 bg-gray-50'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                                                    answer.selected_option_id === option.id
+                                                        ? 'border-teal-500 bg-teal-500'
+                                                        : 'border-gray-300'
+                                                }`}>
+                                                    {answer.selected_option_id === option.id && (
+                                                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                                                    )}
+                                                </div>
+                                                <span className={`text-sm ${
+                                                    answer.selected_option_id === option.id
+                                                        ? 'font-semibold text-teal-700'
+                                                        : 'text-gray-700'
+                                                }`}>
+                                                    {option.text}
+                                                </span>
+                                                {answer.selected_option_id === option.id && (
+                                                    <span className="ml-auto inline-flex items-center gap-1 px-2 py-1 bg-teal-100 text-teal-700 text-xs font-medium rounded">
+                                                        <FiCheckCircle className="w-3 h-3" />
+                                                        Selected
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -194,7 +224,7 @@ export const AssessmentViewAnswers = () => {
                         <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Total Questions</p>
                     </div>
                     <div>
-                        <p className="text-2xl font-bold text-emerald-700">{assessment?.total_score}</p>
+                        <p className="text-2xl font-bold text-emerald-700">{answersData?.data?.summary?.percentage}</p>
                         <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Total Score</p>
                     </div>
                 </div>

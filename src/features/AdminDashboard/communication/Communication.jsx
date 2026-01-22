@@ -21,7 +21,7 @@ const Communication = () => {
     const [selectedRole, setSelectedRole] = useState("All");
     const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
     const [showCreateMessageModal, setShowCreateMessageModal] = useState(false);
-    const [selectedChatRoom, setSelectedChatRoom] = useState(null);
+    const [selectedChat, setSelectedChat] = useState(null);
 
     const roles = ["All", "private", "group"];
     const socketRef = useRef(null);
@@ -167,7 +167,8 @@ const Communication = () => {
 
 
     const handleChatSelect = (chat) => {
-        setSelectedChatRoom(chat?.room_id ?? null);
+        setSelectedChat(chat ?? null);
+        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",chat)
     };
 
     const handleRoleFilterChange = (role) => {
@@ -292,7 +293,7 @@ const Communication = () => {
                                             <button
                                                 key={chat.room_id}
                                                 onClick={() => handleChatSelect(chat)}
-                                                className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition ${selectedChatRoom === chat.room_id ? "bg-gray-200" : ""
+                                                className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition ${selectedChat?.room_id === chat.room_id ? "bg-gray-200" : ""
                                                     }`}
                                             >
                                                 <div className="relative">
@@ -336,7 +337,7 @@ const Communication = () => {
                                         <button
                                             key={chat.room_id}
                                             onClick={() => handleChatSelect(chat)}
-                                            className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition ${selectedChatRoom === chat.room_id ? "bg-gray-200" : ""
+                                            className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition ${selectedChat?.room_id === chat.room_id ? "bg-gray-200" : ""
                                                 }`}
                                         >
                                             <div className="relative">
@@ -380,7 +381,7 @@ const Communication = () => {
 
                 {/* ............................Chat Panel............................. */}
                 <section className="w-[60%] xl:w-[75%] h-full bg-white rounded-lg shadow-md p-4 ">
-                    <ChatPanel chatRoom={selectedChatRoom} activeTab={activeTab} />
+                    <ChatPanel chatRoom={selectedChat?.room_id ?? null} roomType={selectedChat?.type ?? null} activeTab={activeTab} />
                 </section>
 
                 {/* Modals */}

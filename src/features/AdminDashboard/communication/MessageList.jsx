@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import Markdown from 'https://esm.sh/react-markdown@10'
 import remarkGfm from 'remark-gfm';
+import { useLocation } from "react-router-dom";
 
 const MessageList = ({
     messages,
     userId,
     onLoadMore,
     hasNextPage,
-    isFetchingNextPage
+    isFetchingNextPage,
+    roomType,
+    isAiTyping
 }) => {
     const messagesEndRef = useRef(null);
     const containerRef = useRef(null);
@@ -15,6 +18,7 @@ const MessageList = ({
     const prevScrollHeightRef = useRef(0);
     const [prevMessageCount, setPrevMessageCount] = useState(0);
     const wasAtBottomBeforeFetchRef = useRef(true);
+
 
     // .....................**Group messages by date logic start**......................\\
     const groupedMessages = useMemo(() => {
@@ -210,7 +214,24 @@ const MessageList = ({
                     return <MessageBubble key={item.data.id} msg={item.data} />;
                 }
             })}
-
+            {/* AI Typing Indicator */}
+            {isAiTyping && roomType === "ai" && (
+                <div className="flex mb-4 justify-start">
+                    <div className="px-4 py-2 rounded-lg bg-purple-100 border border-purple-300">
+                        <div className="text-xs font-semibold text-purple-600 mb-1">
+                            🤖 AI Assistant
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <span className="text-sm text-gray-600">AI is thinking</span>
+                            <div className="flex gap-1 ml-1">
+                                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div ref={messagesEndRef} />
         </div>
     );

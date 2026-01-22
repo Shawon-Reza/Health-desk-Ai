@@ -10,10 +10,15 @@ import MessageList from "./MessageList";
 import { useLocation } from "react-router-dom";
 import ActionsDropdown from "./ActionsDropdown";
 
-const ChatPanel = ({ chatRoom, activeTab }) => {
+const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
+
+  console.log("======================================================",chatRoom)
+  console.log("====================================================== Room Type:",roomType)
+  console.log("======================================================",activeTab)
   const queryClient = useQueryClient();
   const [inputMessage, setInputMessage] = useState("");
   const [showActions, setShowActions] = useState(false);
+  const [isAiTyping, setIsAiTyping] = useState(false);
 
   // Auth
   const { userInfo } = getAuthData();
@@ -71,6 +76,11 @@ const ChatPanel = ({ chatRoom, activeTab }) => {
         const newMessage = payload.data;
         console.log("@@@@@@@@@@@@@@@@@@@@New messages@@@@@@@@@@@@@@@@@@:", newMessage)
 
+        // Turn off AI typing indicator when AI responds
+        if (newMessage?.is_ai && roomType === "ai") {
+          setIsAiTyping(false);
+        }
+
         queryClient.setQueryData(["messages", chatRoom], (old) => {
           if (!old) return old;
 
@@ -112,6 +122,12 @@ const ChatPanel = ({ chatRoom, activeTab }) => {
     };
 
     setInputMessage("");
+    
+    // Show AI typing indicator if this is an AI chat
+    if (roomType === "ai") {
+      setIsAiTyping(true);
+    }
+    
     // .....................** Send Messages **..................... //
     try {
       const formData = new FormData();
@@ -126,6 +142,10 @@ const ChatPanel = ({ chatRoom, activeTab }) => {
       console.log("Message send")
     } catch (err) {
       console.error("Send failed", err);
+      // Turn off typing indicator on error
+      if (roomType === "ai") {
+        setIsAiTyping(false);
+      }
     }
   };
   // ...........................**Chat info**........................... //
@@ -192,6 +212,8 @@ const ChatPanel = ({ chatRoom, activeTab }) => {
             onLoadMore={fetchNextPage}
             hasNextPage={hasNextPage}
             isFetchingNextPage={isFetchingNextPage}
+            roomType={roomType}
+            isAiTyping={isAiTyping}
           />
 
           {/* ........................................................Input Area For send text................................................ */}

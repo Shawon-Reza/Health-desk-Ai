@@ -15,7 +15,7 @@ import {
   FiTag,
   FiChevronDown,
 } from 'react-icons/fi'
-import { QueryClient, useMutation } from '@tanstack/react-query'
+import { QueryClient, useMutation, useQuery } from '@tanstack/react-query'
 import axiosApi from '../../service/axiosInstance'
 import useGetSubjectMattersAndClinicsList from '../../hooks/useGetSubjectMattersAndClinicsList'
 import { queryClient } from '../../main'
@@ -84,9 +84,23 @@ const AddNewUserModal = ({
     subjectMatter: '',
     subjectMatterId: null,
     status: 'Active',
+    subroleId: null,
   })
   const [showPassword, setShowPassword] = useState(false)
   const [loadingUserData, setLoadingUserData] = useState(false)
+  const [searchSubrole, setSearchSubrole] = useState('')
+
+  // ................................Fetch Sub Roles For doctores..................................\\
+  const { data: subRolesData, isLoading: isLoadingSubRoles } = useQuery({
+    queryKey: ['subRoles'],
+    queryFn: async () => {
+      const response = await axiosApi.get('/api/v1/subroles/')
+      console.log('SubRoles Response:', response.data)
+      return response.data
+    },
+  })
+
+  console.log("Doctors Subroles:.........................", subRolesData)
 
   // Ensure subject display title syncs once subject list is loaded
   React.useEffect(() => {
@@ -136,6 +150,7 @@ const AddNewUserModal = ({
             subjectMatter: subjectMatterTitle,
             subjectMatterId: subjectMatterId,
             status: userData.is_active ? 'Active' : 'Inactive',
+            subroleId: userData.subrole?.id || null,
           })
           setLoadingUserData(false)
         })
@@ -176,19 +191,19 @@ const AddNewUserModal = ({
   })
 
   const canSubmit = useMemo(() => {
-    const baseValidation = 
+    const baseValidation =
       form.firstName &&
       form.lastName &&
       /@/.test(form.email) &&
       form.role &&
       form.employeeId &&
       form.status;
-    
+
     // Password is only required in create mode
     if (mode === 'create') {
       return baseValidation && form.password;
     }
-    
+
     return baseValidation;
   }, [form, mode])
 
@@ -239,6 +254,7 @@ const AddNewUserModal = ({
       knowledge_level: parseInt(form.knowledgeLevel) || 0,
       joining_date: form.startDate,
       phone: form.phone,
+      subrole_ids: form.subroleId ? [form.subroleId] : [],
     }
 
     // Only include password if it's set (required for create, optional for edit)
@@ -362,6 +378,91 @@ const AddNewUserModal = ({
                 placeholder="Select role"
               />
             </Field>
+
+            {/* Sub Role (Only for Doctor) */}
+            {form.role === 'Doctor' && (
+              <Field label="Sub Role (Specialization)" icon={FiBriefcase}>
+                <div className="space-y-2">
+                  {/* Search Input */}
+                  <div className="relative">
+                    <FiBriefcase className="absolute left-3 top-2.5 text-gray-500" />
+                    <input
+                      type="text"
+                      placeholder="Search sub roles..."
+                      value={searchSubrole}
+                      onChange={(e) => setSearchSubrole(e.target.value)}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    />
+                  </div>
+                  
+                  {/* Selected Sub Role Display */}
+                  {form.subroleId && (
+                    <div className="px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-teal-700">
+                          {subRolesData?.find((s) => s.id === form.subroleId)?.name || 'Selected'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setForm((prev) => ({ ...prev, subroleId: null }))}
+                          className="text-teal-600 hover:text-teal-800"
+                          aria-label="Clear sub role"
+                        >
+                          <FiX className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sub Role Options */}
+                  <div className="border border-gray-300 rounded-lg p-2 max-h-48 overflow-y-auto">
+                    {isLoadingSubRoles ? (
+                      <span className="text-sm text-gray-500">Loading sub roles...</span>
+                    ) : subRolesData && subRolesData.length > 0 ? (
+                      <div className="space-y-1">
+                        {subRolesData
+                          .filter(
+                            (s) =>
+                              s.is_active &&
+                              s.name.toLowerCase().includes(searchSubrole.toLowerCase())
+                          )
+                          .map((subrole) => (
+                            <button
+                              key={subrole.id}
+                              type="button"
+                              onClick={() => {
+                                setForm((prev) => ({
+                                  ...prev,
+                                  subroleId: subrole.id,
+                                }))
+                                setSearchSubrole('')
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-lg text-sm border transition ${
+                                form.subroleId === subrole.id
+                                  ? 'bg-teal-100 text-teal-700 border-teal-300'
+                                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                              }`}
+                            >
+                              {subrole.name}
+                            </button>
+                          ))}
+                        {subRolesData.filter(
+                          (s) =>
+                            s.is_active &&
+                            s.name.toLowerCase().includes(searchSubrole.toLowerCase())
+                        ).length === 0 && (
+                          <span className="text-sm text-gray-500 p-2">
+                            No sub roles found
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-500">No data available</span>
+                    )}
+                  </div>
+                </div>
+              </Field>
+            )}
 
             {/* Start Date */}
             <Field label="Start Date" icon={FiCalendar}>

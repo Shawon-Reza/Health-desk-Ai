@@ -9,6 +9,7 @@ import { GiGiftOfKnowledge } from "react-icons/gi";
 import useUserPermissions from "../../hooks/useUserPermissions"
 import useUserPermissionsForOwn from "../../hooks/useUserPermissionsForOwn"
 import useGetUserProfile from "../../hooks/useGetUserProfile"
+import { GoHistory } from "react-icons/go"
 
 const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: FiGrid },
@@ -28,6 +29,9 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
 
     const { userProfileData } = useGetUserProfile();
     console.log(userProfileData?.role);
+    console.log("User Profile dataaaaaaaaa=====================================================", userProfileData)
+
+
     // .................................Fetch user permissions..................................\\
     const { data: permissionData, isLoading: isLoadingPermission, isError: isErrorPermission } = useUserPermissionsForOwn();
     console.log("Permission:", permissionData?.enabledPermissions
@@ -137,6 +141,28 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
                         <span className="font-semibold text-sm sm:text-xl xl:text-2xl">Communication</span>
                     )}
                 </NavLink>
+
+                {/*  userProfileData?.role === "owner" */}
+                {
+                    userProfileData?.role === "owner" &&
+                    (
+                        <NavLink
+                            to="/admin/clinicwise-chat-history"
+                            onClick={onClick}
+                            title={isCollapsed ? 'Clinicwise Chat History' : ''}
+                            className={({ isActive }) =>
+                                `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
+                                }`
+                            }
+                        >
+                            <GoHistory size={21} />
+                            {!isCollapsed && (
+                                <span className="font-semibold text-sm sm:text-xl xl:text-2xl">Clinicwise Chat History</span>
+                            )}
+                        </NavLink>
+                    )
+                }
+
 
                 <NavLink
                     to="/admin/manage-clinic"

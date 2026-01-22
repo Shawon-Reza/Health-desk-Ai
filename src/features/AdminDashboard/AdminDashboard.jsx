@@ -17,8 +17,7 @@ const AdminDashboard = () => {
     })
 
     const { userProfileData } = useGetUserProfile();
-
-    console.log(userProfileData)
+    console.log("User Profile dataaaaaaaaa=====================================================", userProfileData)
 
 
     // Keep sidebar open on larger screens, closed by default on small screens
@@ -94,7 +93,7 @@ const AdminDashboard = () => {
                                         )}
                                     </button>
                                     <div className="text-primary">
-                                        <h3 className="font-semibold text-xl">Welcome, Admin</h3>
+                                        <h3 className="font-semibold text-xl">{`Welcome, ${userProfileData?.full_name || 'User Name'}`}</h3>
                                         <h5>let's make your work easy</h5>
                                     </div>
                                 </div>

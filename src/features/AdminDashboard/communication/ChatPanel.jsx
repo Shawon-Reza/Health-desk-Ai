@@ -20,6 +20,7 @@ const ChatPanel = ({ chatRoom, activeTab }) => {
   const userId = userInfo?.user_id;
   const location = useLocation();
   const path = location.pathname.split('/')[2];
+  console.log("Path Name: ----------------------------------------------------------------------:", path)
 
   // Messages (HTTP with infinite scroll)
   const {
@@ -167,10 +168,10 @@ const ChatPanel = ({ chatRoom, activeTab }) => {
 
             </div>
 
-            <div className={`relative ${data?.pages[0].chatInfo?.type === "ai" ? "hidden" : ""}`}>
+            <div className={`relative ${data?.pages[0].chatInfo?.type === "ai" ? "hidden" : ""} `}>
               <FiInfo
                 size={20}
-                className={`cursor-pointer ${path === "user-management" ? "hidden" : ""}`}
+                className={`cursor-pointer ${path === "user-management" || path === "clinicwise-chat-history" ? "hidden" : ""}`}
                 onClick={() => setShowActions(!showActions)}
               />
 

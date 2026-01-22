@@ -10,7 +10,7 @@ const ReviewAssesmentResult = () => {
     const {assessmentId} = useParams();
     // console.log(assessmentId)
 
-    // ....................Fetch assessment Participants data via useQuery........................\\
+    // ....................................Fetch assessment Participants data via useQuery........................................\\
     const { data: fetchedAssessment, isLoading, error: assessmentError } = useQuery({
         queryKey: ['assessment', assessmentId],
         queryFn: async () => {
@@ -46,9 +46,9 @@ const ReviewAssesmentResult = () => {
         user_id: p.user_id,
         name: p.user_name,
         clinic: p.clinic,
-        questionsAnswered: p.answered,
-        totalQuestions: p.answered,
-        score: p.score
+        answered: p.answered, // e.g., "0/5"
+        score: p.score ?? 0,
+        status: p.status,
     }))
 
     const handleBack = () => {
@@ -197,7 +197,7 @@ const ReviewAssesmentResult = () => {
                                             {participant.clinic}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {participant.questionsAnswered}
+                                            {participant.answered}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="text-lg font-bold text-emerald-500">
@@ -207,7 +207,12 @@ const ReviewAssesmentResult = () => {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <button
                                                 onClick={() => handleViewAnswers(participant.user_id)}
-                                                className="px-4 py-2 text-sm font-medium text-teal-600 border-2 border-teal-200 rounded-lg hover:bg-teal-50 transition"
+                                                disabled={participant.score === 0}
+                                                className={`px-4 py-2 text-sm font-medium border-2 rounded-lg transition ${
+                                                    participant.score === 0
+                                                        ? 'text-gray-400 border-gray-200 cursor-not-allowed'
+                                                        : 'text-teal-600 border-teal-200 hover:bg-teal-50'
+                                                }`}
                                             >
                                                 View Answers
                                             </button>

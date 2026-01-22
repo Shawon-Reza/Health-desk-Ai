@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FiLogOut } from 'react-icons/fi'
 import { base_URL } from '../../config/Config'
+import { CgProfile } from "react-icons/cg";
+
 
 const ProfileDropdown = ({ userProfileData }) => {
     const navigate = useNavigate()
@@ -39,8 +41,8 @@ const ProfileDropdown = ({ userProfileData }) => {
 
     return (
         <div className="relative" ref={dropdownRef}>
-            <figure 
-                className="w-11 h-11 cursor-pointer hover:opacity-80 transition-opacity" 
+            <figure
+                className="w-11 h-11 cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={toggleDropdown}
             >
                 <img
@@ -54,8 +56,21 @@ const ProfileDropdown = ({ userProfileData }) => {
             {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                     <button
-                        onClick={handleLogout}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors"
+                        onClick={() => { 
+                            navigate('/admin/settings/profile')
+                            setIsDropdownOpen(false)
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm font-semibold text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors"
+                    >
+                        <CgProfile size={16} />
+                        Profile
+                    </button>
+                    <button
+                        onClick={() => {
+                            handleLogout()
+                            setIsDropdownOpen(false)
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm font-semibold text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors"
                     >
                         <FiLogOut size={16} />
                         Logout

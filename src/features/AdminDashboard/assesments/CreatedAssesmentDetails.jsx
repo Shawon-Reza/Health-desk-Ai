@@ -15,13 +15,15 @@ const CreatedAssesmentDetails = () => {
     const [showOngoingNotice, setShowOngoingNotice] = useState(false)
     const [showAddQuestionModal, setShowAddQuestionModal] = useState(false)
     const [newQuestionText, setNewQuestionText] = useState('')
+    const [newQuestionOptions, setNewQuestionOptions] = useState(['', '', '', ''])
     const [showDeadlineModal, setShowDeadlineModal] = useState(false)
     const [deadlineDate, setDeadlineDate] = useState('')
+    const [selectedAnswers, setSelectedAnswers] = useState({})
 
 
     console.log("ID from Assesment Destails", assessmentId)
 
-    // Fetch assessment questions from API
+    // .....................................Fetch assessment questions from API..........................................\\
     const { data: questionsData, isLoading: isLoadingQuestions, error: questionsError } = useQuery({
         queryKey: ['assessmentQuestions', assessmentId],
         queryFn: async () => {
@@ -35,7 +37,7 @@ const CreatedAssesmentDetails = () => {
     console.log('[CreatedAssesmentDetails] API Response For Question:', questionsData?.data?.questions)
     console.log('[CreatedAssesmentDetails] API Response:', questionsData?.data?.assessment.status)
 
-    // ..................Update assessment status mutation...............\\
+    // .......................................Update assessment status mutation.................................\\
     const updateStatusMutation = useMutation({
         mutationFn: async () => {
             const response = await axiosApi.patch(`/api/v1/assessments/${assessmentId}/status/`, {
@@ -50,6 +52,7 @@ const CreatedAssesmentDetails = () => {
             toast.success('Assessment status updated to active!')
             // TODO: Show success toast/notification
             // TODO: Navigate back or refresh data
+            navigate(-1);
         },
         onError: (error) => {
             console.error('[CreatedAssesmentDetails] Error updating status:', error)
@@ -57,7 +60,7 @@ const CreatedAssesmentDetails = () => {
         }
     })
 
-    // ....................Delete question mutation.....................\\
+    // ..........................................Delete question mutation.........................................\\
     const deleteQuestionMutation = useMutation({
         mutationFn: async (questionId) => {
             const response = await axiosApi.delete(`/api/v1/assessments/questions-del/${questionId}/`)
@@ -78,7 +81,7 @@ const CreatedAssesmentDetails = () => {
         }
     })
 
-    // ....................Set deadline mutation.....................\\    
+    // ....................................Set deadline mutation......................................\\    
     const setDeadlineMutation = useMutation({
         mutationFn: async (endDate) => {
             const response = await axiosApi.patch(`/api/v1/assessments/${assessmentId}/end-date/`, {
@@ -106,17 +109,17 @@ const CreatedAssesmentDetails = () => {
         }
     })
 
-    // ....................Add question mutation.....................\\
+    // ...........................................Add question mutation............................................\\
     const addQuestionMutation = useMutation({
-        mutationFn: async (questionText) => {
+        mutationFn: async ({ questionText, options }) => {
             const response = await axiosApi.post(`/api/v1/assessments/${assessmentId}/questions-add/`, {
-                text: questionText
+                text: questionText,
+                options: options.map(opt => ({ text: opt }))
             })
             return response.data
         },
         onSuccess: (data) => {
             console.log('[CreatedAssesmentDetails] Question added successfully:', data)
-            console.log('[CreatedAssesmentDetails] New question text:', newQuestionText)
 
             // Add the new question to the list
             if (data?.data) {
@@ -124,15 +127,21 @@ const CreatedAssesmentDetails = () => {
                     id: data.data.id,
                     number: data.data.number,
                     text: data.data.text,
+                    question_text: data.data.question_text,
+                    marks: data.data.marks || 0,
+                    options: data.data.options || [],
                     liked: false,
                     disliked: false
                 }
                 setQuestions(prev => [...prev, newQuestion])
+                // Update selected answers
+                setSelectedAnswers(prev => ({ ...prev, [data.data.id]: null }))
             }
 
             // Reset modal state
             setShowAddQuestionModal(false)
             setNewQuestionText('')
+            setNewQuestionOptions(['', '', '', ''])
             toast.success('Question added successfully!')
         },
         onError: (error) => {
@@ -152,10 +161,19 @@ const CreatedAssesmentDetails = () => {
                 id: q.id,
                 number: q.number,
                 text: q.text,
+                question_text: q.question_text,
+                marks: q.marks,
+                options: q.options || [],
                 liked: false,
                 disliked: false
             }))
             setQuestions(formattedQuestions)
+            // Initialize selected answers object
+            const initialAnswers = {}
+            formattedQuestions.forEach(q => {
+                initialAnswers[q.id] = null
+            })
+            setSelectedAnswers(initialAnswers)
         }
         // Show ongoing notice if assessment status is active
         if (questionsData?.data?.assessment?.status === 'active') {
@@ -211,13 +229,22 @@ const CreatedAssesmentDetails = () => {
             toast.error('Please enter a question text')
             return
         }
+        // Check if all options are filled
+        if (newQuestionOptions.some(opt => !opt.trim())) {
+            toast.error('Please fill in all four options')
+            return
+        }
         console.log('[CreatedAssesmentDetails] Saving new question:', newQuestionText)
-        addQuestionMutation.mutate(newQuestionText)
+        addQuestionMutation.mutate({
+            questionText: newQuestionText,
+            options: newQuestionOptions
+        })
     }
 
     const handleCancelAddQuestion = () => {
         setShowAddQuestionModal(false)
         setNewQuestionText('')
+        setNewQuestionOptions(['', '', '', ''])
     }
 
     const handleSetDeadline = () => {
@@ -305,32 +332,67 @@ const CreatedAssesmentDetails = () => {
                     questions.map((question) => (
                         <div
                             key={question.id}
-                            className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 hover:shadow-md transition"
+                            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition"
                         >
-                            <div className="flex items-center  gap-3">
+                            {/* Question Header */}
+                            <div className="flex items-start gap-3 mb-4">
                                 {/* Question Number Badge */}
                                 <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-lg flex items-center justify-center font-bold text-lg">
                                     {question.number || question.id}
                                 </div>
 
-                                {/* Question Text */}
-                                <div className="flex-1 ">
-                                    <p className="text-gray-800 text-base">
+                                <div className="flex-1">
+                                    <h3 className="text-gray-800 text-base font-semibold">
                                         {question.text}
-                                    </p>
+                                    </h3>
+                                    {question.marks > 0 && (
+                                        <p className="text-sm text-gray-500 mt-1">Marks: {question.marks}</p>
+                                    )}
                                 </div>
 
-                                <div className="flex-shrink-0 flex items-center gap-2">
-                                    <button
-                                        onClick={() => handleDeleteQuestion(question.id)}
-                                        disabled={deleteQuestionMutation.isPending}
-                                        className="p-2 rounded-lg transition text-gray-400 hover:bg-gray-100 hover:text-red-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                                        aria-label="Delete question"
-                                    >
-                                        <TiDelete size={28} color='red' className='' />
-                                    </button>
-                                </div>
+                                {/* Delete Button */}
+                                <button
+                                    onClick={() => handleDeleteQuestion(question.id)}
+                                    disabled={deleteQuestionMutation.isPending}
+                                    className="p-2 rounded-lg transition text-gray-400 hover:bg-gray-100 hover:text-red-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                                    aria-label="Delete question"
+                                >
+                                    <TiDelete size={28} color='red' />
+                                </button>
                             </div>
+
+                            {/* Multiple Choice Options */}
+                            {question.options && question.options.length > 0 && (
+                                <div className="ml-13 space-y-2">
+                                    {question.options.map((option) => (
+                                        <button
+                                            key={option.id}
+                                            onClick={() => setSelectedAnswers(prev => ({
+                                                ...prev,
+                                                [question.id]: option.id
+                                            }))}
+                                            className={`w-full text-left px-4 py-3 rounded-lg border-2 transition ${
+                                                selectedAnswers[question.id] === option.id
+                                                    ? 'border-teal-500 bg-teal-50'
+                                                    : 'border-gray-200 bg-white hover:border-gray-300'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                                    selectedAnswers[question.id] === option.id
+                                                        ? 'border-teal-500 bg-teal-500'
+                                                        : 'border-gray-300'
+                                                }`}>
+                                                    {selectedAnswers[question.id] === option.id && (
+                                                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                                                    )}
+                                                </div>
+                                                <span className="text-gray-700">{option.text}</span>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     ))
                 )}
@@ -365,23 +427,53 @@ const CreatedAssesmentDetails = () => {
             {/* Add Question Modal */}
             {showAddQuestionModal && (
                 <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
                         <h2 className="text-2xl font-bold text-gray-900 mb-4">Add New Question</h2>
 
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Question Text
-                            </label>
-                            <textarea
-                                value={newQuestionText}
-                                onChange={(e) => setNewQuestionText(e.target.value)}
-                                placeholder="Enter your question here..."
-                                rows={4}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
-                            />
+                        <div className="space-y-6">
+                            {/* Question Text */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Question Text
+                                </label>
+                                <textarea
+                                    value={newQuestionText}
+                                    onChange={(e) => setNewQuestionText(e.target.value)}
+                                    placeholder="Enter your question here..."
+                                    rows={3}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
+                                />
+                            </div>
+
+                            {/* Multiple Choice Options */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-3">
+                                    Answer Options
+                                </label>
+                                <div className="space-y-3">
+                                    {newQuestionOptions.map((option, index) => (
+                                        <div key={index} className="flex items-center gap-3">
+                                            <div className="w-8 h-8 flex-shrink-0 bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-lg flex items-center justify-center font-semibold text-sm">
+                                                {String.fromCharCode(65 + index)}
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={option}
+                                                onChange={(e) => {
+                                                    const updated = [...newQuestionOptions]
+                                                    updated[index] = e.target.value
+                                                    setNewQuestionOptions(updated)
+                                                }}
+                                                placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="flex gap-3 justify-end">
+                        <div className="flex gap-3 justify-end mt-6">
                             <button
                                 onClick={handleCancelAddQuestion}
                                 disabled={addQuestionMutation.isPending}

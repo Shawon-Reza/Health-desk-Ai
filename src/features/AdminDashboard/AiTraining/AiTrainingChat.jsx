@@ -50,6 +50,12 @@ const AiTrainingChat = () => {
                 if (!newMessage || !newMessage.id) return;
 
                 console.log("[AiTrainingChat] New message processed:", newMessage)
+                // If AI message received, stop typing indicator
+                if (!newMessage.is_ai) {
+                    setIsAiTyping(true)
+                } else {
+                    setIsAiTyping(false)
+                }
 
                 setChatMessages((prev) => [...prev, {
                     id: newMessage.id,
@@ -108,6 +114,7 @@ const AiTrainingChat = () => {
             });
         } catch (err) {
             console.error("[AiTrainingChat] Send message failed:", err);
+            setIsAiTyping(false)
             // Optionally restore message on error
             setMessageInput(messageText);
         }
@@ -214,6 +221,30 @@ const AiTrainingChat = () => {
                                 </div>
                             </div>
                         ))}
+                        
+                        {/* AI Typing Indicator */}
+                        {isAiTyping && (
+                            <div className="flex justify-start">
+                                <div className="flex gap-3 max-w-xs">
+                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg flex-shrink-0">
+                                        🤖
+                                    </div>
+                                    <div>
+                                        <div className="rounded-lg px-4 py-3 bg-gray-100">
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-sm text-gray-600">AI is thinking</span>
+                                                <div className="flex gap-1">
+                                                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
                         <div ref={chatEndRef} />
                     </>
                 )}

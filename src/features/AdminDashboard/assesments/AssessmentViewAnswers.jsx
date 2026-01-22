@@ -9,11 +9,12 @@ export const AssessmentViewAnswers = () => {
 
     console.log('AssessmentViewAnswers Params:', { participantId, assessmentId });
 
-    // Fetch user answers
+    // .........................................Fetch user answers........................................\\
     const { data: answersData, isLoading, error } = useQuery({
         queryKey: ['assessmentAnswers', assessmentId, participantId],
         queryFn: async () => {
             const res = await axiosApi.get(`/api/v1/assessments/${assessmentId}/users/${participantId}/`);
+            console.log("res", res);
             return res.data;
         },
         onSuccess: (data) => {
@@ -23,7 +24,7 @@ export const AssessmentViewAnswers = () => {
             console.error('[AssessmentViewAnswers] Error fetching answers:', err);
         },
     });
-
+    console.log("answersData", answersData);
 
     const responseData = answersData?.data;
     const user = responseData?.user;

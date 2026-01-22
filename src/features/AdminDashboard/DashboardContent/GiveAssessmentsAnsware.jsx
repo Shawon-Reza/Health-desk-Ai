@@ -7,10 +7,11 @@ import { toast } from 'react-toastify';
 import { queryClient } from '../../../main';
 
 const GiveAssessmentsAnsware = () => {
-    const {assessmentId} = useParams();
+    const { assessmentId } = useParams();
     const [answers, setAnswers] = useState({});
     const navigate = useNavigate();
 
+    // ..........................................Fetch assessment questions...............................................\\
     const { data, isLoading, error } = useQuery({
         queryKey: ['assessment-questions', assessmentId],
         queryFn: async () => {
@@ -26,9 +27,12 @@ const GiveAssessmentsAnsware = () => {
         enabled: !!assessmentId,
     });
 
-    // console.log('[GiveAssessmentsAnsware] Full Data:', data);
 
-    // .................Submit assessment mutation..................\\
+
+
+
+
+    // ..........................................Submit assessment mutation...............................................\\
     const submitAssessmentMutation = useMutation({
         mutationFn: async (answersData) => {
             const res = await axiosApi.post(`/api/v1/assessments/${assessmentId}/submit/`, answersData);
@@ -52,7 +56,7 @@ const GiveAssessmentsAnsware = () => {
         if (data?.data?.questions) {
             const initialAnswers = {};
             data.data.questions.forEach(question => {
-                initialAnswers[question.id] = '';
+                initialAnswers[question.id] = null; // Store option ID instead of text
             });
             setAnswers(initialAnswers);
         }
@@ -61,17 +65,24 @@ const GiveAssessmentsAnsware = () => {
     const handleAnswerChange = (questionId, value) => {
         setAnswers(prev => ({
             ...prev,
-            [questionId]: value
+            [questionId]: value // Store option ID
         }));
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
+        // Validate all questions are answered
+        const unansweredQuestions = Object.values(answers).filter(a => a === null).length;
+        if (unansweredQuestions > 0) {
+            toast.error(`Please answer all ${unansweredQuestions} unanswered question(s) before submitting.`);
+            return;
+        }
+
         const formattedAnswers = {
-            answers: Object.entries(answers).map(([question_id, answer_text]) => ({
+            answers: Object.entries(answers).map(([question_id, option_id]) => ({
                 question_id: parseInt(question_id),
-                answer_text: answer_text
+                option_id: option_id // Send selected option ID
             }))
         };
 
@@ -110,10 +121,11 @@ const GiveAssessmentsAnsware = () => {
     }
 
     const { assessment, questions } = data.data;
+    console.log('[GiveAssessmentsAnsware] assessment:#########################################', questions);
 
     return (
         <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-7xl mx-auto">
                 {/* Assessment Header */}
                 <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                     <div className="flex items-start justify-between">
@@ -146,8 +158,8 @@ const GiveAssessmentsAnsware = () => {
                         <div key={question.id} className="bg-white rounded-lg shadow-md p-6">
                             {/* Question Header */}
                             <div className="flex items-start gap-4 mb-4">
-                                <div className="flex-shrink-0 w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-                                    <span className="text-teal-700 font-bold">{question.number}</span>
+                                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-lg flex items-center justify-center font-bold">
+                                    {question.number}
                                 </div>
                                 <div className="flex-1">
                                     <h3 className="text-lg font-semibold text-gray-900">
@@ -156,30 +168,47 @@ const GiveAssessmentsAnsware = () => {
                                     <p className="text-gray-700 mt-2 leading-relaxed">
                                         {question.text}
                                     </p>
+                                    {question.marks > 0 && (
+                                        <p className="text-sm text-gray-500 mt-2">Marks: {question.marks}</p>
+                                    )}
                                 </div>
                             </div>
 
-                            {/* Answer Input */}
-                            <div className="mt-4">
-                                <label htmlFor={`answer-${question.id}`} className="block text-sm font-medium text-gray-700 mb-2">
-                                    Your Answer
+                            {/* Multiple Choice Options */}
+                            <div className="mt-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-3">
+                                    Select Your Answer
                                 </label>
-                                <textarea
-                                    id={`answer-${question.id}`}
-                                    rows={4}
-                                    value={answers[question.id] || ''}
-                                    onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-                                    placeholder="Type your answer here..."
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none transition-all"
-                                />
-                                <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
-                                    <span>{answers[question.id]?.length || 0} characters</span>
-                                    {answers[question.id]?.trim() && (
-                                        <span className="flex items-center gap-1 text-green-600">
-                                            <FiCheckCircle /> Answered
-                                        </span>
-                                    )}
+                                <div className="space-y-2">
+                                    {question.options && question.options.map((option) => (
+                                        <button
+                                            key={option.id}
+                                            type="button"
+                                            onClick={() => handleAnswerChange(question.id, option.id)}
+                                            className={`w-full text-left px-4 py-3 rounded-lg border-2 transition ${answers[question.id] === option.id
+                                                    ? 'border-teal-500 bg-teal-50'
+                                                    : 'border-gray-200 bg-white hover:border-gray-300'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${answers[question.id] === option.id
+                                                        ? 'border-teal-500 bg-teal-500'
+                                                        : 'border-gray-300'
+                                                    }`}>
+                                                    {answers[question.id] === option.id && (
+                                                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                                                    )}
+                                                </div>
+                                                <span className="text-gray-700 text-sm">{option.text}</span>
+                                            </div>
+                                        </button>
+                                    ))}
                                 </div>
+                                {answers[question.id] && (
+                                    <div className="mt-3 flex items-center gap-1 text-sm text-green-600">
+                                        <FiCheckCircle /> Answer selected
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -190,7 +219,7 @@ const GiveAssessmentsAnsware = () => {
                             <div>
                                 <p className="text-sm text-gray-600">
                                     Answered: <span className="font-semibold text-teal-600">
-                                        {Object.values(answers).filter(a => a.trim()).length}
+                                        {Object.values(answers).filter(a => a !== null).length}
                                     </span> / {questions.length}
                                 </p>
                             </div>

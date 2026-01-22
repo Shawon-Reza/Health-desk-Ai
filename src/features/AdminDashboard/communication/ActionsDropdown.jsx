@@ -7,6 +7,7 @@ import axiosApi from '../../../service/axiosInstance';
 import EditGroupModal from './EditGroupModal';
 import AddMemberModal from './AddMemberModal';
 import BlockMemberModal from './BlockMemberModal';
+import useGetUserProfile from '../../../hooks/useGetUserProfile';
 
 const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMember, onDeleteChat, chatInfo }) => {
   if (!showActions) return null;
@@ -15,7 +16,13 @@ const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMembe
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [showBlockMemberModal, setShowBlockMemberModal] = useState(false);
 
+  const { userProfileData } = useGetUserProfile();
+
   console.log("CHat Info >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>:", chatInfo)
+  const myUserId = userProfileData?.id;
+
+
+
   const roomId = chatInfo?.id;
   const clinic_id = chatInfo?.clinic_id;
   const room_type = chatInfo?.type;
@@ -56,7 +63,9 @@ const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMembe
   });
   console.log("Room Members:================================================================", roomMembers?.results);
   // ...........................................Get Private Chat Another Member ID................................... //
-  const privetChatAnotherMemberId = roomMembers?.results[1]?.id
+  const privetChatAnotherMemberId = isPrivate 
+    ? roomMembers?.results?.find(member => member.id !== myUserId)?.id 
+    : null;
   console.log("Room privetChatAnotherMemberId:================================================================", privetChatAnotherMemberId);
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,8 +79,9 @@ const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMembe
         action: action, // "block" or "unblock"
       };
 
-      console.log("Block/Unblock chat with payload:", payload);
+      console.log("Block/Unblock chat with payload:+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", payload);
       const res = await axiosApi.post(`/api/v1/block/`, payload);
+
       return res.data;
     },
     onSuccess: (data) => {

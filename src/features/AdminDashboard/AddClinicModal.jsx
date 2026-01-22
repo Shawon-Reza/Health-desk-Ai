@@ -14,11 +14,14 @@ import { toast } from "react-toastify";
 const AddClinicModal = ({ isOpen, onClose, data }) => {
     if (!isOpen) return null; // Don't render when closed
 
+
+    console.log("Clinic data :88888888888888888888888888888888888888::0",data)
+
     const [formData, setFormData] = useState({
         name: data?.name || "",
         address: data?.address || "",
-        phone: data?.phone || "",
-        fax: data?.fax || "",
+        phone: data?.phone_number || "",
+        fax: data?.fax_number || "",
         website: data?.website || "",
         type: data?.type || "",
     });
@@ -29,8 +32,8 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
             setFormData({
                 name: data.name || "",
                 address: data.address || "",
-                phone: data.phone || "",
-                fax: data.fax || "",
+                phone: data.phone_number || "",
+                fax: data.fax_number || "",
                 website: data.website || "",
                 type: data.type || "",
             });

@@ -23,8 +23,9 @@ const GeneratedAssesmentsAndHistories = () => {
             return response.data
         }
     })
-    console.log('[GeneratedAssesmentsAndHistories] API Response:', assessmentsData?.data.completed.results);
-    console.log('[GeneratedAssesmentsAndHistories] API Ongoing:', assessmentsData?.data.ongoing.results);
+    console.log('[GeneratedAssesmentsAndHistories] whole response:', assessmentsData);
+    console.log('[GeneratedAssesmentsAndHistories] API Response:', assessmentsData?.data.completed?.results);
+    console.log('[GeneratedAssesmentsAndHistories] API Ongoing:', assessmentsData?.data.ongoing?.results);
 
 
     useEffect(() => {

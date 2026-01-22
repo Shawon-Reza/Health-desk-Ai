@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { FiChevronDown, FiPaperclip, FiMic, FiSend } from 'react-icons/fi'
 import { PiGraduationCapLight } from 'react-icons/pi'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import useGetSubjectMattersAndClinicsList from '../../../hooks/useGetSubjectMattersAndClinicsList'
 import axiosApi from '../../../service/axiosInstance'
 import { queryClient } from '../../../main'
@@ -14,7 +14,11 @@ const CreateNewAssesment = () => {
         clinic: '',
         numberOfQuestions: '5',
         message: '',
+        subroleId: null,
+        subjectMatterId: null,
     })
+    const [searchSubrole, setSearchSubrole] = useState('')
+    const [searchSubjectMatter, setSearchSubjectMatter] = useState('')
 
     const roles = ['Manager', 'Doctor', 'Staff', 'Jr_staff']
     const {
@@ -26,15 +30,40 @@ const CreateNewAssesment = () => {
         refetch
     } = useGetSubjectMattersAndClinicsList()
 
-    // .................Create assessment mutation.......................\\
+    // .............................................Fetch Sub Roles For doctores............................................\\
+    const { data: subRolesData, isLoading: isLoadingSubRoles } = useQuery({
+        queryKey: ['subRoles'],
+        queryFn: async () => {
+            const response = await axiosApi.get('/api/v1/subroles/')
+            return response.data
+        },
+    })
+    console.log("Doctors Subroles:.........................###################################", subRolesData)
+    // ..........................................Fetch subject matters from API............................................\\
+    const { data: subjectMatters = [], isLoading: subjectMattersLoading, error: subjectMattersError, refetch: refetchSubjectMatters } = useQuery({
+        queryKey: ['subjectMatters'],
+        queryFn: async () => {
+            const response = await axiosApi.get('/api/v1/subjects/')
+            console.log('[Subject Matters API Response]:', response.data)
+            // Handle both array and object responses
+            const dataArray = Array.isArray(response.data) ? response.data : response.data?.results || response.data?.data || []
+            return dataArray
+        },
+    })
+    console.log("Subject matters:.........................###################################", subjectMatters)
+
+    // .............................................Create assessment mutation.........................................\\
     const createAssessmentMutation = useMutation({
         mutationFn: async (data) => {
+            console.log("data:##############################################################",data)
             const response = await axiosApi.post('/api/v1/assesments/create/', {
                 title: data.title,
                 clinic: parseInt(data.clinic),
                 role: data.role.toLowerCase(),
                 description: data.message,
-                count: parseInt(data.numberOfQuestions)
+                count: parseInt(data.numberOfQuestions),
+                subject_matters: data.subjectMatterId ? [data.subjectMatterId] : [],
+                subroles: data.subroleId ? [data.subroleId] : [],
             })
             return response.data
         },
@@ -49,7 +78,11 @@ const CreateNewAssesment = () => {
                 clinic: '',
                 numberOfQuestions: '5',
                 message: '',
+                subroleId: null,
+                subjectMatterId: null,
             })
+            setSearchSubrole('')
+            setSearchSubjectMatter('')
             // TODO: Show success toast/notification
             // TODO: Navigate to assessment details or refresh list
         },
@@ -61,6 +94,18 @@ const CreateNewAssesment = () => {
 
     const handleChange = (field) => (e) => {
         setFormData(prev => ({ ...prev, [field]: e.target.value }))
+    }
+
+    const handleRoleChange = (e) => {
+        const newRole = e.target.value
+        setFormData(prev => ({
+            ...prev,
+            role: newRole,
+            subroleId: null,
+            subjectMatterId: null,
+        }))
+        setSearchSubrole('')
+        setSearchSubjectMatter('')
     }
 
     const handleGenerate = (e) => {
@@ -116,7 +161,7 @@ const CreateNewAssesment = () => {
                             <div className="relative">
                                 <select
                                     value={formData.role}
-                                    onChange={handleChange('role')}
+                                    onChange={handleRoleChange}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 appearance-none bg-white text-gray-700"
                                     required
                                 >
@@ -128,6 +173,139 @@ const CreateNewAssesment = () => {
                                 <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                             </div>
                         </div>
+
+                        {/* Subroles (Only for Doctor) or Subject Matters (For other roles) */}
+                        {formData.role && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    {formData.role === 'doctor' ? 'Sub Role (Specialization)' : 'Subject Matter'}
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder={formData.role === 'doctor' ? 'Search sub roles...' : 'Search subjects...'}
+                                        value={formData.role === 'doctor' ? searchSubrole : searchSubjectMatter}
+                                        onChange={(e) => {
+                                            if (formData.role === 'doctor') {
+                                                setSearchSubrole(e.target.value)
+                                            } else {
+                                                setSearchSubjectMatter(e.target.value)
+                                            }
+                                        }}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700"
+                                    />
+                                </div>
+
+                                {/* Selected Item Display */}
+                                {((formData.role === 'doctor' && formData.subroleId) || (formData.role !== 'doctor' && formData.subjectMatterId)) && (
+                                    <div className="mt-2 px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg flex items-center justify-between">
+                                        <span className="text-sm font-medium text-teal-700">
+                                            {formData.role === 'doctor'
+                                                ? subRolesData?.find((s) => s.id === formData.subroleId)?.name
+                                                : subjectMatters?.find((s) => s.id === formData.subjectMatterId)?.title}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (formData.role === 'doctor') {
+                                                    setFormData(prev => ({ ...prev, subroleId: null }))
+                                                } else {
+                                                    setFormData(prev => ({ ...prev, subjectMatterId: null }))
+                                                }
+                                            }}
+                                            className="text-teal-600 hover:text-teal-800"
+                                        >
+                                            <FiChevronDown className="w-4 h-4 rotate-180" />
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Options List */}
+                                <div className="mt-2 border border-gray-300 rounded-lg p-2 max-h-40 overflow-y-auto">
+                                    {formData.role === 'doctor' ? (
+                                        isLoadingSubRoles ? (
+                                            <span className="text-sm text-gray-500">Loading...</span>
+                                        ) : subRolesData && subRolesData.length > 0 ? (
+                                            <div className="space-y-1">
+                                                {subRolesData
+                                                    .filter(
+                                                        (s) =>
+                                                            s.is_active &&
+                                                            s.name.toLowerCase().includes(searchSubrole.toLowerCase())
+                                                    )
+                                                    .map((subrole) => (
+                                                        <button
+                                                            key={subrole.id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFormData(prev => ({
+                                                                    ...prev,
+                                                                    subroleId: subrole.id,
+                                                                }))
+                                                                setSearchSubrole('')
+                                                            }}
+                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm border transition ${
+                                                                formData.subroleId === subrole.id
+                                                                    ? 'bg-teal-100 text-teal-700 border-teal-300'
+                                                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                                            }`}
+                                                        >
+                                                            {subrole.name}
+                                                        </button>
+                                                    ))}
+                                                {subRolesData.filter(
+                                                    (s) =>
+                                                        s.is_active &&
+                                                        s.name.toLowerCase().includes(searchSubrole.toLowerCase())
+                                                ).length === 0 && (
+                                                    <span className="text-sm text-gray-500 p-2">No results found</span>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <span className="text-sm text-gray-500">No data available</span>
+                                        )
+                                    ) : (
+                                        subjectMattersLoading ? (
+                                            <span className="text-sm text-gray-500">Loading...</span>
+                                        ) : subjectMatters && subjectMatters.length > 0 ? (
+                                            <div className="space-y-1">
+                                                {subjectMatters
+                                                    .filter((s) =>
+                                                        s.title.toLowerCase().includes(searchSubjectMatter.toLowerCase())
+                                                    )
+                                                    .map((subject) => (
+                                                        <button
+                                                            key={subject.id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFormData(prev => ({
+                                                                    ...prev,
+                                                                    subjectMatterId: subject.id,
+                                                                }))
+                                                                setSearchSubjectMatter('')
+                                                            }}
+                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm border transition ${
+                                                                formData.subjectMatterId === subject.id
+                                                                    ? 'bg-teal-100 text-teal-700 border-teal-300'
+                                                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                                            }`}
+                                                        >
+                                                            {subject.title}
+                                                        </button>
+                                                    ))}
+                                                {subjectMatters.filter((s) =>
+                                                    s.title.toLowerCase().includes(searchSubjectMatter.toLowerCase())
+                                                ).length === 0 && (
+                                                    <span className="text-sm text-gray-500 p-2">No results found</span>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <span className="text-sm text-gray-500">No data available</span>
+                                        )
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Number of Questions */}
                         <div>

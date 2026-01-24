@@ -139,7 +139,7 @@ const UploadedDocuments = () => {
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Uploaded Date</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Uploaded By</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">View Details</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Action</th>
+              {/* <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Action</th> */}
             </tr>
           </thead>
           <tbody>
@@ -172,14 +172,16 @@ const UploadedDocuments = () => {
                       View Doc
                     </button>
                   </td>
-                  <td className="px-6 py-4 text-sm">
+
+                  {/* <td className="px-6 py-4 text-sm">
                     <button
                       onClick={() => handleAction("menu", document)}
                       className="p-1 hover:bg-gray-200 rounded transition-colors"
                     >
                       <FiMoreVertical size={18} className="text-gray-600" />
                     </button>
-                  </td>
+                  </td> */}
+
                 </tr>
               ))
             ) : (

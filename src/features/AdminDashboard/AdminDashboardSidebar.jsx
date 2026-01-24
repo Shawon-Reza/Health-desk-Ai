@@ -29,7 +29,7 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
 
     const { userProfileData } = useGetUserProfile();
     console.log(userProfileData?.role);
-    console.log("User Profile dataaaaaaaaa=====================================================", userProfileData)
+    // console.log("User Profile dataaaaaaaaa=====================================================", userProfileData)
 
 
     // .................................Fetch user permissions..................................\\

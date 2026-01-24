@@ -15,6 +15,8 @@ const AiTrainingChat = () => {
     const chatContainerRef = useRef(null)
     const fileInputRef = useRef(null)
     const [isAiTyping, setIsAiTyping] = useState(false)
+    const [isSending, setIsSending] = useState(false)
+    const [reactions, setReactions] = useState({}) // Track reactions: { messageId: 'like' | 'dislike' | null }
 
     // .......................Get Room ID for AI Training Chat.........................\\
     const { data: roomData, isLoading: isLoadingRoom, error: roomError } = useQuery({
@@ -41,7 +43,6 @@ const AiTrainingChat = () => {
 
             onMessage: (payload) => {
                 console.log("[AiTrainingChat] WebSocket payload received:", payload)
-                setIsAiTyping(false)
 
                 // Handle different message structures from backend
                 const newMessage = payload.message || payload.data || payload;
@@ -50,10 +51,9 @@ const AiTrainingChat = () => {
                 if (!newMessage || !newMessage.id) return;
 
                 console.log("[AiTrainingChat] New message processed:", newMessage)
+                
                 // If AI message received, stop typing indicator
-                if (!newMessage.is_ai) {
-                    setIsAiTyping(true)
-                } else {
+                if (newMessage.is_ai) {
                     setIsAiTyping(false)
                 }
 
@@ -91,6 +91,8 @@ const AiTrainingChat = () => {
 
         const messageText = messageInput;
         setMessageInput("")
+        setIsSending(true);
+        setIsAiTyping(true);
 
         try {
             const formData = new FormData();
@@ -104,7 +106,6 @@ const AiTrainingChat = () => {
                 },
             });
             console.log("[AiTrainingChat] Message sent successfully")
-            setIsAiTyping(true)
 
             // Scroll to bottom after sending message
             requestAnimationFrame(() => {
@@ -117,14 +118,46 @@ const AiTrainingChat = () => {
             setIsAiTyping(false)
             // Optionally restore message on error
             setMessageInput(messageText);
+        } finally {
+            setIsSending(false);
         }
     }
 
     // Handle message reactions
-    const handleReaction = (messageId, reaction) => {
-        console.log("[AiTrainingChat] Reaction added to message:", messageId, "Reaction:", reaction)
-        console.log("[AiTrainingChat] Sending request to backend: POST /api/chat/reaction")
-        console.log("[AiTrainingChat] Payload:", { messageId, reaction })
+    const handleReaction = async (messageId, reaction) => {
+        console.groupCollapsed(`👍 Reacting to message ${messageId}`)
+        console.log("Message ID:", messageId)
+        console.log("Reaction:", reaction)
+        console.log("Endpoint:", `/api/v1/messages/${messageId}/react/`)
+        console.log("Payload:", { reaction })
+        console.groupEnd()
+
+        // Update local state immediately for better UX
+        setReactions(prev => {
+            const currentReaction = prev[messageId]
+            // If clicking the same reaction, remove it; otherwise set new reaction
+            const newReaction = currentReaction === reaction ? null : reaction
+            return {
+                ...prev,
+                [messageId]: newReaction
+            }
+        })
+
+        try {
+            const response = await axiosApi.post(`/api/v1/messages/${messageId}/react/`, {
+                reaction: reaction // "like" or "dislike"
+            })
+            
+            console.log("✅ Reaction successful:", response?.status, response?.data)
+            
+        } catch (err) {
+            console.error("❌ Reaction failed:", err?.response?.status, err?.response?.data || err?.message)
+            // Revert state on error
+            setReactions(prev => ({
+                ...prev,
+                [messageId]: null
+            }))
+        }
     }
 
     // Handle attachment click
@@ -205,13 +238,23 @@ const AiTrainingChat = () => {
                                             <div className="flex gap-2 mt-2">
                                                 <button
                                                     onClick={() => handleReaction(msg.id, "like")}
-                                                    className="text-gray-400 hover:text-teal-500"
+                                                    className={`transition-colors ${
+                                                        reactions[msg.id] === "like" 
+                                                            ? "text-teal-500" 
+                                                            : "text-gray-400 hover:text-teal-500"
+                                                    }`}
+                                                    title={reactions[msg.id] === "like" ? "Remove like" : "Like"}
                                                 >
                                                     <FiThumbsUp size={14} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleReaction(msg.id, "dislike")}
-                                                    className="text-gray-400 hover:text-red-500"
+                                                    className={`transition-colors ${
+                                                        reactions[msg.id] === "dislike" 
+                                                            ? "text-red-500" 
+                                                            : "text-gray-400 hover:text-red-500"
+                                                    }`}
+                                                    title={reactions[msg.id] === "dislike" ? "Remove dislike" : "Dislike"}
                                                 >
                                                     <FiThumbsDown size={14} />
                                                 </button>
@@ -256,12 +299,17 @@ const AiTrainingChat = () => {
                     type="text"
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                    placeholder="Type a message..."
-                    className="flex-1 bg-transparent outline-none text-gray-900 placeholder-gray-500"
+                    onKeyPress={(e) => e.key === "Enter" && !isAiTyping && !isSending && handleSendMessage()}
+                    placeholder={isAiTyping ? "Please wait, AI is responding..." : isSending ? "Sending..." : "Type a message..."}
+                    disabled={isAiTyping || isSending}
+                    className={`flex-1 bg-transparent outline-none text-gray-900 placeholder-gray-500 ${isAiTyping || isSending ? 'cursor-not-allowed opacity-60' : ''}`}
                 />
 
-                <button onClick={handleSendMessage} className="text-teal-500 hover:text-teal-600 transition-colors">
+                <button 
+                    onClick={handleSendMessage} 
+                    disabled={isAiTyping || isSending || !messageInput.trim()}
+                    className={`text-teal-500 hover:text-teal-600 transition-colors ${(isAiTyping || isSending || !messageInput.trim()) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
                     <FiSend size={20} />
                 </button>
             </div>

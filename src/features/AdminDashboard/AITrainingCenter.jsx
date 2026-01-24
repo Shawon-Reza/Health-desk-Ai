@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { useLocation, useNavigate } from 'react-router-dom'
 import { FiUploadCloud, FiX } from "react-icons/fi"
 import AiTrainingChat from "./AiTraining/AiTrainingChat"
 import { useQuery } from "@tanstack/react-query"
@@ -14,12 +15,45 @@ export default function AITrainingCenter() {
     const [providedTopics, setProvidedTopics] = useState("")
     const [dragActive, setDragActive] = useState(false)
     const fileInputRef = useRef(null)
+    const location = useLocation()
+    const navigate = useNavigate()
 
     // Console logging for component initialization
     useEffect(() => {
         console.log("[AITrainingCenter] Component Initialized")
         console.log("[AITrainingCenter] Initial Upload Queue:", uploadQueue)
     }, [])
+
+    // If navigated from a dislike notification, call the dislike endpoint once
+    useEffect(() => {
+        const fromId = location?.state?.fromDislikeId
+        const fromNotification = location?.state?.fromNotification
+        if (!fromNotification || !fromId) return
+
+        const storageKey = `processed_dislike_${fromId}`
+        // prevent duplicate calls (handles dev StrictMode and re-renders)
+        if (sessionStorage.getItem(storageKey)) {
+            // clear history state so future mounts don't see it
+            try { window.history.replaceState({}, document.title, window.location.pathname) } catch (e) {}
+            return
+        }
+
+        (async () => {
+            try {
+                sessionStorage.setItem(storageKey, 'processing')
+                console.log('[AITrainingCenter] Calling dislike endpoint for id:', fromId)
+                const res = await axiosApi.post(`/api/v1/dislike/${fromId}/`)
+                console.log('[AITrainingCenter] Dislike POST response:', res?.status, res?.data)
+                sessionStorage.setItem(storageKey, 'done')
+            } catch (err) {
+                console.error('[AITrainingCenter] Dislike POST failed:', err?.response?.status, err?.response?.data || err?.message)
+                sessionStorage.removeItem(storageKey)
+            } finally {
+                // Clear the location state without triggering a React navigation
+                try { window.history.replaceState({}, document.title, window.location.pathname) } catch (e) {}
+            }
+        })()
+    }, [location])
 
 
     // .......................Get Room ID for AI Training Chat.........................\\

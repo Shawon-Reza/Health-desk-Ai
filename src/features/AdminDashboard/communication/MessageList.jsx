@@ -155,7 +155,7 @@ const MessageList = ({
         return (
             <div className={`flex mb-4 ${isMe ? "justify-end" : "justify-start"}`}>
                 <div
-                    className={`px-4 py-2 rounded-lg max-w-md
+                    className={`px-4 py-2 rounded-lg max-w-md break-words
           ${isAI && "bg-purple-100 border border-purple-300"}
           ${isMe && "bg-teal-100 text-gray-900"}
           ${!isMe && !isAI && "bg-blue-100 text-gray-900"}
@@ -169,13 +169,13 @@ const MessageList = ({
                     )}
 
                     {/* ................Convert Markdown to HTML................. */}
-                    <div className="text-sm prose prose-sm max-w-none">
+                    <div className="text-sm prose prose-sm max-w-none break-words">
                         {isAI ? (
                             <Markdown remarkPlugins={[remarkGfm]}>
                                 {text}
                             </Markdown>
                         ) : (
-                            <p>{text}</p>
+                            <p className="break-words">{text}</p>
                         )}
                     </div>
 

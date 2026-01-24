@@ -1,8 +1,10 @@
 "use client";
 
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { FiSend, FiInfo } from "react-icons/fi";
+import { MentionsInput, Mention } from "react-mentions";
+import "./mentions.css";
 import axiosApi from "../../../service/axiosInstance";
 import { connectWebSocketForChat } from "./ChatService";
 import { getAuthData } from "../../../config/Config";
@@ -12,9 +14,6 @@ import ActionsDropdown from "./ActionsDropdown";
 
 const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
-  console.log("======================================================", chatRoom)
-  console.log("====================================================== Room Type:", roomType)
-  console.log("======================================================", activeTab)
   const queryClient = useQueryClient();
   const [inputMessage, setInputMessage] = useState("");
   const [showActions, setShowActions] = useState(false);
@@ -26,7 +25,18 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
   const userId = userInfo?.user_id;
   const location = useLocation();
   const path = location.pathname.split('/')[2];
-  console.log("Path Name: ----------------------------------------------------------------------:", path)
+  const isAiRoom = roomType === "ai";
+
+  // =============================Fetch room members for mentions (group rooms only)=================================\\
+  const { data: roomMembersData } = useQuery({
+    queryKey: ["roomMembersForMentions", chatRoom],
+    queryFn: async () => {
+      const res = await axiosApi.get(`/api/v1/rooms/${chatRoom}/members/`);
+      return res.data;
+    },
+    enabled: !!chatRoom && roomType === "group",
+    staleTime: 5 * 60 * 1000,
+  });
 
   // Messages (HTTP with infinite scroll)
   const {
@@ -53,17 +63,11 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
-  console.log("Result--------------:", data)
-  console.log("Result*************:", data?.pages[0].chatInfo)
-
-
   // Flatten and reverse to show oldest -> newest
   const messages = useMemo(() => {
     const list = data?.pages.flatMap((p) => p.results) ?? [];
     return [...list].reverse();
   }, [data]);
-
-  console.log("Total Messages :", messages)
 
   // WebSocket for real-time messages
   useEffect(() => {
@@ -75,7 +79,6 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
       onMessage: (payload) => {
         if (payload.type !== "message") return;
         const newMessage = payload.data;
-        console.log("@@@@@@@@@@@@@@@@@@@@New messages@@@@@@@@@@@@@@@@@@:", newMessage)
 
         // Turn off AI typing indicator when AI responds
         if (newMessage?.is_ai && roomType === "ai") {
@@ -90,8 +93,6 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
           );
 
           if (exists) return old;
-
-          console.log("Adding new message to FIRST page (newest messages)")
 
           // Always add new messages to the FIRST page (page 0), not last page
           // First page = newest messages, last page = oldest messages
@@ -110,7 +111,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
     return () => socket.close();
   }, [chatRoom, queryClient]);
 
-  // Send message with optimistic update
+  // ============================================Send message with optimistic update=====================================\\
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
@@ -129,26 +130,76 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
       setIsAiTyping(true);
     }
 
+    // Helper: extract mention ids from react-mentions markup @[__display__](__id__)
+    const extractMentionIdsFromMarkup = (text) => {
+      const ids = [];
+      if (!text) return ids;
+      const regex = /@\[(.+?)\]\((.+?)\)/g;
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        // match[2] is the id per our markup
+        ids.push(match[2]);
+      }
+      // ensure uniqueness
+      return Array.from(new Set(ids));
+    };
+
+    // Helper: convert markup to plain text, e.g. @[John Doe](2) => @John Doe
+    const toPlainText = (text) =>
+      (text || "").replace(/@\[(.+?)\]\(.+?\)/g, "@$1");
+
+    // Prepare payload
+    const mentionIds = extractMentionIdsFromMarkup(inputMessage);
+    const contentPlain = toPlainText(inputMessage).trim();
+
+    // Debug: Log what we're about to send
+    try {
+      console.groupCollapsed("📨 Sending chat message payload");
+      console.log("room:", chatRoom);
+      console.log("content:", contentPlain);
+      console.log("mention_user_ids:==============================================================================", mentionIds);
+      console.groupEnd();
+    } catch {}
+
     // .....................** Send Messages **..................... //
     try {
       const formData = new FormData();
       // Just appent paylod fields to formData
-      formData.append("content", inputMessage);
+      formData.append("content", contentPlain);
+      if (mentionIds.length > 0) {
+        // Backend expects comma-separated IDs (e.g., "2,5"); single value is fine too
+        formData.append("mention_user_ids", mentionIds.join(","));
+      }
 
-      await axiosApi.post(`/api/v1/rooms/${chatRoom}/send/`, formData, {
+      // Debug: log formData entries
+      try {
+        for (const [k, v] of formData.entries()) {
+          if (v instanceof File) {
+            console.log("formData", k, { name: v.name, type: v.type, size: v.size });
+          } else {
+            console.log("formData", k, v);
+          }
+        }
+      } catch {}
+
+      const resp = await axiosApi.post(`/api/v1/rooms/${chatRoom}/send/`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log("Message send")
+      console.log("✅ Message sent:", resp?.status, resp?.data);
     } catch (err) {
-      console.error("Send failed", err);
       // Turn off typing indicator on error
       if (roomType === "ai") {
         setIsAiTyping(false);
       }
+      console.error("❌ Send message failed:", err?.response?.status, err?.response?.data || err?.message);
     }
   };
+
+
+
+  
 
   const handleInputChange = (e) => {
     const el = e.target;
@@ -167,10 +218,54 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
       handleSendMessage();
     }
   };
+
+  // Members filtered for mention suggestions
+  const members = roomMembersData?.results ?? [];
+  const mentionData = useMemo(() => {
+    const data = members.map((m) => ({
+      id: String(m.id),
+      display: m.name || m.username || "Unknown User",
+    }));
+    
+    // Add test data if no members loaded
+    if (data.length === 0) {
+      console.warn("⚠️ No members data, using test data");
+      return [
+        { id: '1', display: 'Rafit jr_staff' },
+        { id: '2', display: 'Fugit magna' },
+        { id: '3', display: 'Dolor Test' },
+      ];
+    }
+    
+    console.log("📋 Mention Data Generated:", data);
+    console.log("📋 Total members:", members.length);
+    return data;
+  }, [members]);
+
+  useEffect(() => {
+    console.log("🔍 Room Type:", roomType);
+    console.log("🔍 Chat Room:", chatRoom);
+    console.log("🔍 Room Members Data:", roomMembersData);
+  }, [roomType, chatRoom, roomMembersData]);
+
+  const isInputDisabled =
+    data?.pages[0].chatInfo?.chat_blocked ||
+    path === "user-management" ||
+    data?.pages[0].chatInfo?.can_send === false ||
+    (isAiRoom && isAiTyping);
+
+  const inputPlaceholder =
+    data?.pages[0].chatInfo?.chat_blocked
+      ? 'Chat is blocked. You are not allowed to send messages until unblocked.'
+      : data?.pages[0].chatInfo?.can_send === false
+        ? 'User is currently inactive. Cannot send messages.'
+        : isAiRoom && isAiTyping
+          ? 'Please wait, AI is responding...'
+          : 'Type your message...';
   // ...........................**Chat info**........................... //
   // data?.pages[0].chatInfo)
   const safeUser = {
-    name: data?.pages[0]?.chatInfo?.name || "Unknocwn User",
+    name: data?.pages[0]?.chatInfo?.name || "Unknown User",
     role: data?.pages[0]?.chatInfo?.display_role || "unknown",
     avatar: `http://10.10.13.2:8000${data?.pages[0]?.chatInfo?.image}` ||
       "https://api.dicebear.com/7.x/avataaars/svg?seed=Chat",
@@ -237,31 +332,58 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
           {/* ........................................................Input Area For send text................................................ */}
           <div className="p-4 border-t border-gray-300">
-            <div className="flex gap-3">
-              <textarea
-                ref={textareaRef}
-                rows={1}
-                disabled={data?.pages[0].chatInfo?.chat_blocked || path === "user-management" || data?.pages[0].chatInfo?.can_send === false}
-                value={inputMessage}
-                onChange={handleInputChange}
-                onKeyDown={handleInputKeyDown}
-                placeholder={`${
-                  data?.pages[0].chatInfo?.chat_blocked 
-                    ? 'Chat is blocked. You are not allowed to send messages until unblocked.' 
-                    : data?.pages[0].chatInfo?.can_send === false
-                    ? 'User is currently inactive. Cannot send messages.'
-                    : 'Type your message...'
-                }`}
-                className={`flex-1 outline-none resize-none overflow-y-auto ${data?.pages[0].chatInfo?.chat_blocked || data?.pages[0].chatInfo?.can_send === false ? 'placeholder:text-red-500' : ''}`}
-                style={{ maxHeight: "150px" }}
-              />
+            <div className="flex gap-3 w-full min-w-0">
+              {roomType === "group" ? (
+                <div className="flex-1 relative min-w-0">
+                  <MentionsInput
+                    value={inputMessage}
+                    onChange={(e) => handleInputChange(e)}
+                    onKeyDown={handleInputKeyDown}
+                    placeholder={inputPlaceholder}
+                    disabled={isInputDisabled}
+                    singleLine={false}
+                    allowSuggestionsAboveCursor={true}
+                    forceSuggestionsAboveCursor={true}
+                    a11ySuggestionsListLabel="Suggested mentions"
+                  >
+                    <Mention
+                      trigger="@"
+                      data={mentionData}
+                      displayTransform={(id, display) => `@${display}`}
+                      markup="@[__display__](__id__)"
+                      renderSuggestion={(suggestion, search, highlightedDisplay, index, focused) => {
+                        console.log("🎯 Rendering suggestion:", suggestion);
+                        return (
+                          <div style={{ padding: '8px 12px' }}>
+                            {suggestion.display}
+                          </div>
+                        );
+                      }}
+                    />
+                  </MentionsInput>
+                </div>
+              ) : (
+                <textarea
+                  ref={textareaRef}
+                  rows={5}
+                  disabled={isInputDisabled}
+                  value={inputMessage}
+                  onChange={handleInputChange}
+                  onKeyDown={handleInputKeyDown}
+                  placeholder={inputPlaceholder}
+                  className={`flex-1 outline-none resize-none overflow-y-auto border border-gray-300 rounded-lg p-2 min-w-0 text-base min-h-[120px] ${data?.pages[0].chatInfo?.chat_blocked || data?.pages[0].chatInfo?.can_send === false ? 'placeholder:text-red-500' : ''}`}
+                  style={{ minHeight: "120px", maxHeight: "250px" }}
+                />
+              )}
               <button
                 onClick={handleSendMessage}
-                disabled={!inputMessage.trim()}
+                disabled={!inputMessage.trim() || isInputDisabled}
               >
                 <FiSend size={24} />
               </button>
             </div>
+            
+            
             {path === "user-management" && (
               <p className="mt-2 text-sm text-red-600 font-medium">
                 You are not allowed to send messages.

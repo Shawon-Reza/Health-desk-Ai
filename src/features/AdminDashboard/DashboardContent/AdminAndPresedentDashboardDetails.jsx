@@ -1,19 +1,37 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { FiUsers, FiUserCheck, FiHome, FiBell } from "react-icons/fi"
+import useGetUserProfile from "../../../hooks/useGetUserProfile"
+import { IoMailUnreadOutline } from "react-icons/io5"
+import { GoRead } from "react-icons/go"
 
 const AdminAndPresedentDashboardDetails = ({ cardData }) => {
 
     // ============ STATE MANAGEMENT ============
     const [dashboardData, setDashboardData] = useState(null)
     const [loading, setLoading] = useState(true)
+    const { userProfileData } = useGetUserProfile();
 
+    console.log("Card Data===================================================:", cardData)
+    console.log("userProfileData===================================================:", userProfileData)
     // ============ MOCK DATA - Replace with backend API calls ============
     const mockDashboardStats = {
         totalUsers: cardData?.total_user || 0,
         activeUsers: cardData?.active_user || 0,
         totalClinics: cardData?.assigned_clinic || 0,
         taggedMessages: cardData?.mentioned_message || 0,
+        // Add more stats as needed for other roles
+        readMessages: cardData?.read_message || 0,
+        unreadMessages: cardData?.unread_message || 0,
+
     }
+
+    // Roles that should not see Total Users and Active User cards
+    const restrictedRoles = ["staff", "doctor", "jr_staff"]
+    const hideUserCards = restrictedRoles.includes(userProfileData?.role)
+
+    // Roles that should not see Read/Unread Message cards
+    const messageRestrictedRoles = ["owner", "president", "manager"]
+    const hideMessageCards = messageRestrictedRoles.includes(userProfileData?.role)
 
     // ============ LIFECYCLE HOOKS ============
     useEffect(() => {
@@ -48,20 +66,25 @@ const AdminAndPresedentDashboardDetails = ({ cardData }) => {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatCard
-                        icon={FiUsers}
-                        label="Total Users"
-                        value={dashboardData?.totalUsers}
-                        borderColor="border-l-4 border-blue-500"
-                        bgColor="bg-blue-100"
-                    />
-                    <StatCard
-                        icon={FiUserCheck}
-                        label="Active User"
-                        value={dashboardData?.activeUsers}
-                        borderColor="border-l-4 border-green-500"
-                        bgColor="bg-green-100"
-                    />
+                    {!hideUserCards && (
+                        <>
+                            <StatCard
+                                icon={FiUsers}
+                                label="Total Users"
+                                value={dashboardData?.totalUsers}
+                                borderColor="border-l-4 border-blue-500"
+                                bgColor="bg-blue-100"
+                            />
+                            <StatCard
+                                icon={FiUserCheck}
+                                label="Active User"
+                                value={dashboardData?.activeUsers}
+                                borderColor="border-l-4 border-green-500"
+                                bgColor="bg-green-100"
+                            />
+                        </>
+                    )}
+                    
                     <StatCard
                         icon={FiHome}
                         label="Total Clinic"
@@ -69,6 +92,31 @@ const AdminAndPresedentDashboardDetails = ({ cardData }) => {
                         borderColor="border-l-4 border-teal-500"
                         bgColor="bg-teal-100"
                     />
+
+
+                    {!hideMessageCards && (
+                        <>
+                            <StatCard
+                                icon={GoRead }
+                                label="Read Message"
+                                value={dashboardData?.readMessages}
+                                borderColor="border-l-4 border-teal-500"
+                                bgColor="bg-teal-100"
+                            />
+                            <StatCard
+                                icon={IoMailUnreadOutline }
+                                label="Unread Message"
+                                value={dashboardData?.unreadMessages}
+                                borderColor="border-l-4 border-teal-500"
+                                bgColor="bg-teal-100"
+                            />
+                        </>
+                    )}
+
+
+
+
+
                     <StatCard
                         icon={FiBell}
                         label="Tagged Message"

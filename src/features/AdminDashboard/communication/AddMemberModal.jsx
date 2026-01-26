@@ -55,7 +55,7 @@ const AddMemberModal = ({ onClose, roomId, userList }) => {
         onError: (error) => {
             console.error('Error adding members:', error);
             const msg = error?.response?.data?.message || error?.message || 'Failed to add members';
-            toast.error(msg);
+            toast.error(error?.response?.data?.error?.message || msg);
         },
     });
 

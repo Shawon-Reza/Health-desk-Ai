@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState, useMemo } from "react";
-import Markdown from 'https://esm.sh/react-markdown@10'
-import remarkGfm from 'remark-gfm';
+import ReactMarkdown from 'react-markdown';
+// import remarkGfm from 'remark-gfm';
 import { useLocation } from "react-router-dom";
+import { FiThumbsUp, FiThumbsDown } from "react-icons/fi";
+import { useMutation } from "@tanstack/react-query";
+import axiosApi from "../../../service/axiosInstance";
 
 const MessageList = ({
     messages,
@@ -152,6 +155,60 @@ const MessageList = ({
             : (!isAI && Number(msg?.sender?.id) === Number(userId));
         const text = msg?.content || "";
 
+        // Local state for optimistic UI updates
+        const [optimisticReaction, setOptimisticReaction] = useState(msg?.my_reaction || null);
+        const [optimisticCounts, setOptimisticCounts] = useState({
+            like: msg?.reactions?.like?.count || 0,
+            dislike: msg?.reactions?.dislike?.count || 0
+        });
+
+        // ====================================Like/Displike Ai message ==================================\\
+        const reactionMutation = useMutation({
+            mutationFn: (reaction) =>
+                axiosApi.post(`/api/v1/messages/${msg.id}/react/`, { reaction }),
+            onSuccess: () => {
+                console.log("✅ Reaction sent successfully");
+            },
+            onError: (err) => {
+                console.error("❌ Reaction failed:", err?.response?.data || err?.message);
+                // Revert optimistic update on error
+                setOptimisticReaction(msg?.my_reaction || null);
+                setOptimisticCounts({
+                    like: msg?.reactions?.like?.count || 0,
+                    dislike: msg?.reactions?.dislike?.count || 0
+                });
+            }
+        });
+
+        const handleReaction = (reaction) => {
+            const previousReaction = optimisticReaction;
+            const previousCounts = { ...optimisticCounts };
+
+            // Optimistic update - immediately update UI
+            setOptimisticReaction(reaction === optimisticReaction ? null : reaction);
+            
+            // Update counts optimistically
+            setOptimisticCounts(prev => {
+                const updated = { ...prev };
+                
+                // If clicking the same reaction, toggle it off
+                if (reaction === optimisticReaction) {
+                    updated[reaction] = Math.max(0, updated[reaction] - 1);
+                } else {
+                    // Clicking a different reaction
+                    if (optimisticReaction) {
+                        updated[optimisticReaction] = Math.max(0, updated[optimisticReaction] - 1);
+                    }
+                    updated[reaction] = updated[reaction] + 1;
+                }
+                
+                return updated;
+            });
+
+            // Send to server
+            reactionMutation.mutate(reaction);
+        };
+
         return (
             <div className={`flex mb-4 ${isMe ? "justify-end" : "justify-start"}`}>
                 <div
@@ -171,9 +228,9 @@ const MessageList = ({
                     {/* ................Convert Markdown to HTML................. */}
                     <div className="text-sm prose prose-sm max-w-none break-words">
                         {isAI ? (
-                            <Markdown remarkPlugins={[remarkGfm]}>
+                            <ReactMarkdown>
                                 {text}
-                            </Markdown>
+                            </ReactMarkdown>
                         ) : (
                             <p className="break-words">{text}</p>
                         )}
@@ -186,6 +243,28 @@ const MessageList = ({
                             minute: "2-digit",
                         })}
                     </div>
+
+                    {/* ====================================== REACTIONS - Show for AI messages only ==================================== */}
+                    {isAI && msg?.reactions && (
+                        <div className="flex gap-3 mt-2 pt-2 border-t" style={{ borderTopColor: '#d8b4fe' }}>
+                            <div className="flex items-center gap-1 text-xs">
+                                <FiThumbsUp
+                                    size={14}
+                                    onClick={() => handleReaction('like')}
+                                    className={`cursor-pointer transition-colors ${optimisticReaction === 'like' ? 'text-green-600 fill-green-600' : 'text-gray-500'}`}
+                                />
+                                <span className="text-gray-600 font-medium">{optimisticCounts.like}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-xs">
+                                <FiThumbsDown
+                                    size={14}
+                                    onClick={() => handleReaction('dislike')}
+                                    className={`cursor-pointer transition-colors ${optimisticReaction === 'dislike' ? 'text-red-600 fill-red-600' : 'text-gray-500'}`}
+                                />
+                                <span className="text-gray-600 font-medium">{optimisticCounts.dislike}</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         );

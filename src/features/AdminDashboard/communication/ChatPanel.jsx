@@ -159,7 +159,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
       console.log("content:", contentPlain);
       console.log("mention_user_ids:==============================================================================", mentionIds);
       console.groupEnd();
-    } catch {}
+    } catch { }
 
     // .....................** Send Messages **..................... //
     try {
@@ -180,7 +180,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
             console.log("formData", k, v);
           }
         }
-      } catch {}
+      } catch { }
 
       const resp = await axiosApi.post(`/api/v1/rooms/${chatRoom}/send/`, formData, {
         headers: {
@@ -199,7 +199,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
 
 
-  
+
 
   const handleInputChange = (e) => {
     const el = e.target;
@@ -226,7 +226,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
       id: String(m.id),
       display: m.name || m.username || "Unknown User",
     }));
-    
+
     // Add test data if no members loaded
     if (data.length === 0) {
       console.warn("⚠️ No members data, using test data");
@@ -236,7 +236,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
         { id: '3', display: 'Dolor Test' },
       ];
     }
-    
+
     console.log("📋 Mention Data Generated:", data);
     console.log("📋 Total members:", members.length);
     return data;
@@ -336,6 +336,12 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
               {roomType === "group" ? (
                 <div className="flex-1 relative min-w-0">
                   <MentionsInput
+                    className="mentions mentions--multiLine"
+                    inputClassName="mentions__input"
+                    highlighterClassName="mentions__highlighter"
+                    controlClassName="mentions__control"
+                    suggestionsClassName="mentions__suggestions__list"
+                    suggestionClassName="mentions__suggestions__item"
                     value={inputMessage}
                     onChange={(e) => handleInputChange(e)}
                     onKeyDown={handleInputKeyDown}
@@ -351,10 +357,16 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
                       data={mentionData}
                       displayTransform={(id, display) => `@${display}`}
                       markup="@[__display__](__id__)"
+                      mentionClassName="mentions__mention"
                       renderSuggestion={(suggestion, search, highlightedDisplay, index, focused) => {
-                        console.log("🎯 Rendering suggestion:", suggestion);
                         return (
-                          <div style={{ padding: '8px 12px' }}>
+                          <div
+                            style={{
+                              padding: "8px 12px",
+                              maxHeight: "50vh",
+                              overflowY: "auto"
+                            }}
+                          >
                             {suggestion.display}
                           </div>
                         );
@@ -382,8 +394,8 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
                 <FiSend size={24} />
               </button>
             </div>
-            
-            
+
+
             {path === "user-management" && (
               <p className="mt-2 text-sm text-red-600 font-medium">
                 You are not allowed to send messages.

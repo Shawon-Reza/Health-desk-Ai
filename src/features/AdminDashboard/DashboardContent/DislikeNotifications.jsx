@@ -1,8 +1,8 @@
 import { FiThumbsDown, FiMessageCircle, FiUser, FiClock, FiChevronDown, FiChevronUp } from "react-icons/fi"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import Markdown from 'https://esm.sh/react-markdown@10'
-import remarkGfm from 'remark-gfm';
+import ReactMarkdown from 'react-markdown'
+// import remarkGfm from 'remark-gfm';
 
 
 const DislikeNotifications = ({ dislikes, isLoading }) => {
@@ -31,6 +31,7 @@ const DislikeNotifications = ({ dislikes, isLoading }) => {
             </div>
         )
     }
+
 
     if (!dislikes || dislikes.length === 0) {
         return (
@@ -106,9 +107,9 @@ const DislikeNotifications = ({ dislikes, isLoading }) => {
                                         className={`text-xs text-gray-700 leading-relaxed overflow-hidden transition-all duration-300 ${expandedItems[dislike.id] ? 'max-h-none' : 'max-h-20'
                                             }`}
                                     >
-                                        <Markdown remarkPlugins={[remarkGfm]}>
+                                        <ReactMarkdown>
                                             {dislike.message?.content || 'No content available'}
-                                        </Markdown>
+                                        </ReactMarkdown>
                                     </div>
 
                                     {/* Expand/Collapse Button */}

@@ -3,8 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { FiPaperclip, FiMic, FiSend, FiThumbsUp, FiThumbsDown } from "react-icons/fi"
 import { connectWebSocketForChat } from "../Communication/ChatService";
 import axiosApi from "../../../service/axiosInstance"
-import Markdown from 'https://esm.sh/react-markdown@10'
-import remarkGfm from 'remark-gfm';
+import ReactMarkdown from 'react-markdown'
+// import remarkGfm from 'remark-gfm';
 
 const AiTrainingChat = () => {
     const socketRef = useRef(null);
@@ -220,17 +220,17 @@ const AiTrainingChat = () => {
                                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg flex-shrink-0">
                                         {msg.avatar}
                                     </div>
-                                    <div className={`${msg.sender === "user" ? "text-right" : ""}`}>
+                                    <div className="text-left">
                                         {msg.sender === "user" && <p className="text-xs text-gray-600 mb-1">{msg.userName}</p>}
                                         <div
-                                            className={`rounded-lg px-4 py-2 ${msg.sender === "user" ? "bg-teal-100 text-gray-900" : "bg-gray-100 text-gray-900"
+                                            className={`rounded-lg text-sm px-4 py-2 ${msg.sender === "user" ? "bg-teal-100 text-gray-900" : "bg-gray-100 text-gray-900"
                                                 }`}
                                         >
                                             {/* Message text */}
                                             {/* <p className="text-sm">{msg.message}</p> */}
-                                            <Markdown remarkPlugins={[remarkGfm]}>
+                                            <ReactMarkdown>
                                                 {msg.message}
-                                            </Markdown>
+                                            </ReactMarkdown>
 
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1">{msg.timestamp}</p>

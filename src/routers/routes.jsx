@@ -9,7 +9,7 @@ import ClinicManagement from "../features/AdminDashboard/ClinicManagement";
 import SubjectMatters from "../features/AdminDashboard/SubjectMatters";
 import Settings from "../features/AdminDashboard/Settings";
 import ProfilePersonalInformationForm from "../features/AdminDashboard/ProfilePersonalInformationForm";
-import Notifications from "../features/AdminDashboard/Notifications";
+import Notifications from "../features/AdminDashboard/Notification/Notifications";
 import Security from "../features/AdminDashboard/Security";
 import AITrainingPage from "../features/AdminDashboard/AiTraining/AITrainingPage";
 import UserManagement from "../features/AdminDashboard/UserManagement";
@@ -17,7 +17,6 @@ import UserProfileFromAdmin from "../features/AdminDashboard/UserProfileFromAdmi
 import Assesments from "../features/AdminDashboard/assesments/Assesments";
 import ReviewAssesmentResult from "../features/AdminDashboard/ReviewAssesmentResult";
 import CreatedAssesmentDetails from "../features/AdminDashboard/assesments/CreatedAssesmentDetails";
-import Communication from "../features/AdminDashboard/Communication/Communication";
 import ViewAllAssesmentHistory from "../features/AdminDashboard/assesments/ViewAllAssesmentHistory";
 import ViewAllOngoingAssesments from "../features/AdminDashboard/assesments/ViewAllOngoingAssesments";
 import { AssessmentViewAnswers } from "../features/AdminDashboard/assesments/AssessmentViewAnswers";
@@ -26,6 +25,8 @@ import PrivateRoute from "./PrivetRoute";
 import { ROLES } from "./roles";
 import AssignedClinic from "../features/AdminDashboard/AssignedClinic";
 import ClinicwiseChatHistory from "../features/AdminDashboard/ClinicwiseChatHistory/ClinicwiseChatHistory";
+import Communication from "../features/AdminDashboard/Communication/Communication";
+
 
 export const router = createBrowserRouter([
     {

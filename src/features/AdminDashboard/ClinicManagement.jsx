@@ -88,22 +88,29 @@ const ClinicManagement = () => {
     const handleDeleteClinic = (clinicId, clinicName) => {
         Swal.fire({
             title: "Are you sure?",
-            text: "You won't be able to revert this!",
+            html: `
+        You won't be able to revert this!<br/><br/>
+        <span style="color: red; font-weight: bold;">
+            ⚠ If you delete this clinic, all its members and chat history will be permanently removed.
+        </span>
+    `,
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#6c757d",
             confirmButtonText: "Yes, delete it!"
         }).then((result) => {
             if (result.isConfirmed) {
-                deleteClinicMutation.mutate(clinicId)
+                deleteClinicMutation.mutate(clinicId);
+
                 Swal.fire({
                     title: "Deleted!",
-                    text: "Your file has been deleted.",
+                    text: "The clinic and all related data have been removed.",
                     icon: "success"
                 });
             }
         });
+
     }
 
     // ============ CLINIC CARD COMPONENT ============
@@ -215,21 +222,18 @@ const ClinicManagement = () => {
                         })
                     }
                     disabled={toggleClinicStatusMutation.isPending}
-                    className={`w-full py-3 rounded-lg font-semibold border transition-colors flex items-center justify-center gap-2 ${
-                        clinic.is_deleted
+                    className={`w-full py-3 rounded-lg font-semibold border transition-colors flex items-center justify-center gap-2 ${clinic.is_deleted
                             ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
                             : 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100'
-                    } ${
-                        toggleClinicStatusMutation.isPending
+                        } ${toggleClinicStatusMutation.isPending
                             ? 'opacity-50 cursor-not-allowed'
                             : 'cursor-pointer'
-                    }`}
+                        }`}
                     title="Double-click to toggle status"
                 >
                     <span
-                        className={`w-2 h-2 rounded-full ${
-                            clinic.is_deleted ? 'bg-red-600' : 'bg-green-600'
-                        }`}
+                        className={`w-2 h-2 rounded-full ${clinic.is_deleted ? 'bg-red-600' : 'bg-green-600'
+                            }`}
                     ></span>
                     {clinic.is_deleted ? 'Inactive' : 'Active'}
                 </button>

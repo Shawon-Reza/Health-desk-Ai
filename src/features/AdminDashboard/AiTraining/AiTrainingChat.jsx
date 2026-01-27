@@ -197,7 +197,7 @@ const AiTrainingChat = () => {
     }
 
     return (
-        <div className="border border-teal-500 rounded-lg p-6 flex flex-col max-h-[700px]">
+        <div className="border border-teal-500 rounded-lg p-6 flex flex-col max-h-[calc(100vh-200px)] md:max-h-[calc(100vh-250px)] lg:max-h-[calc(100vh-300px)]">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
                 <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center text-white font-semibold">
                     🤖

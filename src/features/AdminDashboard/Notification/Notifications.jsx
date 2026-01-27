@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import axiosApi from '../../../service/axiosInstance'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { queryClient } from '../../../main'
+import Swal from 'sweetalert2'
 
 const Notifications = ({ notifications = [], notificationCount = 0, onNotificationRead }) => {
 
@@ -67,6 +68,32 @@ const Notifications = ({ notifications = [], notificationCount = 0, onNotificati
     }
   })
 
+  // ====================================== Delete All Notifications ====================================== // 
+  const { mutate: deleteAllNotifications } = useMutation({
+    mutationFn: async () => {
+      const response = await axiosApi.delete('/api/v1/notifications/delete-all/')
+      console.log('Delete all notifications response:', response.data)
+      return response.data
+    },
+    onSuccess: (data) => {
+      console.log('All notifications deleted successfully:', data)
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      Swal.fire({
+        title: "Deleted!",
+        text: "All notifications have been cleared.",
+        icon: "success"
+      })
+    },
+    onError: (error) => {
+      console.error('Error deleting all notifications:', error)
+      Swal.fire({
+        title: "Error!",
+        text: error?.response?.data?.message || "Failed to delete all notifications.",
+        icon: "error"
+      })
+    }
+  })
+
 
   // =====================Call mark as read when notifications are successfully fetched============================\\
   React.useEffect(() => {
@@ -87,8 +114,23 @@ const Notifications = ({ notifications = [], notificationCount = 0, onNotificati
       navigate('/admin/communication')
     }
   }
-
-
+  // ====================================== Clear All Notifications UI ====================================== //
+  const handleClearAll = () => {
+    console.log("Clear All Notifications Clicked")
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteAllNotifications()
+      }
+    })
+  }
 
 
 
@@ -102,7 +144,9 @@ const Notifications = ({ notifications = [], notificationCount = 0, onNotificati
             {notificationCount > 99 ? '99+' : notificationCount}
           </span>
         )} */}
-        <button className='cursor-pointer'>
+        <button
+          onClick={handleClearAll}
+          className='cursor-pointer font-bold'>
           Clear All
         </button>
       </div>

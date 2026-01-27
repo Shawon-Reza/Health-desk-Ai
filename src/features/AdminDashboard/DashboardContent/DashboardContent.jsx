@@ -328,7 +328,7 @@ const DashboardContent = () => {
                           icon: FiUsers,
                           color: "bg-green-500",
                           hoverColor: "hover:bg-green-600",
-                          onClick: () => navigate('/admin/users-management'),
+                          onClick: () => navigate('/admin/user-management'),
                         }}
                       />
                       <QuickActionButton

@@ -7,6 +7,7 @@ import AiTrainingChat from "./AiTraining/AiTrainingChat"
 import { useQuery } from "@tanstack/react-query"
 import axiosApi from "../../service/axiosInstance"
 import { toast } from "react-toastify"
+import { queryClient } from "../../main"
 
 export default function AITrainingCenter() {
     const [uploadQueue, setUploadQueue] = useState([])
@@ -34,7 +35,7 @@ export default function AITrainingCenter() {
         // prevent duplicate calls (handles dev StrictMode and re-renders)
         if (sessionStorage.getItem(storageKey)) {
             // clear history state so future mounts don't see it
-            try { window.history.replaceState({}, document.title, window.location.pathname) } catch (e) {}
+            try { window.history.replaceState({}, document.title, window.location.pathname) } catch (e) { }
             return
         }
 
@@ -50,7 +51,7 @@ export default function AITrainingCenter() {
                 sessionStorage.removeItem(storageKey)
             } finally {
                 // Clear the location state without triggering a React navigation
-                try { window.history.replaceState({}, document.title, window.location.pathname) } catch (e) {}
+                try { window.history.replaceState({}, document.title, window.location.pathname) } catch (e) { }
             }
         })()
     }, [location])
@@ -156,22 +157,24 @@ export default function AITrainingCenter() {
             setUploadQueue([])
             setTitle("")
             setProvidedTopics("")
+            queryClient.invalidateQueries({ queryKey: ['aiTrainingDocs'] })
         } catch (error) {
             console.error("[AITrainingCenter] Upload failed:", error)
         }
     }
 
     // Check if all required fields are filled
-    const isFormValid = title.trim() !== "" && providedTopics.trim() !== "" && uploadQueue.length > 0 && !!chatRoom
+    // const isFormValid = title.trim() !== "" && providedTopics.trim() !== "" && uploadQueue.length > 0 && !!chatRoom
+    const isFormValid = providedTopics.trim() !== "" && uploadQueue.length > 0 && !!chatRoom
 
     return (
-        <div className=" p-4 md:p-8 ">
+        <div className=" p-4 md:p-8 h-[calc(100vh-200px)] flex flex-col overflow-y-auto">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Training Center</h1>
                 <p className="text-gray-600">Upload and manage training materials for the chatbot</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-h-[700px]">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
                 {/* Left Section - Upload Documents */}
                 <div className="border border-teal-500 rounded-lg p-6">
                     <h2 className="text-xl font-semibold text-gray-900 mb-4">Upload Documents</h2>
@@ -181,7 +184,7 @@ export default function AITrainingCenter() {
                     </p>
 
                     {/* Title Input */}
-                    <div className="mb-4">
+                    {/* <div className="mb-4">
                         <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
                             Title
                         </label>
@@ -193,7 +196,7 @@ export default function AITrainingCenter() {
                             placeholder="Enter training title..."
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                         />
-                    </div>
+                    </div> */}
 
                     {/* Provided Topics Input */}
                     <div className="mb-6">
@@ -242,7 +245,7 @@ export default function AITrainingCenter() {
                     {uploadQueue.length > 0 && (
                         <div className="border border-gray-200 rounded-lg p-4 mb-6">
                             <h3 className="font-semibold text-gray-900 mb-4">Upload Queue</h3>
-                            <div className="space-y-3 max-h-[150px] overflow-auto ">
+                            <div className="space-y-3 max-h-[120px] overflow-auto ">
                                 {uploadQueue.map((file) => (
                                     <div key={file.id} className="flex items-center justify-between">
                                         <div className="flex items-center gap-3 flex-1">

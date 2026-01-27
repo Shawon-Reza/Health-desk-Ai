@@ -28,6 +28,7 @@ import ClinicwiseChatHistory from "../features/AdminDashboard/ClinicwiseChatHist
 import Communication from "../features/AdminDashboard/Communication/Communication";
 
 
+
 export const router = createBrowserRouter([
     {
         path: "/",
@@ -53,7 +54,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "communication",
-                element: <Communication></Communication>,
+                element: <Communication></Communication> ,
             },
             {
                 path: "clinicwise-chat-history",

@@ -6,6 +6,7 @@ const axiosApi = axios.create({
   baseURL: base_URL,
   headers: {
     "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true", // 👈 Add this for ngrok free tunnels
   },
 });
 
@@ -14,6 +15,7 @@ const refreshAxios = axios.create({
   baseURL: base_URL,
   headers: {
     "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true", // 👈 Add here too
   },
 });
 

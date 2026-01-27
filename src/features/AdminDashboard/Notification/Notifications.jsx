@@ -2,19 +2,41 @@ import React from 'react'
 import { IoCloseOutline } from 'react-icons/io5'
 
 import axiosApi from '../../../service/axiosInstance'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 
 const Notifications = ({ notifications = [], notificationCount = 0, onNotificationRead }) => {
 
   // ====================================== Get Notifications History List UI====================================== //
 
-  const { data: notificationsData, isLoading, error } = useQuery({
+  const { mutate: markNotificationsAsRead } = useMutation({
+    mutationFn: async () => {
+      const response = await axiosApi.post('/api/v1/notifications/read/')
+      console.log('Mark as read response:', response.data)
+      return response.data
+    },
+    onSuccess: (data) => {
+      console.log('Notifications marked as read successfully:', data)
+    },
+    onError: (error) => {
+      console.error('Error marking notifications as read:', error)
+    }
+  })
+
+  const { data: notificationsData, isLoading, error, isSuccess } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
       const response = await axiosApi.get('/api/v1/notifications/all/')
       return response.data
     }
   })
+
+  // Call mark as read when notifications are successfully fetched
+  React.useEffect(() => {
+    if (isSuccess && notificationsData?.results?.length > 0) {
+      markNotificationsAsRead()
+    }
+  }, [isSuccess, notificationsData, markNotificationsAsRead])
+
   console.log('Notifications Data:', notificationsData?.results)
 
 

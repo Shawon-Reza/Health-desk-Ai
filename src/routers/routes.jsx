@@ -25,7 +25,9 @@ import PrivateRoute from "./PrivetRoute";
 import { ROLES } from "./roles";
 import AssignedClinic from "../features/AdminDashboard/AssignedClinic";
 import ClinicwiseChatHistory from "../features/AdminDashboard/ClinicwiseChatHistory/ClinicwiseChatHistory";
+import NotificationsToggle from "../features/AdminDashboard/NotificationsToggle";
 import Communication from "../features/AdminDashboard/Communication/Communication";
+
 
 
 
@@ -126,7 +128,7 @@ export const router = createBrowserRouter([
                     },
                     {
                         path: 'notifications',
-                        element: <Notifications></Notifications>,
+                        element: <NotificationsToggle></NotificationsToggle>,
                     },
                     {
                         path: 'security',

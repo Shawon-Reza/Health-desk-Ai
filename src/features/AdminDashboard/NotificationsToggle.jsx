@@ -5,7 +5,7 @@ import { FiBell } from "react-icons/fi"
 import axiosApi from "../../service/axiosInstance"
 import { toast } from "react-toastify"
 
-const Notifications = () => {
+const NotificationsToggle = () => {
     const [notifications, setNotifications] = useState({
         notify_assessments: false,
         notify_tagged_messages: false
@@ -143,4 +143,4 @@ const Notifications = () => {
     )
 }
 
-export default Notifications
+export default NotificationsToggle

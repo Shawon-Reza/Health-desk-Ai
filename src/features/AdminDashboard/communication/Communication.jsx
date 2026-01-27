@@ -110,7 +110,7 @@ const Communication = () => {
         keepPreviousData: true, // Smooth UX while loading new results
         staleTime: 1000 * 30, // Optional: reduce refetch frequency
     });
-    console.log("--------------------", rooms)
+    console.log("-----------------=============================================---", rooms)
 
 
     // WebSocket for real-time room updates
@@ -269,7 +269,7 @@ const Communication = () => {
                         <select
                             value={selectedRole}
                             onChange={(e) => handleRoleFilterChange(e.target.value)}
-                            className="border rounded-lg px-2 py-2 text-sm"
+                            className="border border-gray-300 rounded-lg px-2 py-2 text-sm"
                         >
                             {roles.map((role) => (
                                 <option key={role} value={role}>

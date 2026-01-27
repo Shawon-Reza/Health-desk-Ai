@@ -3,6 +3,7 @@ import { IoCloseOutline } from 'react-icons/io5'
 
 import axiosApi from '../../../service/axiosInstance'
 import { useQuery, useMutation } from '@tanstack/react-query'
+import { queryClient } from '../../../main'
 
 const Notifications = ({ notifications = [], notificationCount = 0, onNotificationRead }) => {
 
@@ -22,6 +23,7 @@ const Notifications = ({ notifications = [], notificationCount = 0, onNotificati
     }
   })
 
+  // ====================================== Get Notifications List UI====================================== //
   const { data: notificationsData, isLoading, error, isSuccess } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
@@ -30,7 +32,24 @@ const Notifications = ({ notifications = [], notificationCount = 0, onNotificati
     }
   })
 
-  // Call mark as read when notifications are successfully fetched
+  // ====================================== Delete Notification UI====================================== // 
+  const { mutate: deleteNotification } = useMutation({
+    mutationFn: async ({ source, id }) => {
+      const response = await axiosApi.delete(`/api/v1/notifications/${source}/${id}/`)
+      console.log('Delete notification response:', response.data)
+      return response.data
+    },
+    onSuccess: (data) => {
+      console.log('Notification deleted successfully:', data)
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    },
+    onError: (error) => {
+      console.error('Error deleting notification:', error)
+    }
+  })
+
+
+  // =====================Call mark as read when notifications are successfully fetched============================\\
   React.useEffect(() => {
     if (isSuccess && notificationsData?.results?.length > 0) {
       markNotificationsAsRead()
@@ -63,6 +82,7 @@ const Notifications = ({ notifications = [], notificationCount = 0, onNotificati
           notificationsData.results.map((notification, idx) => (
             <div
               key={notification.id}
+              onClick={(e) => e.stopPropagation()}
               className='p-4 hover:bg-gray-50 cursor-pointer transition-colors border-l-4 border-blue-500'
             >
               <div className='flex items-start justify-between gap-2'>
@@ -88,7 +108,13 @@ const Notifications = ({ notifications = [], notificationCount = 0, onNotificati
                 </div>
 
                 {/* Close Icon */}
-                <button className='text-gray-400 hover:text-gray-600 cursor-pointer hover:scale-110 transition-transform duration-700 ease-in-out '>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    deleteNotification({ source: notification.source, id: notification.id })
+                  }}
+                  className='text-gray-400 hover:text-gray-600 cursor-pointer hover:scale-110 transition-transform duration-700 ease-in-out '
+                >
                   <IoCloseOutline size={18} className='hover:text-red-500 ' />
                 </button>
               </div>

@@ -2,7 +2,7 @@
 
 import { useInfiniteQuery, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { FiSend, FiInfo } from "react-icons/fi";
+import { FiSend, FiInfo, FiPaperclip, FiX } from "react-icons/fi";
 import { MentionsInput, Mention } from "react-mentions";
 import "./mentions.css";
 import axiosApi from "../../../service/axiosInstance";
@@ -18,7 +18,9 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
   const [inputMessage, setInputMessage] = useState("");
   const [showActions, setShowActions] = useState(false);
   const [isAiTyping, setIsAiTyping] = useState(false);
+  const [attachments, setAttachments] = useState([]);
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Auth
   const { userInfo } = getAuthData();
@@ -113,7 +115,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
   // ============================================Send message with optimistic update=====================================\\
   const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() && attachments.length === 0) return;
 
     const optimisticMsg = {
       id: `temp-${Date.now()}`,
@@ -161,7 +163,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
       console.groupEnd();
     } catch { }
 
-    // .....................** Send Messages **..................... //
+    // .................................................** Send Messages **.............................................. //
     try {
       const formData = new FormData();
       // Just appent paylod fields to formData
@@ -169,6 +171,13 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
       if (mentionIds.length > 0) {
         // Backend expects comma-separated IDs (e.g., "2,5"); single value is fine too
         formData.append("mention_user_ids", mentionIds.join(","));
+      }
+      
+      // Append attachments
+      if (attachments.length > 0) {
+        attachments.forEach((file) => {
+          formData.append("attachments", file);
+        });
       }
 
       // Debug: log formData entries
@@ -188,6 +197,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
         },
       });
       console.log("✅ Message sent:", resp?.status, resp?.data);
+      setAttachments([]);
     } catch (err) {
       // Turn off typing indicator on error
       if (roomType === "ai") {
@@ -217,6 +227,37 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'xls', 'xlsx', 'csv', 'doc', 'docx'];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    const validFiles = files.filter(file => {
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      const isValidExtension = allowedExtensions.includes(fileExtension);
+      const isValidSize = file.size <= maxSize;
+      
+      if (!isValidExtension || !isValidSize) {
+        console.warn(`❌ File rejected: ${file.name} - Extension: ${isValidExtension ? 'valid' : 'invalid'}, Size: ${isValidSize ? 'valid' : 'too large'}`);
+      }
+      
+      return isValidExtension && isValidSize;
+    });
+
+    setAttachments(prev => [...prev, ...validFiles]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveFile = (index) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleFileInputClick = () => {
+    fileInputRef.current?.click();
   };
 
   // Members filtered for mention suggestions
@@ -332,7 +373,45 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
           {/* ........................................................Input Area For send text................................................ */}
           <div className="p-4 border-t border-gray-300">
+            {/* File attachments preview */}
+            {attachments.length > 0 && (roomType === "group" || roomType === "private") && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {attachments.map((file, index) => (
+                  <div key={index} className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
+                    <FiPaperclip size={16} className="text-gray-600" />
+                    <span className="text-sm text-gray-700 max-w-[200px] truncate">{file.name}</span>
+                    <button
+                      onClick={() => handleRemoveFile(index)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <FiX size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="flex gap-3 w-full min-w-0">
+              {/* File upload button for group and private */}
+              {(roomType === "group" || roomType === "private") && (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept=".jpg,.jpeg,.png,.gif,.webp,.svg,.xls,.xlsx,.csv,.doc,.docx"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={handleFileInputClick}
+                    disabled={isInputDisabled}
+                    className="text-gray-600 hover:text-gray-800 disabled:opacity-50"
+                    title="Attach files"
+                  >
+                    <FiPaperclip size={24} />
+                  </button>
+                </>
+              )}
               {roomType === "group" ? (
                 <div className="flex-1 relative min-w-0 ">
                   <MentionsInput
@@ -389,7 +468,8 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
               )}
               <button
                 onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || isInputDisabled}
+                disabled={(!inputMessage.trim() && attachments.length === 0) || isInputDisabled}
+                className="disabled:opacity-50"
               >
                 <FiSend size={24} />
               </button>

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import ReactMarkdown from 'react-markdown';
 // import remarkGfm from 'remark-gfm';
 import { useLocation } from "react-router-dom";
-import { FiThumbsUp, FiThumbsDown } from "react-icons/fi";
+import { FiThumbsUp, FiThumbsDown, FiDownload, FiFile } from "react-icons/fi";
 import { useMutation } from "@tanstack/react-query";
 import axiosApi from "../../../service/axiosInstance";
 
@@ -155,6 +155,29 @@ const MessageList = ({
             : (!isAI && Number(msg?.sender?.id) === Number(userId));
         const text = msg?.content || "";
 
+        // Helper function to determine file type from URL
+        const getFileType = (url) => {
+            const ext = url.split('.').pop().toLowerCase();
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) return 'image';
+            if (ext === 'pdf') return 'pdf';
+            if (['xls', 'xlsx', 'csv'].includes(ext)) return 'excel';
+            if (['doc', 'docx'].includes(ext)) return 'document';
+            return 'file';
+        };
+
+        const getFileIcon = (fileType) => {
+            switch (fileType) {
+                case 'pdf':
+                    return '📄 PDF';
+                case 'excel':
+                    return '📊 Excel';
+                case 'document':
+                    return '📝 Document';
+                default:
+                    return '📎 File';
+            }
+        };
+
         // Local state for optimistic UI updates
         const [optimisticReaction, setOptimisticReaction] = useState(msg?.my_reaction || null);
         const [optimisticCounts, setOptimisticCounts] = useState({
@@ -235,6 +258,41 @@ const MessageList = ({
                             <p className="break-words">{text}</p>
                         )}
                     </div>
+
+                    {/* ................Display Attachments................. */}
+                    {msg?.attachments && msg.attachments.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                            {msg.attachments.map((attachment) => {
+                                const fileType = getFileType(attachment.url);
+                                return (
+                                    <div key={attachment.id}>
+                                        {fileType === 'image' ? (
+                                            // Display image
+                                            <img
+                                                src={attachment.url}
+                                                alt="Attachment"
+                                                className="max-w-sm rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                                onClick={() => window.open(attachment.url, '_blank')}
+                                            />
+                                        ) : (
+                                            // Display file attachment
+                                            <a
+                                                href={attachment.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 p-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors max-w-xs"
+                                            >
+                                                <FiDownload size={16} className="text-gray-700" />
+                                                <span className="text-sm font-medium text-gray-800 truncate">
+                                                    {getFileIcon(fileType)}
+                                                </span>
+                                            </a>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
 
                     {/* TIME */}
                     <div className="text-xs text-gray-500 mt-1 text-right">

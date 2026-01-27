@@ -351,7 +351,7 @@ const DashboardContent = () => {
                         icon: FiHome,
                         color: "bg-teal-500",
                         hoverColor: "hover:bg-teal-600",
-                        onClick: () => navigate('/admin/assigned-clinics'),
+                        onClick: () => navigate('/admin/assigned-clinic'),
                       }}
                     />
                   )}

@@ -334,7 +334,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
           <div className="p-4 border-t border-gray-300">
             <div className="flex gap-3 w-full min-w-0">
               {roomType === "group" ? (
-                <div className="flex-1 relative min-w-0">
+                <div className="flex-1 relative min-w-0 ">
                   <MentionsInput
                     className="mentions mentions--multiLine"
                     inputClassName="mentions__input"
@@ -377,7 +377,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
               ) : (
                 <textarea
                   ref={textareaRef}
-                  rows={5}
+                  rows={3}
                   disabled={isInputDisabled}
                   value={inputMessage}
                   onChange={handleInputChange}

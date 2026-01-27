@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { FiUser, FiMoreVertical, FiChevronDown } from "react-icons/fi"
 import axiosApi from "../../service/axiosInstance"
+import { base_URL, getAuthData } from "../../config/Config"
 
 const UploadedDocuments = () => {
   const [documents, setDocuments] = useState([])
@@ -65,8 +66,16 @@ const UploadedDocuments = () => {
 
   // Handle view details
   const handleViewDetails = (document) => {
-    console.log("[v0] Viewing document details:", document)
-    // Add your logic here - could open a modal or navigate to details page
+    const { role } = getAuthData()
+    console.log("[UploadedDocuments] User role:", role)
+    console.log("[UploadedDocuments] Viewing document details:", document)
+    
+    // Construct full file URL
+    const fullFileUrl = `${base_URL}${document.fileUrl}`
+    console.log("[UploadedDocuments] Opening file URL:", fullFileUrl)
+    
+    // Open file in new tab
+    window.open(fullFileUrl, "_blank")
   }
 
   // Handle action menu

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { FiEye, FiPause, FiPlay, FiClock, FiCheckCircle } from 'react-icons/fi'
+import { FiEye, FiPause, FiPlay, FiClock, FiCheckCircle, FiTrash2 } from 'react-icons/fi'
 import { PiGraduationCapLight } from 'react-icons/pi'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import axiosApi from '../../../service/axiosInstance'
 import { toast } from 'react-toastify'
 import { queryClient } from '../../../main'
+import Swal from 'sweetalert2'
 
 const GeneratedAssesmentsAndHistories = () => {
     const [loading, setLoading] = useState(true)
@@ -97,6 +98,55 @@ const GeneratedAssesmentsAndHistories = () => {
     const handleAssesmentClick = (assessmentId) => {
         console.log('[GeneratedAssesmentsAndHistories] Assessment clicked:', assessmentId)
         navigate(`/admin/assessments/history/${assessmentId}`);
+    }
+
+    // ====================================================Delete assessment mutation==================================================== //
+    const deleteAssessmentMutation = useMutation({
+        mutationFn: async (assessmentId) => {
+            const response = await axiosApi.delete(`/api/v1/assessments/${assessmentId}/delete/`)
+            console.log('[GeneratedAssesmentsAndHistories] Delete response:', response.data)
+            return response.data
+        },
+        onSuccess: (data) => {
+            console.log('[GeneratedAssesmentsAndHistories] Assessment deleted successfully:', data)
+            toast.success('Assessment deleted successfully!')
+            queryClient.invalidateQueries({ queryKey: ['assessments'] })
+            Swal.fire({
+                title: "Deleted!",
+                text: "Assessment has been deleted successfully.",
+                icon: "success"
+            })
+        },
+        onError: (error) => {
+            console.error('[GeneratedAssesmentsAndHistories] Error deleting assessment:', error)
+            toast.error(
+                error?.response?.data?.message ||
+                error?.message ||
+                "Failed to delete assessment."
+            )
+            Swal.fire({
+                title: "Error!",
+                text: error?.response?.data?.message || "Failed to delete assessment.",
+                icon: "error"
+            })
+        }
+    })
+
+    const handleDeleteAssessment = (assessmentId) => {
+        console.log('Delete assessment:', assessmentId)
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                deleteAssessmentMutation.mutate(assessmentId)
+            }
+        })
     }
 
     if (loading) {
@@ -207,6 +257,16 @@ const GeneratedAssesmentsAndHistories = () => {
                                             <FiPlay className="w-4 h-4" />
                                             {updateStatusMutation.isPending ? 'Starting...' : 'Start Assessment'}
                                         </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                handleDeleteAssessment(assessment.id)
+                                            }}
+                                            className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition font-medium text-sm"
+                                        >
+                                            <FiTrash2 className="w-4 h-4" />
+                                            Delete
+                                        </button>
                                     </div>
                                 </div>
                             )
@@ -286,6 +346,16 @@ const GeneratedAssesmentsAndHistories = () => {
                                             Average Score
                                         </div>
                                     </div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            handleDeleteAssessment(assessment.id)
+                                        }}
+                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                        title="Delete Assessment"
+                                    >
+                                        <FiTrash2 className="w-5 h-5" />
+                                    </button>
                                 </div>
                             </div>
                         ))

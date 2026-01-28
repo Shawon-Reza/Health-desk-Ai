@@ -456,14 +456,14 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
               ) : (
                 <textarea
                   ref={textareaRef}
-                  rows={3}
+                  rows={2}
                   disabled={isInputDisabled}
                   value={inputMessage}
                   onChange={handleInputChange}
                   onKeyDown={handleInputKeyDown}
                   placeholder={inputPlaceholder}
-                  className={`flex-1 outline-none resize-none overflow-y-auto border border-gray-300 rounded-lg p-2 min-w-0 text-base min-h-[120px] ${data?.pages[0].chatInfo?.chat_blocked || data?.pages[0].chatInfo?.can_send === false ? 'placeholder:text-red-500' : ''}`}
-                  style={{ minHeight: "120px", maxHeight: "250px" }}
+                  className={`flex-1 outline-none resize-none overflow-y-auto border border-gray-300 rounded-lg p-2 min-w-0 text-base min-h-[100px] ${data?.pages[0].chatInfo?.chat_blocked || data?.pages[0].chatInfo?.can_send === false ? 'placeholder:text-red-500' : ''}`}
+                  style={{ minHeight: "100px", maxHeight: "250px" }}
                 />
               )}
               <button

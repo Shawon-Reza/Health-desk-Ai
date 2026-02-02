@@ -236,7 +236,7 @@ const Communication = () => {
             </section>
 
             {/* Main Layout */}
-            <section className="flex gap-6 h-[calc(100vh-250px)]">
+            <section className="flex gap-6 h-[calc(100vh-220px)]">
                 {/* ......................Sidebar.................... */}
                 <section className="w-[40%] xl:w-[25%] h-full bg-white rounded-xl shadow-md p-4 space-y-4 border border-gray-300">
                     {/* Tabs */}
@@ -303,7 +303,7 @@ const Communication = () => {
                     </div>
 
                     {/* ........................Chat List.......................... */}
-                    <div className={`space-y-2 overflow-auto h-[calc(100vh-450px)] `}>
+                    <div className={`space-y-2 overflow-auto h-[calc(100vh-440px)] `}>
 
 
                         <div className={`text-center text-gray-500 ${activeTab === "aiAssistant" ? "" : "hidden"}`}>

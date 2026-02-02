@@ -212,11 +212,8 @@ const MessageList = ({
             }, 500);
         }
 
-        // When user reaches bottom - load newer messages (guarded)
-        if (isAtBottom && hasPreviousPage && !isFetchingPreviousPage && !isFetchingPreviousRef.current) {
-            isFetchingPreviousRef.current = true;
-            fetchPreviousPage();
-        }
+        // Disable bottom fetch - we don't need to fetch "newer" messages in a chat
+        // (newest messages are always loaded via WebSocket)
     };
 
     // Scroll to bottom handler

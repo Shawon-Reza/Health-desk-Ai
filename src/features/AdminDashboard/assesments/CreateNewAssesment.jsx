@@ -174,19 +174,19 @@ const CreateNewAssesment = () => {
                             </div>
                         </div>
 
-                        {/* Subroles (Only for Doctor) or Subject Matters (For other roles) */}
+                        {/* Subroles (Doctor/Staff/Jr Staff) or Subject Matters (others) */}
                         {formData.role && (
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    {formData.role === 'doctor' ? 'Sub Role (Specialization)' : 'Subject Matter'}
+                                    {['doctor', 'staff', 'jr_staff'].includes(formData.role) ? 'Sub Role (Specialization)' : 'Subject Matter'}
                                 </label>
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        placeholder={formData.role === 'doctor' ? 'Search sub roles...' : 'Search subjects...'}
-                                        value={formData.role === 'doctor' ? searchSubrole : searchSubjectMatter}
+                                        placeholder={['doctor', 'staff', 'jr_staff'].includes(formData.role) ? 'Search sub roles...' : 'Search subjects...'}
+                                        value={['doctor', 'staff', 'jr_staff'].includes(formData.role) ? searchSubrole : searchSubjectMatter}
                                         onChange={(e) => {
-                                            if (formData.role === 'doctor') {
+                                            if (['doctor', 'staff', 'jr_staff'].includes(formData.role)) {
                                                 setSearchSubrole(e.target.value)
                                             } else {
                                                 setSearchSubjectMatter(e.target.value)
@@ -197,17 +197,17 @@ const CreateNewAssesment = () => {
                                 </div>
 
                                 {/* Selected Item Display */}
-                                {((formData.role === 'doctor' && formData.subroleId) || (formData.role !== 'doctor' && formData.subjectMatterId)) && (
+                                {((['doctor', 'staff', 'jr_staff'].includes(formData.role) && formData.subroleId) || (!['doctor', 'staff', 'jr_staff'].includes(formData.role) && formData.subjectMatterId)) && (
                                     <div className="mt-2 px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg flex items-center justify-between">
                                         <span className="text-sm font-medium text-teal-700">
-                                            {formData.role === 'doctor'
+                                            {['doctor', 'staff', 'jr_staff'].includes(formData.role)
                                                 ? subRolesData?.find((s) => s.id === formData.subroleId)?.name
                                                 : subjectMatters?.find((s) => s.id === formData.subjectMatterId)?.title}
                                         </span>
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                if (formData.role === 'doctor') {
+                                                if (['doctor', 'staff', 'jr_staff'].includes(formData.role)) {
                                                     setFormData(prev => ({ ...prev, subroleId: null }))
                                                 } else {
                                                     setFormData(prev => ({ ...prev, subjectMatterId: null }))
@@ -222,7 +222,7 @@ const CreateNewAssesment = () => {
 
                                 {/* Options List */}
                                 <div className="mt-2 border border-gray-300 rounded-lg p-2 max-h-40 overflow-y-auto">
-                                    {formData.role === 'doctor' ? (
+                                    {['doctor', 'staff', 'jr_staff'].includes(formData.role) ? (
                                         isLoadingSubRoles ? (
                                             <span className="text-sm text-gray-500">Loading...</span>
                                         ) : subRolesData && subRolesData.length > 0 ? (

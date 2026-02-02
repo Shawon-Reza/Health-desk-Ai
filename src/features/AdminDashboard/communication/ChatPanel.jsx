@@ -112,9 +112,9 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
     // Check if message exists in current loaded messages
     const messageExists = messages.some((m) => m.id === mentionMessageId);
-    
+
     console.log('🔍 Looking for message:', mentionMessageId, 'Found:', messageExists, 'Total messages:', messages.length);
-    
+
     if (messageExists) {
       if (anchorMessageId !== mentionMessageId) {
         console.log('✅ Message found, setting anchor:', mentionMessageId);
@@ -296,7 +296,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
-    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'xls', 'xlsx', 'csv', 'doc', 'docx'];
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'xls', 'xlsx', 'csv', 'doc', 'docx', 'pdf'];
     const maxSize = 10 * 1024 * 1024; // 10MB
 
     const validFiles = files.filter(file => {
@@ -378,7 +378,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
   };
 
   return (
-    <div className="flex flex-col h-full border border-gray-300 rounded-lg bg-white">
+    <div className="flex flex-col h-full border border-gray-300 rounded-lg bg-white max-h-[calc(100vh-120px)]">
       {!chatRoom ? (
         <div className="flex-1 flex items-center justify-center text-gray-500">
           Select a chat
@@ -408,7 +408,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
             </div>
 
-            <div className={`relative ${data?.pages[0]?.room?.type === "ai" ? "hidden" : ""} `}>
+            <div className={`relative ${data?.pages[0]?.room?.type === "ai" || data?.pages[0]?.room?.type === "ai_charting" ? "hidden" : ""} `}>
               <FiInfo
                 size={20}
                 className={`cursor-pointer ${path === "user-management" || path === "clinicwise-chat-history" ? "hidden" : ""}`}
@@ -444,7 +444,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
           {/* ........................................................Input Area For send text................................................ */}
           <div className="p-4 border-t border-gray-300">
             {/* File attachments preview */}
-            {attachments.length > 0 && (roomType === "group" || roomType === "private") && (
+            {attachments.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2">
                 {attachments.map((file, index) => (
                   <div key={index} className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
@@ -461,27 +461,23 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
               </div>
             )}
             <div className="flex gap-3 w-full min-w-0">
-              {/* File upload button for group and private */}
-              {(roomType === "group" || roomType === "private") && (
-                <>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept=".jpg,.jpeg,.png,.gif,.webp,.svg,.xls,.xlsx,.csv,.doc,.docx"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                  <button
-                    onClick={handleFileInputClick}
-                    disabled={isInputDisabled}
-                    className="text-gray-600 hover:text-gray-800 disabled:opacity-50"
-                    title="Attach files"
-                  >
-                    <FiPaperclip size={24} />
-                  </button>
-                </>
-              )}
+              {/* File upload button for all room types */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".jpg,.jpeg,.png,.gif,.webp,.svg,.xls,.xlsx,.csv,.doc,.docx,.pdf"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <button
+                onClick={handleFileInputClick}
+                disabled={isInputDisabled}
+                className="text-gray-600 hover:text-gray-800 disabled:opacity-50"
+                title="Attach files"
+              >
+                <FiPaperclip size={24} />
+              </button>
               {roomType === "group" ? (
                 <div className="flex-1 relative min-w-0 ">
                   <MentionsInput

@@ -10,6 +10,7 @@ import useUserPermissions from "../../hooks/useUserPermissions"
 import useUserPermissionsForOwn from "../../hooks/useUserPermissionsForOwn"
 import useGetUserProfile from "../../hooks/useGetUserProfile"
 import { GoHistory } from "react-icons/go"
+import { RiChatVoiceAiLine } from "react-icons/ri";
 
 const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: FiGrid },
@@ -141,6 +142,24 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
                         <span className="font-semibold text-sm sm:text-xl xl:text-2xl">Communication</span>
                     )}
                 </NavLink>
+                {/* //==================================== Charting Ai For Doctor ======================================\\ */}
+                {
+                    userProfileData?.role === "owner" &&
+                    <NavLink
+                        to="/admin/charting-ai"
+                        onClick={onClick}
+                        title={isCollapsed ? 'Charting Ai' : ''}
+                        className={({ isActive }) =>
+                            `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
+                            }`
+                        }
+                    >
+                        <RiChatVoiceAiLine size={21} />
+                        {!isCollapsed && (
+                            <span className="font-semibold text-sm sm:text-xl xl:text-2xl">Charting Ai</span>
+                        )}
+                    </NavLink>
+                }
 
                 {/*  userProfileData?.role === "owner" */}
                 {

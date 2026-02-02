@@ -27,6 +27,7 @@ import AssignedClinic from "../features/AdminDashboard/AssignedClinic";
 import ClinicwiseChatHistory from "../features/AdminDashboard/ClinicwiseChatHistory/ClinicwiseChatHistory";
 import NotificationsToggle from "../features/AdminDashboard/NotificationsToggle";
 import Communication from "../features/AdminDashboard/Communication/Communication";
+import Charting_AI from "../features/AdminDashboard/Communication/Charting_AI";
 
 
 
@@ -56,7 +57,11 @@ export const router = createBrowserRouter([
             },
             {
                 path: "communication",
-                element: <Communication></Communication> ,
+                element: <Communication></Communication>,
+            },
+            {
+                path: "charting-ai",
+                element: <Charting_AI></Charting_AI>,
             },
             {
                 path: "clinicwise-chat-history",
@@ -68,7 +73,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "assigned-clinic",
-                element: <PrivateRoute roles={[ROLES.DOCTOR,ROLES.MANAGER, ROLES.STAFF ,ROLES.JR_STAFF]} ><AssignedClinic></AssignedClinic></PrivateRoute>,
+                element: <PrivateRoute roles={[ROLES.DOCTOR, ROLES.MANAGER, ROLES.STAFF, ROLES.JR_STAFF]} ><AssignedClinic></AssignedClinic></PrivateRoute>,
             },
             {
                 path: "subject-matters",
@@ -89,7 +94,7 @@ export const router = createBrowserRouter([
             // --------------Assessments Routes Start ------------------- \\
             {
                 path: "assessments",
-                element:<PrivateRoute roles={[ROLES.OWNER, ROLES.PRESIDENT]} permission={"assessment"} ><Assesments></Assesments></PrivateRoute>,
+                element: <PrivateRoute roles={[ROLES.OWNER, ROLES.PRESIDENT]} permission={"assessment"} ><Assesments></Assesments></PrivateRoute>,
             },
             {
                 path: "assessments/created/:assessmentId",

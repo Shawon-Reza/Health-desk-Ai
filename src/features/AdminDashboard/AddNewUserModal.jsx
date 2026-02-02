@@ -90,7 +90,7 @@ const AddNewUserModal = ({
   const [loadingUserData, setLoadingUserData] = useState(false)
   const [searchSubrole, setSearchSubrole] = useState('')
 
-  // ................................Fetch Sub Roles For doctores..................................\\
+  // ................................Fetch Sub Roles For doctores/staff/jr_staff..................................\\
   const { data: subRolesData, isLoading: isLoadingSubRoles } = useQuery({
     queryKey: ['subRoles'],
     queryFn: async () => {
@@ -379,8 +379,8 @@ const AddNewUserModal = ({
               />
             </Field>
 
-            {/* Sub Role (Only for Doctor) */}
-            {form.role === 'Doctor' && (
+            {/* Sub Role (Doctor, Staff, Jr Staff) */}
+            {['Doctor', 'Staff', 'jr_staff'].includes(form.role) && (
               <Field label="Sub Role (Specialization)" icon={FiBriefcase}>
                 <div className="space-y-2">
                   {/* Search Input */}

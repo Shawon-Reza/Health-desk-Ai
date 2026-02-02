@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import ReactMarkdown from 'react-markdown';
 // import remarkGfm from 'remark-gfm';
 import { useLocation } from "react-router-dom";
-import { FiThumbsUp, FiThumbsDown, FiDownload, FiFile } from "react-icons/fi";
+import { FiThumbsUp, FiThumbsDown, FiDownload, FiFile, FiChevronDown } from "react-icons/fi";
 import { useMutation } from "@tanstack/react-query";
 import axiosApi from "../../../service/axiosInstance";
 
@@ -10,10 +10,14 @@ const MessageList = ({
     messages,
     userId,
     onLoadMore,
+    fetchPreviousPage,
     hasNextPage,
+    hasPreviousPage,
     isFetchingNextPage,
+    isFetchingPreviousPage,
     roomType,
-    isAiTyping
+    isAiTyping,
+    anchorMessageId,
 }) => {
     const messagesEndRef = useRef(null);
     const containerRef = useRef(null);
@@ -21,14 +25,29 @@ const MessageList = ({
     const prevScrollHeightRef = useRef(0);
     const [prevMessageCount, setPrevMessageCount] = useState(0);
     const wasAtBottomBeforeFetchRef = useRef(true);
+    const isFetchingPreviousRef = useRef(false);
+    const lastProgrammaticScrollRef = useRef(0);
+    const [showScrollButton, setShowScrollButton] = useState(false);
+    const lastScrollButtonStateRef = useRef(false);
 
+
+    // Deduplicate messages by id to avoid duplicate keys
+    const uniqueMessages = useMemo(() => {
+        const map = new Map();
+        messages.forEach((msg) => {
+            if (!map.has(msg.id)) {
+                map.set(msg.id, msg);
+            }
+        });
+        return Array.from(map.values());
+    }, [messages]);
 
     // .....................**Group messages by date logic start**......................\\
     const groupedMessages = useMemo(() => {
         const groups = [];
         let currentDate = null;
 
-        messages.forEach((msg) => {
+        uniqueMessages.forEach((msg) => {
             const messageDate = new Date(msg.created_at).toDateString();
 
             if (messageDate !== currentDate) {
@@ -47,7 +66,7 @@ const MessageList = ({
         });
 
         return groups;
-    }, [messages]);
+    }, [uniqueMessages]);
 
     // Format date label
     const formatDateLabel = (dateObj) => {
@@ -78,7 +97,7 @@ const MessageList = ({
         if (!container) return;
 
         // Never scroll during pagination
-        if (isFetchingNextPage) {
+        if (isFetchingNextPage || isFetchingPreviousPage) {
             return;
         }
 
@@ -92,6 +111,7 @@ const MessageList = ({
             if (messageDifference > 0) {
                 // New messages arrived and user was at bottom - scroll to bottom
                 setTimeout(() => {
+                    lastProgrammaticScrollRef.current = Date.now();
                     container.scrollTop = container.scrollHeight - container.clientHeight;
                 }, 0);
             }
@@ -101,7 +121,7 @@ const MessageList = ({
             // Message count changed but user wasn't at bottom (pagination) - just update count
             setPrevMessageCount(messages.length);
         }
-    }, [messages.length, isFetchingNextPage, prevMessageCount]);
+    }, [messages.length, isFetchingNextPage, isFetchingPreviousPage, prevMessageCount]);
 
     // Restore scroll position after older messages load
     useEffect(() => {
@@ -114,6 +134,7 @@ const MessageList = ({
             const heightDifference = newScrollHeight - prevScrollHeightRef.current;
 
             // Scroll down by the height of newly added messages to stay in same visual position
+            lastProgrammaticScrollRef.current = Date.now();
             container.scrollTop = heightDifference;
             console.log("📍 Scroll position restored - added", heightDifference, "px");
 
@@ -122,15 +143,60 @@ const MessageList = ({
         }
     }, [isFetchingNextPage]);
 
-    // Infinite scroll - load older messages when scroll to top
+    // Scroll to anchored message when provided
+    useEffect(() => {
+        if (!anchorMessageId) return;
+        const container = containerRef.current;
+        if (!container) return;
+
+        let attempts = 0;
+        const maxAttempts = 20; // Try for up to 2 seconds
+
+        const tryScroll = () => {
+            const el = container.querySelector(`#message-${anchorMessageId}`);
+            if (el) {
+                lastProgrammaticScrollRef.current = Date.now();
+                el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                console.log('📍 Scrolled to message:', anchorMessageId);
+            } else {
+                attempts++;
+                if (attempts < maxAttempts) {
+                    setTimeout(tryScroll, 100);
+                } else {
+                    console.warn('⚠️ Could not find message to scroll to:', anchorMessageId);
+                }
+            }
+        };
+
+        // Small delay to ensure DOM is ready
+        setTimeout(tryScroll, 50);
+    }, [anchorMessageId]);
+
+    // Reset fetch guard when react-query finishes
+    useEffect(() => {
+        if (!isFetchingPreviousPage) {
+            isFetchingPreviousRef.current = false;
+        }
+    }, [isFetchingPreviousPage]);
+
+    //===================================== Infinite scroll - load older messages when scroll to top=================================
     const handleScroll = (e) => {
+        // Ignore scroll events triggered programmatically
+        if (Date.now() - lastProgrammaticScrollRef.current < 300) return;
+
         const { scrollTop, scrollHeight, clientHeight } = e.target;
 
         // Track if user is at the bottom (for auto-scroll later)
         const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
         wasAtBottomBeforeFetchRef.current = isAtBottom;
+        
+        // Show/hide scroll-to-bottom button ONLY if state actually changed (prevent re-renders)
+        if (lastScrollButtonStateRef.current !== !isAtBottom) {
+            lastScrollButtonStateRef.current = !isAtBottom;
+            setShowScrollButton(!isAtBottom);
+        }
 
-        // When user scrolls to top
+        // When user scrolls to top - load older messages
         if (scrollTop === 0 && hasNextPage && !isFetchingNextPage && !isLoadingRef.current) {
             isLoadingRef.current = true;
             console.log("📍 Top reached - loading older messages");
@@ -145,6 +211,22 @@ const MessageList = ({
                 isLoadingRef.current = false;
             }, 500);
         }
+
+        // When user reaches bottom - load newer messages (guarded)
+        if (isAtBottom && hasPreviousPage && !isFetchingPreviousPage && !isFetchingPreviousRef.current) {
+            isFetchingPreviousRef.current = true;
+            fetchPreviousPage();
+        }
+    };
+
+    // Scroll to bottom handler
+    const handleScrollToBottom = () => {
+        const container = containerRef.current;
+        if (container) {
+            lastProgrammaticScrollRef.current = Date.now();
+            container.scrollTop = container.scrollHeight - container.clientHeight;
+            setShowScrollButton(false);
+        }
     };
 
     const MessageBubble = ({ msg }) => {
@@ -154,6 +236,7 @@ const MessageList = ({
             ? !isAI // In AI chats, any non-AI message is from the user
             : (!isAI && Number(msg?.sender?.id) === Number(userId));
         const text = msg?.content || "";
+        const isHighlighted = anchorMessageId !== null && msg.id === Number(anchorMessageId);
 
         // Helper function to determine file type from URL
         const getFileType = (url) => {
@@ -233,12 +316,13 @@ const MessageList = ({
         };
 
         return (
-            <div className={`flex mb-4 ${isMe ? "justify-end" : "justify-start"}`}>
+            <div id={`message-${msg.id}`} className={`flex mb-4 ${isMe ? "justify-end" : "justify-start"} ${isHighlighted ? 'animate-pulse' : ''}`}>
                 <div
                     className={`px-4 py-2 rounded-lg max-w-md break-words
           ${isAI && "bg-purple-100 border border-purple-300"}
           ${isMe && "bg-teal-100 text-gray-900"}
           ${!isMe && !isAI && "bg-blue-100 text-gray-900"}
+          ${isHighlighted && "ring-2 ring-yellow-400 shadow-lg"}
         `}
                 >
                     {/* ...............AI label................ */}
@@ -332,7 +416,7 @@ const MessageList = ({
         <div
             ref={containerRef}
             onScroll={handleScroll}
-            className="flex-1 overflow-y-auto p-4 space-y-2"
+            className="flex-1 overflow-y-auto p-4 space-y-2 relative"
         >
             {isFetchingNextPage && (
                 <div className="text-center text-sm text-gray-500 py-2">
@@ -372,6 +456,17 @@ const MessageList = ({
                 </div>
             )}
             <div ref={messagesEndRef} />
+
+            {/* Scroll to bottom button */}
+            {showScrollButton && (
+                <button
+                    onClick={handleScrollToBottom}
+                    className="fixed bottom-48 right-15 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 shadow-lg transition-all duration-200 flex items-center justify-center cursor-pointer"
+                    title="Scroll to latest message"
+                >
+                    <FiChevronDown size={20} />
+                </button>
+            )}
         </div>
     );
 };

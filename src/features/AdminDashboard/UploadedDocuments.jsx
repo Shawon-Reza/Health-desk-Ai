@@ -69,11 +69,11 @@ const UploadedDocuments = () => {
     const { role } = getAuthData()
     console.log("[UploadedDocuments] User role:", role)
     console.log("[UploadedDocuments] Viewing document details:", document)
-    
+
     // Construct full file URL
     const fullFileUrl = `${base_URL}${document.fileUrl}`
     console.log("[UploadedDocuments] Opening file URL:", fullFileUrl)
-    
+
     // Open file in new tab
     window.open(fullFileUrl, "_blank")
   }

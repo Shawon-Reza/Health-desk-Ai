@@ -95,7 +95,7 @@ const Notifications = ({ notifications = [], notificationCount = 0, onNotificati
   })
 
 
-  // =====================Call mark as read when notifications are successfully fetched============================\\
+  // ============================== Call mark as read when notifications are successfully fetched =============================\\
   React.useEffect(() => {
     if (isSuccess && notificationsData?.results?.length > 0) {
       markNotificationsAsRead()
@@ -111,7 +111,9 @@ const Notifications = ({ notifications = [], notificationCount = 0, onNotificati
     console.log("Specific Notification:==========", type)
 
     if (type === 'mention') {
-      navigate('/admin/communication')
+      const roomId = notification?.payload?.room_id
+      const messageId = notification?.payload?.message_id
+      navigate('/admin/communication', { state: { roomId, messageId }, replace: true })
     }
   }
   // ====================================== Clear All Notifications UI ====================================== //

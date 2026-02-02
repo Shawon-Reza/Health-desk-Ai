@@ -14,9 +14,12 @@
 
 
 
-                            
+/* =================================== Smooth Scrolling========================================== */
+html {
+    scroll-behavior: smooth;
+}
 
-/* Text Releted custom color css */
+/* Text Related custom color css */
 .text-primary {
     color: var(--color-primary);
 }
@@ -34,12 +37,15 @@
 .bg-primary {
     background-color: var(--color-primary);
 }
+
 .bg-primarytransparent {
     background-color: var(--color-primarytransparent);
 }
+
 .bg-secondary {
     background-color: var(--bg-secondary);
 }
+
 .bg-default {
     background-color: var(--color-default);
 }

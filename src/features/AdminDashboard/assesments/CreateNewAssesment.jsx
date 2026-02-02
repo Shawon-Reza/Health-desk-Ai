@@ -388,7 +388,7 @@ const CreateNewAssesment = () => {
                         disabled={createAssessmentMutation.isPending}
                         className="w-full bg-primary hover:bg-teal-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-6 rounded-lg transition-colors duration-200"
                     >
-                        {createAssessmentMutation.isPending ? 'Creating... Please wait. We will notify you once it is done.' : 'Generate'}
+                        {createAssessmentMutation.isPending ? 'Creating..... Please wait. We will notify you once it is done.' : 'Generate'}
                     </button>
                 </form>
             </div>

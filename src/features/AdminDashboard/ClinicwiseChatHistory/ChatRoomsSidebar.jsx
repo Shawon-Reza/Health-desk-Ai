@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import ChatPanel from "../Communication/ChatPanel"
 import Communication from "../Communication/Communication"
+import ReactMarkdown from 'react-markdown';
 
 const ChatRoomsSidebar = ({ roomsData, roomsLoading, roomsError, selectedRoom, onSelectRoom }) => {
     // ============ LOG SELECTED ROOM ID ============
@@ -62,8 +63,13 @@ const ChatRoomsSidebar = ({ roomsData, roomsLoading, roomsError, selectedRoom, o
 
                                     {/* Last Message */}
                                     <p className="text-xs text-gray-500 mt-1 truncate">
-                                        {room.last_message?.text || 'No messages yet'}
+                                        {/* {room.last_message?.text || 'No messages yet'} */}
+                                        <ReactMarkdown>
+                                            {room.last_message?.text || 'No messages yet'}
+                                        </ReactMarkdown>
+
                                     </p>
+
 
                                     {/* Member Count & Time */}
                                     <div className="flex items-center justify-between gap-2 mt-2">

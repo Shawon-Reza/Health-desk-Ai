@@ -13,6 +13,8 @@ import { useLocation, useParams } from "react-router-dom";
 import useGetUserProfile from "../../../hooks/useGetUserProfile";
 import useUserPermissionsForOwn from "../../../hooks/useUserPermissionsForOwn";
 
+import ReactMarkdown from 'react-markdown';
+
 
 
 const Communication = () => {
@@ -30,7 +32,7 @@ const Communication = () => {
     const path = location.pathname.split('/')[2];
 
     // console.log("Im From Communication. My Location :---------", location.pathname)
-    console.log("Im From Communication. My Location :---------", path)
+    console.log("Im From Communication. My Location :---------==============================", location)
 
     // Debounced search handler - prevents input from losing focus
     const handleSearchInput = useDebouncedCallback((value) => {
@@ -133,7 +135,7 @@ const Communication = () => {
         return () => socketRef.current?.close();
     }, [queryClient]);
 
-    // .....................Ai Assistant Related Code.....................\\
+    // ............................................Ai Assistant Related Code...............................................\\
     // Here Create Rooms if not exists.......
     // Mutation to create AI room
     const createAiRoom = useMutation({
@@ -151,6 +153,27 @@ const Communication = () => {
             // Optional: toast.error("Could not load AI Assistant");
         },
     });
+
+    // ======================================Auto-select chat room if coming from mention notification Click =======================================\\
+    useEffect(() => {
+        const roomIdFromNotification = location.state?.roomId;
+        const messageIdFromNotification = location.state?.messageId;
+        
+        console.log("🔔 Notification state detected:", { roomIdFromNotification, messageIdFromNotification });
+        
+        if (roomIdFromNotification && rooms?.results && rooms.results.length > 0) {
+            const matchingChat = rooms.results.find(
+                (chat) => chat.room_id === roomIdFromNotification
+            );
+            if (matchingChat) {
+                console.log("✅ Auto-selecting chat from notification:", matchingChat);
+                handleChatSelect(matchingChat);
+                setActiveTab("allChat");
+            } else {
+                console.warn("⚠️ Matching chat not found for roomId:", roomIdFromNotification);
+            }
+        }
+    }, [location, rooms?.results]);
 
     useEffect(() => {
         if (
@@ -314,8 +337,14 @@ const Communication = () => {
                                                         </span>
                                                     </div>
                                                     <p className={`text-xs text-gray-600 truncate ${chat?.unseen_count > 0 ? "font-bold" : ""}`}>
-                                                        {chat?.last_message?.text || "No messages yet"}
+
+                                                        {/* {chat?.last_message?.text || "No messages yet"} */}
+                                                        <ReactMarkdown>
+                                                            {chat?.last_message?.text || "No messages yet"}
+                                                        </ReactMarkdown>
+
                                                     </p>
+
                                                 </div>
                                                 {chat?.unseen_count > 0 && (
                                                     <span className="relative w-6 h-6 flex items-center justify-center text-xs rounded-full bg-green-500 text-white font-semibold">

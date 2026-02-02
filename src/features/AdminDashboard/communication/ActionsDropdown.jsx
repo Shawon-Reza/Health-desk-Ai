@@ -63,8 +63,8 @@ const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMembe
   });
   console.log("Room Members:================================================================", roomMembers?.results);
   // ...........................................Get Private Chat Another Member ID................................... //
-  const privetChatAnotherMemberId = isPrivate 
-    ? roomMembers?.results?.find(member => member.id !== myUserId)?.id 
+  const privetChatAnotherMemberId = isPrivate
+    ? roomMembers?.results?.find(member => member.id !== myUserId)?.id
     : null;
   console.log("Room privetChatAnotherMemberId:================================================================", privetChatAnotherMemberId);
 

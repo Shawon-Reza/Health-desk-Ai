@@ -224,7 +224,7 @@ const ClinicManagement = () => {
                     disabled={toggleClinicStatusMutation.isPending}
                     className={`w-full py-3 rounded-lg font-semibold border transition-colors flex items-center justify-center gap-2 ${clinic.is_deleted
                             ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
-                            : 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100'
+                            : 'bg-primary/50 text-green-600 border-green-200 hover:bg-green-100'
                         } ${toggleClinicStatusMutation.isPending
                             ? 'opacity-50 cursor-not-allowed'
                             : 'cursor-pointer'

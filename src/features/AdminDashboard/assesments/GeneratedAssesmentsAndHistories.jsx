@@ -252,7 +252,7 @@ const GeneratedAssesmentsAndHistories = () => {
                                         <button
                                             onClick={() => handleStartAssessment(assessment.id)}
                                             disabled={updateStatusMutation.isPending || assessment.status === "draft"}
-                                            className={`flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition font-medium text-sm  ${assessment.status === "draft" || assessment.status === "active" ? 'opacity-50 cursor-not-allowed' : ''} ${updateStatusMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            className={`flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary transition font-medium text-sm  ${assessment.status === "draft" || assessment.status === "active" ? 'opacity-50 cursor-not-allowed' : ''} ${updateStatusMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         >
                                             <FiPlay className="w-4 h-4" />
                                             {updateStatusMutation.isPending ? 'Starting...' : 'Start Assessment'}

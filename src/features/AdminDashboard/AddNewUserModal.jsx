@@ -90,6 +90,31 @@ const AddNewUserModal = ({
   const [loadingUserData, setLoadingUserData] = useState(false)
   const [searchSubrole, setSearchSubrole] = useState('')
 
+  // Reset form when mode changes to 'create'
+  React.useEffect(() => {
+    if (mode === 'create' && isOpen) {
+      setForm({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        password: '',
+        role: '',
+        startDate: new Date().toISOString().slice(0, 10),
+        employeeId: '',
+        knowledgeLevel: '',
+        clinics: [],
+        clinicIds: [],
+        subjectMatter: '',
+        subjectMatterId: null,
+        status: 'Active',
+        subroleId: null,
+      })
+      setSearchSubrole('')
+      setShowPassword(false)
+    }
+  }, [mode, isOpen])
+
   // ................................Fetch Sub Roles For doctores/staff/jr_staff..................................\\
   const { data: subRolesData, isLoading: isLoadingSubRoles } = useQuery({
     queryKey: ['subRoles'],
@@ -112,27 +137,59 @@ const AddNewUserModal = ({
     }
   }, [form.subjectMatterId, form.subjectMatter, subjectMatters])
 
-  // Fetch user data when in edit mode
+  // ========================================Fetch user data when in edit mode======================================\\
   React.useEffect(() => {
     if (mode === 'edit' && userId && isOpen) {
       setLoadingUserData(true)
       axiosApi.get(`/api/v1/users/${userId}/`)
         .then((response) => {
           const userData = response.data
-          console.log(userData)
+          console.log("Fetched user data======================:", userData)
 
           // Normalize clinics to parallel name/id arrays for chips + selection
-          const normalizedClinics = Array.isArray(userData.clinics)
-            ? userData.clinics.map((c) => c?.name || c?.title || c)
-            : []
-          const normalizedClinicIds = Array.isArray(userData.clinics)
-            ? userData.clinics.map((c) => c?.id).filter(Boolean)
-            : (userData.clinic_ids || [])
+          // Handle both string arrays and object arrays
+          let normalizedClinics = []
+          let normalizedClinicIds = []
+          
+          if (Array.isArray(userData.clinics)) {
+            normalizedClinics = userData.clinics.map((c) => {
+              // If clinic is object with id/name
+              if (typeof c === 'object' && c !== null) {
+                return c.name || c.title || c.id || ''
+              }
+              // If clinic is a string
+              return c
+            }).filter(Boolean)
+            
+            normalizedClinicIds = userData.clinics.map((c) => {
+              // If clinic is object with id
+              if (typeof c === 'object' && c !== null) {
+                return c.id
+              }
+              // If clinic is a string, find matching clinic from props by name
+              return clinics.find((cl) => (cl.name || cl) === c)?.id
+            }).filter(Boolean)
+          } else if (userData.clinic_ids) {
+            normalizedClinicIds = userData.clinic_ids
+          }
 
           // Normalize first subject for initial select
-          const firstSubject = Array.isArray(userData.subject_matters) ? userData.subject_matters[0] : null
-          const subjectMatterId = firstSubject?.id ?? (typeof firstSubject === 'number' ? firstSubject : null)
-          const subjectMatterTitle = firstSubject?.title || (typeof firstSubject === 'string' ? firstSubject : '')
+          // New format: subject_matters is array of strings
+          const firstSubjectTitle = Array.isArray(userData.subject_matters) && userData.subject_matters.length > 0
+            ? userData.subject_matters[0]
+            : null
+          const subjectMatterId = firstSubjectTitle
+            ? subjectMatters.find((s) => (s.title || s) === firstSubjectTitle)?.id || null
+            : null
+
+          // Normalize first subrole for initial select
+          // New format: subroles is array of strings
+          const firstSubroleName = Array.isArray(userData.subroles) && userData.subroles.length > 0
+            ? userData.subroles[0]
+            : null
+          const subroleId = firstSubroleName
+            ? subRolesData?.find((s) => s.name === firstSubroleName)?.id || null
+            : null
 
           // Map API data to form state
           setForm({
@@ -147,10 +204,10 @@ const AddNewUserModal = ({
             knowledgeLevel: String(userData.knowledge_level || ''),
             clinics: normalizedClinics,
             clinicIds: normalizedClinicIds,
-            subjectMatter: subjectMatterTitle,
+            subjectMatter: firstSubjectTitle || '',
             subjectMatterId: subjectMatterId,
             status: userData.is_active ? 'Active' : 'Inactive',
-            subroleId: userData.subrole?.id || null,
+            subroleId: subroleId,
           })
           setLoadingUserData(false)
         })
@@ -161,7 +218,7 @@ const AddNewUserModal = ({
           onClose()
         })
     }
-  }, [mode, userId, isOpen])
+  }, [mode, userId, isOpen, subjectMatters, subRolesData])
 
   // Mutation for creating/updating user
   const createUserMutation = useMutation({

@@ -142,9 +142,9 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
                         <span className="font-semibold text-sm sm:text-xl xl:text-2xl">Communication</span>
                     )}
                 </NavLink>
-                {/* //==================================== Charting Ai For Doctor ======================================\\ */}
+                {/* //====================================== Charting Ai For Doctor ======================================\\ */}
                 {
-                    userProfileData?.role === "owner" &&
+                    userProfileData?.role === "doctor" &&
                     <NavLink
                         to="/admin/charting-ai"
                         onClick={onClick}

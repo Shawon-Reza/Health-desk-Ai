@@ -10,14 +10,14 @@ import { toast } from "react-toastify"
 import { queryClient } from "../../main"
 
 export default function AITrainingCenter() {
-    const [uploadQueue, setUploadQueue] = useState([])
+    const [uploadQueue, setUploadQueue] = useState([]);
 
-    const [title, setTitle] = useState("")
-    const [providedTopics, setProvidedTopics] = useState("")
-    const [dragActive, setDragActive] = useState(false)
-    const fileInputRef = useRef(null)
-    const location = useLocation()
-    const navigate = useNavigate()
+    const [title, setTitle] = useState("");
+    const [providedTopics, setProvidedTopics] = useState("");
+    const [dragActive, setDragActive] = useState(false);
+    const fileInputRef = useRef(null);
+    const location = useLocation();
+    const navigate = useNavigate();
 
     // Console logging for component initialization
     useEffect(() => {
@@ -57,7 +57,7 @@ export default function AITrainingCenter() {
     }, [location])
 
 
-    // .......................Get Room ID for AI Training Chat.........................\\
+    // ......................................... Get Room ID for AI Training Chat ...........................................\\
     const { data: roomData, isLoading: isLoadingRoom, error: roomError } = useQuery({
         queryKey: ['aiTrainingRoom'],
         queryFn: async () => {
@@ -168,7 +168,7 @@ export default function AITrainingCenter() {
     const isFormValid = providedTopics.trim() !== "" && uploadQueue.length > 0 && !!chatRoom
 
     return (
-        <div className=" p-4 md:p-8 h-[calc(100vh-200px)] flex flex-col overflow-y-auto">
+        <div className="  h-[calc(100vh-200px)] flex flex-col overflow-y-auto">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Training Center</h1>
                 <p className="text-gray-600">Upload and manage training materials for the chatbot</p>

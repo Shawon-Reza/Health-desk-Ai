@@ -13,12 +13,6 @@
 }
 
 
-
-/* =================================== Smooth Scrolling========================================== */
-html {
-    scroll-behavior: smooth;
-}
-
 /* Text Related custom color css */
 .text-primary {
     color: var(--color-primary);
@@ -49,6 +43,16 @@ html {
 .bg-default {
     background-color: var(--color-default);
 }
+
+
+
+/* =================================== Smooth Scrolling========================================== */
+html {
+    scroll-behavior: smooth;
+}
+
+
+
 
 /* Thin scrollbar utility */
 .thin-scroll {

@@ -1,16 +1,17 @@
 
 import AITrainingCenter from '../AITrainingCenter'
 import UploadedDocuments from '../UploadedDocuments'
+import PromptModifySection from './PromptModifySection'
 
 const AITrainingPage = () => {
     return (
-        <div>
+        <div className='flex flex-col gap-15 '>
             <section className=''>
                 <AITrainingCenter></AITrainingCenter>
             </section>
-
-
-            {/* Uploaded Document 2nd part */}
+            {/* ================================ Prompt Modification =========================== */}
+            <PromptModifySection />
+            {/*=============================== Uploaded Document 2nd part ===============================*/}
             <section>
                 <UploadedDocuments></UploadedDocuments>
             </section>

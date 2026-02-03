@@ -25,6 +25,7 @@ export const AssessmentViewAnswers = () => {
         },
     });
     console.log("answersData", answersData?.data?.summary);
+    console.log("answersData", answersData?.data?.answers);
 
     const responseData = answersData?.data;
     const user = responseData?.user;
@@ -170,41 +171,69 @@ export const AssessmentViewAnswers = () => {
                             {/* Answer Content - Multiple Choice Options */}
                             <div className="ml-11">
                                 <div className="space-y-2">
-                                    {answer.options && answer.options.map((option) => (
-                                        <div
-                                            key={option.id}
-                                            className={`p-3 rounded-lg border-2 transition ${
-                                                answer.selected_option_id === option.id
-                                                    ? 'border-teal-500 bg-teal-50'
-                                                    : 'border-gray-200 bg-gray-50'
-                                            }`}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                                                    answer.selected_option_id === option.id
-                                                        ? 'border-teal-500 bg-teal-500'
-                                                        : 'border-gray-300'
-                                                }`}>
-                                                    {answer.selected_option_id === option.id && (
-                                                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                                                    )}
-                                                </div>
-                                                <span className={`text-sm ${
-                                                    answer.selected_option_id === option.id
-                                                        ? 'font-semibold text-teal-700'
-                                                        : 'text-gray-700'
-                                                }`}>
-                                                    {option.text}
-                                                </span>
-                                                {answer.selected_option_id === option.id && (
-                                                    <span className="ml-auto inline-flex items-center gap-1 px-2 py-1 bg-teal-100 text-teal-700 text-xs font-medium rounded">
-                                                        <FiCheckCircle className="w-3 h-3" />
-                                                        Selected
+                                    {answer.options && answer.options.map((option) => {
+                                        const isUserSelected = answer.selected_option_id === option.id;
+                                        const isCorrectAnswer = answer.correct_option_id === option.id;
+                                        const isWrong = isUserSelected && !option.is_correct;
+
+                                        return (
+                                            <div
+                                                key={option.id}
+                                                className={`p-3 rounded-lg border-2 transition ${isCorrectAnswer
+                                                        ? 'border-green-500 bg-green-50'
+                                                        : isWrong
+                                                            ? 'border-red-500 bg-red-50'
+                                                            : isUserSelected
+                                                                ? 'border-teal-500 bg-teal-50'
+                                                                : 'border-gray-200 bg-gray-50'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isCorrectAnswer
+                                                            ? 'border-green-500 bg-green-500'
+                                                            : isWrong
+                                                                ? 'border-red-500 bg-red-500'
+                                                                : isUserSelected
+                                                                    ? 'border-teal-500 bg-teal-500'
+                                                                    : 'border-gray-300'
+                                                        }`}>
+                                                        {(isUserSelected || isCorrectAnswer) && (
+                                                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                                                        )}
+                                                    </div>
+                                                    <span className={`text-sm ${isCorrectAnswer
+                                                            ? 'font-semibold text-green-700'
+                                                            : isWrong
+                                                                ? 'font-semibold text-red-700'
+                                                                : isUserSelected
+                                                                    ? 'font-semibold text-teal-700'
+                                                                    : 'text-gray-700'
+                                                        }`}>
+                                                        {option.text}
                                                     </span>
-                                                )}
+                                                    <div className="ml-auto flex items-center gap-2">
+                                                        {isCorrectAnswer && (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">
+                                                                <FiCheckCircle className="w-3 h-3" />
+                                                                Correct Answer
+                                                            </span>
+                                                        )}
+                                                        {isWrong && (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded">
+                                                                ✕ User Answer
+                                                            </span>
+                                                        )}
+                                                        {isUserSelected && !isWrong && (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-teal-100 text-teal-700 text-xs font-medium rounded">
+                                                                <FiCheckCircle className="w-3 h-3" />
+                                                                User Answer
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>

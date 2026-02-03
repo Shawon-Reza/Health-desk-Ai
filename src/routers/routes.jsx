@@ -28,6 +28,7 @@ import ClinicwiseChatHistory from "../features/AdminDashboard/ClinicwiseChatHist
 import NotificationsToggle from "../features/AdminDashboard/NotificationsToggle";
 import Communication from "../features/AdminDashboard/Communication/Communication";
 import Charting_AI from "../features/AdminDashboard/Communication/Charting_AI";
+import Theme from "../features/AdminDashboard/Theme";
 
 
 
@@ -138,6 +139,10 @@ export const router = createBrowserRouter([
                     {
                         path: 'security',
                         element: <Security></Security>,
+                    },
+                    {
+                        path: 'theme',
+                        element: <Theme></Theme>,
                     },
                 ]
             },

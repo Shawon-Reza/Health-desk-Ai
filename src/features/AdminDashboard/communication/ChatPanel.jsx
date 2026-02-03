@@ -372,7 +372,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
   // data?.pages[0].chatInfo)
   const safeUser = {
     name: data?.pages[0]?.room?.name || "Unknown User",
-    role: data?.pages[0]?.room?.display_role || "unknown",
+    role: data?.pages[0]?.room?.display_role || data?.pages[0]?.room?.type || "unknown",
     avatar: `http://10.10.13.2:8000${data?.pages[0]?.room?.image}` ||
       "https://api.dicebear.com/7.x/avataaars/svg?seed=Chat",
   };
@@ -535,9 +535,9 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
               <button
                 onClick={handleSendMessage}
                 disabled={(!inputMessage.trim() && attachments.length === 0) || isInputDisabled}
-                className="disabled:opacity-50"
+                className="disabled:opacity-50 hover:bg-blue-600 bg-blue-500 text-white p-3 rounded-lg flex items-center justify-center"
               >
-                <FiSend size={24} />
+                <FiSend size={24} className="hover:scale-105 transform transition-transform duration-700 ease-in-out" />
               </button>
             </div>
 

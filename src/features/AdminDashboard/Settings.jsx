@@ -4,7 +4,8 @@ import { NavLink, Outlet } from 'react-router-dom'
 const LINKS = [
     { to: 'profile', label: 'Profile' },
     { to: 'notifications', label: 'Notifications' },
-    { to: 'security', label: 'Security' }
+    { to: 'security', label: 'Security' },
+    { to: 'theme', label: 'Theme' }
 ]
 
 const Settings = () => {

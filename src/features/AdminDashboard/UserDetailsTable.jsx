@@ -205,12 +205,12 @@ export default function UserDetailsTable({ users = [], onEditUser, onChangePassw
                             Change Password
                           </button>
 
-                          <button
+                          {/* <button
                             onClick={(e) => handleDeleteArchive(user.id, e)}
                             className="w-full px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 hover:bg-red-50 rounded-lg transition-colors"
                           >
                             Delete / Archived
-                          </button>
+                          </button> */}
                         </div>
                       </div>
                     )}

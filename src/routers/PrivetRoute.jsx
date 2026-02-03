@@ -16,7 +16,8 @@ const AccessGuard = ({ children, roles = [], permission }) => {
   const userPermissions = permissionData?.enabledPermissions || [];
   const isCheckingPermissions = permission && (isLoadingPermission || !permissionData);
 
-  console.log("Permission:", permissionData?.enabledPermissions);
+  console.log("Permission:===========", permissionData?.enabledPermissions);
+  console.log("Permission:===========", userPermissions);
   // ......................................................\\
 
 

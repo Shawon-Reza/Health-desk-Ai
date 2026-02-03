@@ -223,8 +223,8 @@ const ClinicManagement = () => {
                     }
                     disabled={toggleClinicStatusMutation.isPending}
                     className={`w-full py-3 rounded-lg font-semibold border transition-colors flex items-center justify-center gap-2 ${clinic.is_deleted
-                            ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
-                            : 'bg-primary/50 text-green-600 border-green-200 hover:bg-green-100'
+                        ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                        : 'bg-primary text-white border-primary/40 hover:opacity-90'
                         } ${toggleClinicStatusMutation.isPending
                             ? 'opacity-50 cursor-not-allowed'
                             : 'cursor-pointer'
@@ -232,7 +232,7 @@ const ClinicManagement = () => {
                     title="Double-click to toggle status"
                 >
                     <span
-                        className={`w-2 h-2 rounded-full ${clinic.is_deleted ? 'bg-red-600' : 'bg-green-600'
+                        className={`w-2 h-2 rounded-full ${clinic.is_deleted ? 'bg-red-600' : 'bg-white'
                             }`}
                     ></span>
                     {clinic.is_deleted ? 'Inactive' : 'Active'}
@@ -259,9 +259,9 @@ const ClinicManagement = () => {
             />
 
             {/* Header */}
-            <div className="border-b border-gray-200 sticky top-0 z-30">
+            <div className=" border-gray-200 sticky top-0 z-30">
 
-                <div className=" px-6 py-8 flex items-center justify-between bg-[#F0FDF4]">
+                <div className=" px-6 py-8 flex items-center justify-between bg-white/8 shadow-lg rounded-xl">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Clinic Management</h1>
                         <p className="text-gray-600 mt-1">Manage your clinic and address</p>
@@ -288,7 +288,7 @@ const ClinicManagement = () => {
             </div>
 
             {/* Main Content */}
-            <div className=" mx-auto px-6 py-8">
+            <div className=" mx-auto  py-8">
                 {loading ? (
                     <div className="text-center py-12">
                         <p className="text-gray-600">Loading clinics data...</p>

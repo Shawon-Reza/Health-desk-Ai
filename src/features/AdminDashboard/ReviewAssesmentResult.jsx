@@ -88,9 +88,9 @@ const ReviewAssesmentResult = () => {
             {/* Back Button */}
             <button
                 onClick={handleBack}
-                className="inline-flex items-center gap-2 px-4 py-2 text-teal-600 border-2 border-teal-200 rounded-lg hover:bg-teal-50 transition font-medium cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2 text-teal-600 border-2 border-bg-primary rounded-lg hover:bg-teal-50 transition font-medium cursor-pointer"
             >
-                <FiArrowLeft className="w-4 h-4" />
+                <FiArrowLeft className="w-4 h-4 " />
                 Back
             </button>
 
@@ -129,7 +129,7 @@ const ReviewAssesmentResult = () => {
 
                     {/* Right Section - Average Score */}
                     <div className="text-left lg:text-right">
-                        <div className="text-5xl font-bold text-emerald-500">
+                        <div className="text-5xl font-bold text-bg-primary">
                             {assessment.averageScore}%
                         </div>
                         <div className="text-sm text-gray-500 font-medium mt-1">
@@ -211,7 +211,7 @@ const ReviewAssesmentResult = () => {
                                                 className={`px-4 py-2 text-sm font-medium border-2 rounded-lg transition ${
                                                     participant.score === 0
                                                         ? 'text-gray-400 border-gray-200 cursor-not-allowed'
-                                                        : 'text-teal-600 border-teal-200 hover:bg-teal-50'
+                                                        : 'text-teal-600 border-bg-primary hover:bg-teal-50'
                                                 }`}
                                             >
                                                 View Answers

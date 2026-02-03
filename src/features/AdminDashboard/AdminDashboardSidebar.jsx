@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { FiGrid, FiMessageSquare, FiLock, FiUsers, FiSettings, FiPlus } from "react-icons/fi"
 import { NavLink, useNavigate } from "react-router-dom"
 import logo from "../../assets/python2.png"
@@ -25,6 +26,15 @@ const menuItems = [
 
 export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCollapse }) {
     const navigate = useNavigate()
+
+    // =================================== Theme Color From Localstorage ==================================\\
+    useEffect(() => {
+        const savedColor = localStorage.getItem('themeColor')
+        if (savedColor) {
+            document.documentElement.style.setProperty('--color-primary', savedColor)
+            document.documentElement.style.setProperty('--bg-primary', savedColor)
+        }
+    }, [])
 
     //...................................Get User Profile Data...................................\\
 
@@ -218,7 +228,7 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
                     onClick={onClick}
                     title={isCollapsed ? 'Subject Matters' : ''}
                     className={({ isActive }) =>
-                        `w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
+                        `hidden w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-2xl text-gray-600 text-default opacity-90 transform transition-all duration-200 ease-in-out ${isActive ? " bg-white/35" : "hover:border hover:border-[#E2E2E2] "
                         } ${accessControl.subjectsMattersAccess ? '' : 'hidden'}`
                     }
                 >

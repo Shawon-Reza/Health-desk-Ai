@@ -71,8 +71,8 @@ const NotificationsToggle = () => {
     return (
         <div className="">
             <div
-                className=" border rounded-lg p-6 md:p-8"
-                style={{ borderColor: "#00A4A6" }}
+                className=" border rounded-lg p-6 md:p-8 "
+                style={{ borderColor: "var(--bg-primary)" }}
             >
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Notifications</h1>
 

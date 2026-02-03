@@ -44,8 +44,8 @@ const PromptModifySection = () => {
 
     if (isLoading) {
         return (
-            <section className="rounded-2xl border border-[#E9E4DB] p-6 md:p-8">
-                <div className="max-w-5xl">
+            <section className="rounded-2xl shadowlg border border-[#E9E4DB] p-6 md:p-8">
+                <div className="">
                     <div className="animate-pulse">
                         <div className="h-6 bg-gray-200 rounded w-32 mb-3"></div>
                         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 md:p-5">
@@ -61,7 +61,7 @@ const PromptModifySection = () => {
     if (error) {
         return (
             <section className="rounded-2xl border border-red-200 p-6 md:p-8 bg-red-50">
-                <div className="max-w-5xl">
+                <div className="">
                     <p className="text-red-600">Failed to load prompt data</p>
                 </div>
             </section>
@@ -69,12 +69,12 @@ const PromptModifySection = () => {
     }
 
     return (
-        <section className="rounded-2xl border border-[#E9E4DB] p-6 md:p-8">
-            <div className="max-w-5xl">
+        <section className="rounded-2xl border border-[#E9E4DB] p-6 md:p-8 shadow-sm">
+            <div className="">
                 <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">
                     Prompt Modify
                 </h2>
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 md:p-5">
+                <div className="bg-white/70 rounded-xl border border-gray-200 shadow-sm p-4 md:p-5">
                     <p className="text-xs text-gray-500 mb-2">Prompt</p>
                     <textarea
                         className="w-full min-h-[120px] md:min-h-[140px] resize-none border border-gray-200 rounded-lg p-3 text-sm md:text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500"

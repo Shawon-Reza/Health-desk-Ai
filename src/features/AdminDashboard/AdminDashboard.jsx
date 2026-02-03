@@ -11,6 +11,8 @@ import useGetUserProfile from '../../hooks/useGetUserProfile'
 import Notifications from './Notification/Notifications'
 import { connectWebSocketForNotifications } from './Communication/ChatService'
 import axiosApi from '../../service/axiosInstance'
+import { lightenHex } from './themfunction'
+
 
 const AdminDashboard = () => {
     const isMobile = useIsBelowMd()
@@ -22,6 +24,7 @@ const AdminDashboard = () => {
     const [isNotificationOpen, setIsNotificationOpen] = useState(false)
     const [notifications, setNotifications] = useState([])
     const [notificationCount, setNotificationCount] = useState(null)
+    const [primaryColor, setPrimaryColor] = useState('')
     const notificationRef = useRef(null)
     const notificationSocketRef = useRef(null)
 
@@ -38,6 +41,31 @@ const AdminDashboard = () => {
     useEffect(() => {
         localStorage.setItem('sidebarCollapsed', JSON.stringify(isCollapsed))
     }, [isCollapsed])
+    // ================================ Set Primary Color Theme ======================================\\
+    useEffect(() => {
+        const savedColor = localStorage.getItem('themeColor')
+        const currentColor = savedColor || getComputedStyle(document.documentElement)
+            .getPropertyValue("--bg-primary")
+            .trim() || '#00A4A6'
+
+        if (savedColor) {
+            document.documentElement.style.setProperty('--color-primary', savedColor)
+            document.documentElement.style.setProperty('--bg-primary', savedColor)
+        }
+        setPrimaryColor(currentColor)
+
+        const handleStorage = (event) => {
+            if (event.key === 'themeColor') {
+                const nextColor = event.newValue || '#00A4A6'
+                document.documentElement.style.setProperty('--color-primary', nextColor)
+                document.documentElement.style.setProperty('--bg-primary', nextColor)
+                setPrimaryColor(nextColor)
+            }
+        }
+
+        window.addEventListener('storage', handleStorage)
+        return () => window.removeEventListener('storage', handleStorage)
+    }, [])
 
     //================================ Handle click outside notification modal======================================\\
     useEffect(() => {
@@ -128,6 +156,7 @@ const AdminDashboard = () => {
 
         return () => clearInterval(checkInterval)
     }, [])
+
 
 
 
@@ -261,7 +290,8 @@ const AdminDashboard = () => {
                         </nav>
                     </section>
 
-                    <section className='bg-secondary min-h-[calc(100vh-85px)] mx-auto px-6 py-5'>
+                    <section className="min-h-[calc(100vh-85px)] mx-auto px-6 py-5"
+                        style={{ backgroundColor: lightenHex(primaryColor || '#00A4A6', 90) }}>
                         <Outlet />
                     </section>
                 </section>

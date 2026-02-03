@@ -1,7 +1,10 @@
 
 
 export const base_URL = 'http://10.10.13.2:8000';
+// export const base_URL = 'https://ralliform-stephany-spectrometric.ngrok-free.dev';
 export const user_ROLE = 'userRole';
+
+// https://ralliform-stephany-spectrometric.ngrok-free.dev
 
 
 

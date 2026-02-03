@@ -67,7 +67,7 @@ const Charting_AI = () => {
 
             {/* ========================= Chat Panel FFor Charting AI ======================== */}
             {/*  chatRoom, roomType */}
-            <section className=''>
+            <section className='min-h-screen'>
                 <ChatPanel
                     chatRoom={createAiChartingRoomMutation.data.room_id}
                     roomType={createAiChartingRoomMutation.data.room_type}

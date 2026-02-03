@@ -10,7 +10,7 @@ const LINKS = [
 
 const Settings = () => {
     return (
-        <div className="bg-secondary  px-6 text-secondary">
+        <div className="bg-secondar  px-6 text-secondary">
             {/* settings  */}
             <section>
                 <header className="space-y-2 py-3">

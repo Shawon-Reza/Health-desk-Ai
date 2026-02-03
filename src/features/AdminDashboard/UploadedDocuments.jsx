@@ -114,7 +114,7 @@ const UploadedDocuments = () => {
         <div className="relative">
           <button
             onClick={() => setShowRoleDropdown(!showRoleDropdown)}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 border border-bg-primary rounded-lg hover:bg-gray-50 transition-colors"
           >
             {selectedRole}
             <FiChevronDown size={18} />
@@ -158,8 +158,8 @@ const UploadedDocuments = () => {
                   <td className="px-6 py-4 text-sm text-gray-700">{document.slNo}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
-                        <FiUser size={16} className="text-teal-600" />
+                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                        <FiUser size={16} className="text-white" />
                       </div>
                       {document.name}
                     </div>

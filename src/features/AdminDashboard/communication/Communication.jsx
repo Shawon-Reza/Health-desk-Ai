@@ -238,7 +238,7 @@ const Communication = () => {
             {/* Main Layout */}
             <section className="flex gap-6 h-[calc(100vh-220px)]">
                 {/* ......................Sidebar.................... */}
-                <section className="w-[40%] xl:w-[25%] h-full bg-white rounded-xl shadow-md p-4 space-y-4 border border-gray-300">
+                <section className="w-[40%] xl:w-[25%] h-full bg-white/70 rounded-xl shadow-md p-4 space-y-4 border border-gray-300">
                     {/* Tabs */}
                     <div className="flex justify-between gap-3 pb-2">
                         <button
@@ -409,7 +409,7 @@ const Communication = () => {
                 </section>
 
                 {/* ............................Chat Panel............................. */}
-                <section className="w-[60%] xl:w-[75%] h-full bg-white rounded-lg shadow-md p-4 ">
+                <section className="w-[60%] xl:w-[75%] h-full bg-white/70 rounded-lg shadow-md p-4 ">
                     <ChatPanel chatRoom={selectedChat?.room_id ?? null} roomType={selectedChat?.type ?? null} activeTab={activeTab} />
                 </section>
 

@@ -128,7 +128,7 @@ const CreateNewAssesment = () => {
             </div>
 
             {/* Create Assessment Card */}
-            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-4 md:p-5">
+            <div className="bg-white/80 rounded-2xl shadow-md border border-gray-200 p-4 md:p-5">
                 <div className="flex items-center gap-3 mb-4 border-b-2 border-gray-200 pb-2">
                     <PiGraduationCapLight className="w-5 h-5 text-gray-600" />
                     <h2 className="text-lg font-semibold text-gray-800">Create New Assessment</h2>
@@ -175,7 +175,7 @@ const CreateNewAssesment = () => {
                         </div>
 
                         {/* Subroles (Doctor/Staff/Jr Staff) or Subject Matters (others) */}
-                        {formData.role && (
+                        {formData.role && formData.role !== 'manager' && (
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     {['doctor', 'staff', 'jr_staff'].includes(formData.role) ? 'Sub Role (Specialization)' : 'Subject Matter'}

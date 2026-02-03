@@ -16,6 +16,7 @@ const CreatedAssesmentDetails = () => {
     const [showAddQuestionModal, setShowAddQuestionModal] = useState(false)
     const [newQuestionText, setNewQuestionText] = useState('')
     const [newQuestionOptions, setNewQuestionOptions] = useState(['', '', '', ''])
+    const [correctAnswerIndex, setCorrectAnswerIndex] = useState(null)
     const [showDeadlineModal, setShowDeadlineModal] = useState(false)
     const [deadlineDate, setDeadlineDate] = useState('')
     const [selectedAnswers, setSelectedAnswers] = useState({})
@@ -111,10 +112,11 @@ const CreatedAssesmentDetails = () => {
 
     // ...........................................Add question mutation............................................\\
     const addQuestionMutation = useMutation({
-        mutationFn: async ({ questionText, options }) => {
+        mutationFn: async ({ questionText, options, correctIndex }) => {
             const response = await axiosApi.post(`/api/v1/assessments/${assessmentId}/questions-add/`, {
                 text: questionText,
-                options: options.map(opt => ({ text: opt }))
+                options: options.map(opt => ({ text: opt })),
+                correct_index: correctIndex
             })
             return response.data
         },
@@ -142,6 +144,7 @@ const CreatedAssesmentDetails = () => {
             setShowAddQuestionModal(false)
             setNewQuestionText('')
             setNewQuestionOptions(['', '', '', ''])
+            setCorrectAnswerIndex(null)
             toast.success('Question added successfully!')
         },
         onError: (error) => {
@@ -234,10 +237,16 @@ const CreatedAssesmentDetails = () => {
             toast.error('Please fill in all four options')
             return
         }
+        // Check if correct answer is selected
+        if (correctAnswerIndex === null) {
+            toast.error('Please select the correct answer')
+            return
+        }
         console.log('[CreatedAssesmentDetails] Saving new question:', newQuestionText)
         addQuestionMutation.mutate({
             questionText: newQuestionText,
-            options: newQuestionOptions
+            options: newQuestionOptions,
+            correctIndex: correctAnswerIndex
         })
     }
 
@@ -245,6 +254,7 @@ const CreatedAssesmentDetails = () => {
         setShowAddQuestionModal(false)
         setNewQuestionText('')
         setNewQuestionOptions(['', '', '', ''])
+        setCorrectAnswerIndex(null)
     }
 
     const handleSetDeadline = () => {
@@ -337,7 +347,7 @@ const CreatedAssesmentDetails = () => {
                             {/* Question Header */}
                             <div className="flex items-start gap-3 mb-4">
                                 {/* Question Number Badge */}
-                                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-lg flex items-center justify-center font-bold text-lg">
+                                <div className="flex-shrink-0 w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center font-bold text-lg">
                                     {question.number || question.id}
                                 </div>
 
@@ -402,7 +412,7 @@ const CreatedAssesmentDetails = () => {
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <button
                     onClick={handleAddQuestion}
-                    className={`flex items-center justify-center gap-2 px-6 py-3 bg-teal-50 text-teal-600 border-2 border-teal-200 rounded-lg hover:bg-teal-100 transition font-semibold ${questionsData?.data.assessment.status === 'active' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`flex items-center justify-center gap-2 px-6 py-3 bg-teal-50 text-teal-600 border-2 border-bg-primary rounded-lg hover:bg-teal-100 transition font-semibold ${questionsData?.data.assessment.status === 'active' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     <FiPlus className="w-5 h-5" />
                     Add Question
@@ -417,7 +427,7 @@ const CreatedAssesmentDetails = () => {
                 </button>
                 <button
                     onClick={handleSaveAssessment}
-                    className={`flex items-center justify-center gap-2 px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition font-semibold ${questionsData?.data.assessment.status === 'active' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-teal-700 transition font-semibold ${questionsData?.data.assessment.status === 'active' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     <FiSave className="w-5 h-5" />
                     Save Assessment
@@ -453,7 +463,7 @@ const CreatedAssesmentDetails = () => {
                                 <div className="space-y-3">
                                     {newQuestionOptions.map((option, index) => (
                                         <div key={index} className="flex items-center gap-3">
-                                            <div className="w-8 h-8 flex-shrink-0 bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-lg flex items-center justify-center font-semibold text-sm">
+                                            <div className="w-8 h-8 flex-shrink-0 bg-primary text-white rounded-lg flex items-center justify-center font-semibold text-sm">
                                                 {String.fromCharCode(65 + index)}
                                             </div>
                                             <input
@@ -467,6 +477,17 @@ const CreatedAssesmentDetails = () => {
                                                 placeholder={`Option ${String.fromCharCode(65 + index)}`}
                                                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                                             />
+                                            <button
+                                                type="button"
+                                                onClick={() => setCorrectAnswerIndex(index)}
+                                                className={`px-3 py-2 rounded-lg font-medium transition ${
+                                                    correctAnswerIndex === index
+                                                        ? 'bg-emerald-500 text-white'
+                                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                }`}
+                                            >
+                                                {correctAnswerIndex === index ? '✓ Correct' : 'Mark'}
+                                            </button>
                                         </div>
                                     ))}
                                 </div>

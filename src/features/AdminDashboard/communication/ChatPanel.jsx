@@ -376,9 +376,10 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
     avatar: `http://10.10.13.2:8000${data?.pages[0]?.room?.image}` ||
       "https://api.dicebear.com/7.x/avataaars/svg?seed=Chat",
   };
-
+  console.log("************************************************************************************************", path)
+  // ai_charting
   return (
-    <div className="flex flex-col h-full border border-gray-300 rounded-lg bg-white max-h-[calc(100vh-120px)]">
+    <div className={`flex flex-col h-full border border-gray-300 rounded-lg bg-white max-h-[calc(100vh-120px)]  ${path === "charting-ai" ? "min-h-[calc(100vh-120px)]" : ""}`}>
       {!chatRoom ? (
         <div className="flex-1 flex items-center justify-center text-gray-500">
           Select a chat
@@ -535,7 +536,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
               <button
                 onClick={handleSendMessage}
                 disabled={(!inputMessage.trim() && attachments.length === 0) || isInputDisabled}
-                className="disabled:opacity-50 hover:bg-blue-600 bg-blue-500 text-white p-3 rounded-lg flex items-center justify-center"
+                className="disabled:opacity-50  bg-primary text-white p-3 rounded-lg flex items-center justify-center"
               >
                 <FiSend size={24} className="hover:scale-105 transform transition-transform duration-700 ease-in-out" />
               </button>

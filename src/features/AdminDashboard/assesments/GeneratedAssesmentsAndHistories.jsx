@@ -226,7 +226,7 @@ const GeneratedAssesmentsAndHistories = () => {
                                         </div>
                                         <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                                             <div
-                                                className="bg-gradient-to-r from-teal-500 to-teal-600 h-full rounded-full transition-all duration-500"
+                                                className="bg-primary h-full rounded-full transition-all duration-500"
                                                 style={{ width: `${progressPercentage}%` }}
                                             />
                                         </div>
@@ -236,7 +236,7 @@ const GeneratedAssesmentsAndHistories = () => {
                                     <div className="flex flex-wrap gap-3">
                                         <button
                                             onClick={() => handleViewDetails(assessment.id)}
-                                            className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-teal-200 text-teal-600 rounded-lg hover:bg-teal-50 transition font-medium text-sm"
+                                            className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-bg-primary text-teal-600 rounded-lg hover:bg-teal-50 transition font-medium text-sm"
                                         >
                                             <FiEye className="w-4 h-4" />
                                             View Details
@@ -279,7 +279,7 @@ const GeneratedAssesmentsAndHistories = () => {
                     <div className="flex justify-end mt-4">
                         <button
                             onClick={() => setShowAllOngoing(!showAllOngoing)}
-                            className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition font-medium"
+                            className="px-4 py-2 bg-primary text-white rounded-lg  transition font-medium"
                         >
                             {showAllOngoing ? 'View Less' : `View All (${ongoingAssessments.length})`}
                         </button>
@@ -339,7 +339,7 @@ const GeneratedAssesmentsAndHistories = () => {
                                 {/* Right section - Score */}
                                 <div className="flex items-center gap-6">
                                     <div className="text-right">
-                                        <div className="text-3xl md:text-4xl font-bold text-emerald-500">
+                                        <div className="text-3xl md:text-4xl font-bold text-bg-primary">
                                             {assessment.average_score}%
                                         </div>
                                         <div className="text-xs text-gray-500 font-medium">
@@ -366,7 +366,7 @@ const GeneratedAssesmentsAndHistories = () => {
                     <div className="flex justify-end mt-2">
                         <button
                             onClick={() => setShowAllHistory(!showAllHistory)}
-                            className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition font-medium"
+                            className="px-4 py-2 bg-primary text-white rounded-lg  transition font-medium"
                         >
                             {showAllHistory ? 'View Less' : `View All (${assessmentHistory.length})`}
                         </button>

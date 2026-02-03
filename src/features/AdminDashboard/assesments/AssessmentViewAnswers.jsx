@@ -123,7 +123,7 @@ export const AssessmentViewAnswers = () => {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                     <div
-                        className="bg-emerald-500 h-3 rounded-full transition-all duration-300"
+                        className="bg-primary h-3 rounded-full transition-all duration-300"
                         style={{ width: `${answeredPercentage}%` }}
                     />
                 </div>
@@ -143,8 +143,8 @@ export const AssessmentViewAnswers = () => {
                         <div key={index} className="p-6 hover:bg-gray-50 transition">
                             {/* Question Header */}
                             <div className="flex items-start gap-3 mb-4">
-                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-teal-100 flex-shrink-0">
-                                    <span className="text-sm font-bold text-teal-700">{answer.question_number}</span>
+                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary flex-shrink-0">
+                                    <span className="text-sm font-bold text-white">{answer.question_number}</span>
                                 </div>
                                 <div className="flex-1">
                                     <h4 className="text-base font-semibold text-gray-900">{answer.question_text}</h4>
@@ -242,19 +242,19 @@ export const AssessmentViewAnswers = () => {
             </div>
 
             {/* Summary Footer */}
-            <div className="bg-gradient-to-r from-teal-50 to-blue-50 rounded-2xl border border-teal-200 p-6">
-                <div className="grid grid-cols-3 gap-6 text-center">
+            <div className="bg-primary rounded-2xl border border-teal-200 p-6">
+                <div className="grid grid-cols-3 gap-6 text-center text-white">
                     <div>
-                        <p className="text-2xl font-bold text-teal-700">{totalAnswered}</p>
-                        <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Questions Answered</p>
+                        <p className="text-2xl font-bold  text-white">{totalAnswered}</p>
+                        <p className="text-xs text-white uppercase tracking-wider mt-1">Questions Answered</p>
                     </div>
                     <div>
-                        <p className="text-2xl font-bold text-gray-700">{answers.length}</p>
-                        <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Total Questions</p>
+                        <p className="text-2xl font-bold text-white">{answers.length}</p>
+                        <p className="text-xs text-white uppercase tracking-wider mt-1">Total Questions</p>
                     </div>
                     <div>
-                        <p className="text-2xl font-bold text-emerald-700">{answersData?.data?.summary?.percentage}</p>
-                        <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Total Score</p>
+                        <p className="text-2xl font-bold text-white">{answersData?.data?.summary?.percentage}</p>
+                        <p className="text-xs text-white uppercase tracking-wider mt-1">Total Score</p>
                     </div>
                 </div>
             </div>

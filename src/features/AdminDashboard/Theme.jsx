@@ -7,11 +7,17 @@ const Theme = () => {
 
     // Predefined color palette
     const colors = [
-        { name: 'Teal', hex: '#00A4A6', rgb: '0, 164, 166' },
-        { name: 'Blue', hex: '#3B82F6', rgb: '59, 130, 246' },
-        { name: 'Purple', hex: '#8B5CF6', rgb: '139, 92, 246' },
-        { name: 'Green', hex: '#10B981', rgb: '16, 185, 129' },
-        { name: 'Orange', hex: '#F97316', rgb: '249, 115, 22' },
+        { name: 'Teal', hex: '#00A4A6', rgb: '0, 164, 166' },       // ✅ correct
+        { name: 'Deep Navy', hex: '#0C2C55' },                     // was "Midnight Navy"
+        // Midnight navy is usually almost black-blue
+        { name: 'Hot Pink', hex: '#FF4686' },                      // was "Blush Pink"
+        // Blush is soft & pale — this is bright/saturated
+        { name: 'Dark Teal', hex: '#215E61' },                     // was "Deep Teal"
+        // Better fit for this tone
+        { name: 'Slate Gray', hex: '#4B5563' },                    // was "Soft Gray"
+        // This is the Tailwind slate-600 family, not soft/light
+        { name: 'Crimson Red', hex: '#F63049' },                   // was "Crimson"
+        // More accurate shade description
     ]
 
     useEffect(() => {
@@ -32,16 +38,18 @@ const Theme = () => {
             localStorage.setItem('themeColor', selectedColor)
             document.documentElement.style.setProperty('--color-primary', selectedColor)
             document.documentElement.style.setProperty('--bg-primary', selectedColor)
+
         }
     }, [selectedColor])
 
     const handleColorSelect = (color) => {
         setSelectedColor(color.hex)
         console.log(`🎨 Selected Color: ${color.name} (${color.hex})`)
+        window.location.reload();
     }
 
     return (
-        <div className=" max-h-[calc(100vh-100px)] overflow-y-auto">
+        <div className=" ">
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Theme Customization</h1>
@@ -49,11 +57,11 @@ const Theme = () => {
             </div>
 
             {/* Color Selection Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+            <div className="bg-white/50 rounded-2xl shadow-lg p-8 border border-gray-200">
                 <h2 className="text-xl font-semibold text-gray-800 mb-6">Select Color Theme</h2>
 
                 {/* Color Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 mb-8">
                     {colors.map((color) => (
                         <button
                             key={color.hex}

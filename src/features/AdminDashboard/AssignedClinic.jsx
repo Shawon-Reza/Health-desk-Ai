@@ -117,7 +117,7 @@ const AssignedClinic = () => {
             </div>
 
             {/* Main Content */}
-            <div className="mx-auto px-6 py-8">
+            <div className="mx-auto  py-8">
                 {loading ? (
                     <div className="text-center py-12">
                         <p className="text-gray-600">Loading clinics data...</p>

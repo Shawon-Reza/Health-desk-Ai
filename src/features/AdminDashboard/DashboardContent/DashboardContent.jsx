@@ -8,6 +8,8 @@ import { Outlet, useNavigate } from "react-router-dom"
 import useGetUserProfile from "../../../hooks/useGetUserProfile"
 import AdminAndPresedentDashboardDetails from "./AdminAndPresedentDashboardDetails"
 import DislikeNotifications from "./DislikeNotifications"
+import GiveAssessmentsAnsware from "./GiveAssessmentsAnsware"
+import GivenAssessmentViewFromUsers from "./GivenAssessmentViewFromUsers"
 
 const DashboardContent = () => {
   // ============ STATE MANAGEMENT ============
@@ -59,6 +61,7 @@ const DashboardContent = () => {
     staleTime: 5 * 60 * 1000,
   })
   console.log("Consol*********************:", myAssessments?.data)
+
 
   // ...............................................................................................\\
 
@@ -264,7 +267,7 @@ const DashboardContent = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
               {/* ...........................................Recent Activity........................................... */}
-              <div className="lg:col-span-2 bg-white rounded-lg shadow-lg p-6 flex flex-col h-full">
+              <div className="lg:col-span-2 bg-white/50 rounded-lg shadow-lg p-6 flex flex-col h-full">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h2>
                 <div className="space-y-2 flex-1">
                   {visibleActivities && visibleActivities.length > 0 ? (
@@ -296,7 +299,7 @@ const DashboardContent = () => {
 
 
               {/*........................................ Quick Actions.......................................... */}
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="bg-white/50 rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
                 <div className="space-y-3">
                   <QuickActionButton
@@ -373,7 +376,7 @@ const DashboardContent = () => {
 
 
             {/* ====================================================Assessments Section======================================================= */}
-            <div className={`${notDisplayAssessmentSection ? 'hidden' : ''} bg-white rounded-lg shadow-lg p-6`}>
+            <div className={`${notDisplayAssessmentSection ? 'hidden' : ''} bg-white/50 rounded-lg shadow-lg p-6`}>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Assessments</h2>
               <p className="text-gray-600 mb-6">Give proper answers and improve your knowledge</p>
 
@@ -392,11 +395,17 @@ const DashboardContent = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <div className="text-center py-12 bg-white/60 rounded-lg border-2 border-dashed border-gray-300">
                   <p className="text-gray-500 text-lg">No assessments found</p>
                   <p className="text-gray-400 text-sm">Check back later for new assessments</p>
                 </div>
               )}
+            </div>
+            {/* ====================================================Given Assessments Section======================================================= */}
+            <div className={`${notDisplayAssessmentSection ? 'hidden' : ''} bg-white/50 rounded-lg shadow-lg p-6`}>
+
+
+              <GivenAssessmentViewFromUsers></GivenAssessmentViewFromUsers>
             </div>
             {/* ===========================================Like/Dislike Notifications for President===================================== */}
 

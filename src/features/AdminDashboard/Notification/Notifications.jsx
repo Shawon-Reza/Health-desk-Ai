@@ -115,6 +115,9 @@ const Notifications = ({ notifications = [], notificationCount = 0, onNotificati
       const messageId = notification?.payload?.message_id
       navigate('/admin/communication', { state: { roomId, messageId }, replace: true })
     }
+    if (type === 'assesments') {
+      navigate('/admin/dashboard')
+    }
   }
   // ====================================== Clear All Notifications UI ====================================== //
   const handleClearAll = () => {

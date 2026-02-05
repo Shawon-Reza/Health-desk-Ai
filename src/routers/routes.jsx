@@ -29,6 +29,7 @@ import NotificationsToggle from "../features/AdminDashboard/NotificationsToggle"
 import Communication from "../features/AdminDashboard/Communication/Communication";
 import Charting_AI from "../features/AdminDashboard/Communication/Charting_AI";
 import Theme from "../features/AdminDashboard/Theme";
+import GivenAssessmentDetailsFromUser from "../features/AdminDashboard/DashboardContent/GivenAssessmentDetailsFromUser";
 
 
 
@@ -51,6 +52,10 @@ export const router = createBrowserRouter([
             {
                 path: "dashboard",
                 element: <DashboardContent></DashboardContent>,
+            },
+            {
+                path: "dashboard/given-assessment-details/:id",
+                element: <GivenAssessmentDetailsFromUser></GivenAssessmentDetailsFromUser>,
             },
             {
                 path: "assessments/give-answers/:assessmentId",

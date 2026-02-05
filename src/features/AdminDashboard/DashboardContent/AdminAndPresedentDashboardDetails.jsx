@@ -47,7 +47,7 @@ const AdminAndPresedentDashboardDetails = ({ cardData }) => {
 
     // ============ STAT CARD COMPONENT ============
     const StatCard = ({ icon: Icon, label, value, borderColor, bgColor }) => (
-        <div className={`bg-white rounded-lg shadow-md p-6 ${borderColor}`}>
+        <div className={`bg-white/50 rounded-lg shadow-md p-6 ${borderColor}`}>
             <div className="flex items-center justify-between">
                 <div>
                     <p className="text-gray-600 text-sm font-medium">{label}</p>

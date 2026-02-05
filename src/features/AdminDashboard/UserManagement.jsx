@@ -290,7 +290,7 @@ export default function UserManagement() {
             </div>
 
             {/* Search & Filters */}
-            <div className="border border-gray-300 rounded-lg p-3 md:p-4 space-y-3 md:space-y-4 bg-white">
+            <div className="border border-gray-300 rounded-lg p-3 md:p-4 space-y-3 md:space-y-4 bg-white/50">
                 <div className="flex flex-col lg:flex-row  gap-3 md:gap-4">
                     {/* Search Bar */}
                     <div className="w-full relative">

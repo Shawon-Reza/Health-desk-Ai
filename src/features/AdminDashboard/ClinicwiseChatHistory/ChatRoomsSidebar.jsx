@@ -20,7 +20,7 @@ const ChatRoomsSidebar = ({ roomsData, roomsLoading, roomsError, selectedRoom, o
             </div>
 
             {/* Room List */}
-            <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+            <div className="divide-y divide-gray-200  overflow-y-auto">
                 {roomsLoading ? (
                     <div className="p-4 text-center text-gray-500 text-sm">
                         Loading rooms...

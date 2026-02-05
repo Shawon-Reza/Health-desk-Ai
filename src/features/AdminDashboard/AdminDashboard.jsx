@@ -174,7 +174,7 @@ const AdminDashboard = () => {
                         isMobile
                             ? 'fixed inset-0 z-50 bg-white w-full h-full shadow-lg' // mobile full-screen sidebar
                             : isCollapsed
-                                ? 'w-[80px]' // collapsed width
+                                ? 'w-[100px]' // collapsed width
                                 : 'w-[30%] lg:w-[30%] xl:w-[20%]' // desktop sidebar width
                     }
                 >

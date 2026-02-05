@@ -259,7 +259,8 @@ const ClinicManagement = () => {
             />
 
             {/* Header */}
-            <div className=" border-gray-200 sticky top-0 z-30">
+            {/* sticky top-0 z-30 */}
+            <div className=" border-gray-200 ">
 
                 <div className=" px-6 py-8 flex items-center justify-between bg-white/8 shadow-lg rounded-xl">
                     <div>

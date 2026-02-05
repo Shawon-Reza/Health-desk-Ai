@@ -78,7 +78,7 @@ const UserDetailsSection = ({ user, permissionData, permissionLoading, permissio
                         <div className="flex items-center gap-2">
                             <div className="flex-1 bg-gray-200 rounded-full h-3">
                                 <div
-                                    className="bg-gradient-to-r from-teal-400 to-teal-600 h-3 rounded-full transition-all"
+                                    className="bg-primary h-3 rounded-full transition-all"
                                     style={{ width: `${(user?.knowledge_level || 0) * 10}%` }}
                                 />
                             </div>

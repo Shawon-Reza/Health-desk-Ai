@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { use, useEffect, useMemo, useState } from 'react'
 import { FiArrowLeft, FiFileText, FiHash, FiMessageCircle, FiUserX } from 'react-icons/fi'
 import { RiContactsBook3Line } from 'react-icons/ri';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import axiosApi from '../../service/axiosInstance';
@@ -66,6 +66,7 @@ const UserProfileFromAdmin = () => {
 
     const { userId } = useParams();
     const queryClient = useQueryClient();
+    const navigate = useNavigate();
 
     // ............................Fetch user data from API...................................\\
     const { data: user, isLoading: loading, error } = useQuery({
@@ -123,8 +124,8 @@ const UserProfileFromAdmin = () => {
     });
 
     const handleBack = () => {
-        console.log('[UserProfileFromAdmin] Back clicked')
-        // e.g., navigate(-1) if using react-router
+
+        navigate(-1);
     }
 
     const handleToggleChat = () => {
@@ -175,7 +176,8 @@ const UserProfileFromAdmin = () => {
             {/* Top actions */}
             <button
                 onClick={handleBack}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-[#00A4A6] hover:bg-teal-50 border border-teal-100"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-primary hover:bg-teal-50 border border-primary"
+                style={{ borderColor: "var(--color-primary)" }}
                 aria-label="Go back"
             >
                 <FiArrowLeft className="w-4 h-4" />

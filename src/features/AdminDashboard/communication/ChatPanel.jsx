@@ -21,7 +21,6 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
   const [attachments, setAttachments] = useState([]);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
-  const shouldFetchMentionRef = useRef(false);
 
   // Auth
   const { userInfo } = getAuthData();
@@ -45,11 +44,8 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
   const {
     data,
     fetchNextPage,
-    fetchPreviousPage,
     hasNextPage,
-    hasPreviousPage,
     isFetchingNextPage,
-    isFetchingPreviousPage,
   } = useInfiniteQuery({
     queryKey: ["messages", chatRoom],
     enabled: !!chatRoom,
@@ -59,82 +55,22 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
         { params: { cursor: pageParam } }
       );
 
-      return res.data;
+      return {
+        results: res.data.results ?? [],
+        nextCursor: res.data.next_cursor ?? null,
+        chatInfo: res.data.room ?? null,
+
+      };
     },
-    getNextPageParam: (lastPage) => lastPage?.next_cursor ?? null,
-    getPreviousPageParam: (firstPage) => firstPage?.previous_cursor ?? null,
-    staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
-    gcTime: 10 * 60 * 1000,   // Keep in cache for 10 minutes
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
   console.log("Messages (HTTP with infinite scroll) =======================================\\", data?.pages);
 
   // Flatten and reverse to show oldest -> newest
   const messages = useMemo(() => {
     const list = data?.pages.flatMap((p) => p.results) ?? [];
-    // Ensure deterministic order oldest -> newest
-    return [...list].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    return [...list].reverse();
   }, [data]);
-
-  // Anchor message id when navigating from notification
-  const [anchorMessageId, setAnchorMessageId] = useState(null);
-  const mentionMessageId = useMemo(() => {
-    const raw = location.state?.messageId;
-    return raw !== undefined && raw !== null ? Number(raw) : null;
-  }, [location.state?.messageId]);
-
-  // Track when we have a valid mention to fetch
-  useEffect(() => {
-    if (mentionMessageId && !anchorMessageId) {
-      shouldFetchMentionRef.current = true;
-      console.log('🔔 Mention detected, will auto-fetch:', mentionMessageId);
-    }
-  }, [mentionMessageId, anchorMessageId]);
-
-  // When location.state changes (mention notification clicked while on same route)
-  useEffect(() => {
-    if (mentionMessageId && anchorMessageId !== mentionMessageId) {
-      console.log('📍 New mention state detected while on same route:', mentionMessageId);
-      setAnchorMessageId(null); // Reset to trigger mention detection
-    }
-  }, [location.state?.messageId, mentionMessageId]);
-
-  // Reset anchor when switching rooms
-  useEffect(() => {
-    setAnchorMessageId(null);
-    // Don't reset shouldFetchMentionRef here - let the mention detection effect handle it
-  }, [chatRoom]);
-
-  // Auto-fetch until mention message is found (ONLY if we have a valid mention)
-  useEffect(() => {
-    if (!shouldFetchMentionRef.current || !chatRoom || !mentionMessageId || !data) return;
-
-    // Check if message exists in current loaded messages
-    const messageExists = messages.some((m) => m.id === mentionMessageId);
-
-    console.log('🔍 Looking for message:', mentionMessageId, 'Found:', messageExists, 'Total messages:', messages.length);
-
-    if (messageExists) {
-      if (anchorMessageId !== mentionMessageId) {
-        console.log('✅ Message found, setting anchor:', mentionMessageId);
-        setAnchorMessageId(mentionMessageId);
-        shouldFetchMentionRef.current = false; // Stop fetching
-        // Clear location state after message is anchored
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-      return;
-    }
-
-    // If message not found and we have more pages, keep fetching
-    if (hasNextPage && !isFetchingNextPage) {
-      console.log('📍 Mention message not found, loading older messages... (hasNextPage:', hasNextPage, ')');
-      fetchNextPage();
-    } else if (!hasNextPage) {
-      console.warn('⚠️ Message not found and no more pages to fetch');
-      shouldFetchMentionRef.current = false; // Stop fetching
-    }
-  }, [chatRoom, mentionMessageId, messages.length, hasNextPage, isFetchingNextPage, data, anchorMessageId]);
 
   // WebSocket for real-time messages
   useEffect(() => {
@@ -296,7 +232,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
-    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'xls', 'xlsx', 'csv', 'doc', 'docx', 'pdf'];
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'xls', 'xlsx', 'csv', 'doc', 'docx'];
     const maxSize = 10 * 1024 * 1024; // 10MB
 
     const validFiles = files.filter(file => {
@@ -355,15 +291,15 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
   }, [roomType, chatRoom, roomMembersData]);
 
   const isInputDisabled =
-    data?.pages[0]?.room?.chat_blocked ||
+    data?.pages[0].chatInfo?.chat_blocked ||
     path === "user-management" ||
-    data?.pages[0]?.room?.can_send === false ||
+    data?.pages[0].chatInfo?.can_send === false ||
     (isAiRoom && isAiTyping);
 
   const inputPlaceholder =
-    data?.pages[0]?.room?.chat_blocked
+    data?.pages[0].chatInfo?.chat_blocked
       ? 'Chat is blocked. You are not allowed to send messages until unblocked.'
-      : data?.pages[0]?.room?.can_send === false
+      : data?.pages[0].chatInfo?.can_send === false
         ? 'User is currently inactive. Cannot send messages.'
         : isAiRoom && isAiTyping
           ? 'Please wait, AI is responding...'
@@ -371,15 +307,14 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
   // ...........................**Chat info**........................... //
   // data?.pages[0].chatInfo)
   const safeUser = {
-    name: data?.pages[0]?.room?.name || "Unknown User",
-    role: data?.pages[0]?.room?.display_role || data?.pages[0]?.room?.type || "unknown",
-    avatar: `http://10.10.13.2:8000${data?.pages[0]?.room?.image}` ||
+    name: data?.pages[0]?.chatInfo?.name || "Unknown User",
+    role: data?.pages[0]?.chatInfo?.display_role || "unknown",
+    avatar: `http://10.10.13.2:8000${data?.pages[0]?.chatInfo?.image}` ||
       "https://api.dicebear.com/7.x/avataaars/svg?seed=Chat",
   };
-  console.log("************************************************************************************************", path)
-  // ai_charting
+
   return (
-    <div className={`flex flex-col h-full border border-gray-300 rounded-lg bg-white max-h-[calc(100vh-120px)]  ${path === "charting-ai" ? "min-h-[calc(100vh-120px)]" : ""}`}>
+    <div className="flex flex-col h-full border border-gray-300 rounded-lg bg-white">
       {!chatRoom ? (
         <div className="flex-1 flex items-center justify-center text-gray-500">
           Select a chat
@@ -399,7 +334,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
                 <div className="text-xs text-pink-600">{safeUser.role}</div>
               </div>
               {
-                data?.pages[0]?.room?.chat_blocked && (
+                data?.pages[0]?.chatInfo?.chat_blocked && (
                   <div>
                     <p className="text-red-500 font-semibold">Blocked</p>
                   </div>
@@ -409,7 +344,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
             </div>
 
-            <div className={`relative ${data?.pages[0]?.room?.type === "ai" || data?.pages[0]?.room?.type === "ai_charting" ? "hidden" : ""} `}>
+            <div className={`relative ${data?.pages[0].chatInfo?.type === "ai" ? "hidden" : ""} `}>
               <FiInfo
                 size={20}
                 className={`cursor-pointer ${path === "user-management" || path === "clinicwise-chat-history" ? "hidden" : ""}`}
@@ -422,30 +357,25 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
                 onAddMember={() => console.log("Add Member")}
                 onBlockMember={() => console.log("Block Member")}
                 onDeleteChat={() => console.log("Delete Chat")}
-                chatInfo={data?.pages[0]?.room}
+                chatInfo={data?.pages[0].chatInfo}
               />
             </div>
           </div>
           {/* Message List */}
           <MessageList
-            key={chatRoom}
             messages={messages}
             userId={userId}
             onLoadMore={fetchNextPage}
-            fetchPreviousPage={fetchPreviousPage}
             hasNextPage={hasNextPage}
-            hasPreviousPage={hasPreviousPage}
             isFetchingNextPage={isFetchingNextPage}
-            isFetchingPreviousPage={isFetchingPreviousPage}
             roomType={roomType}
             isAiTyping={isAiTyping}
-            anchorMessageId={anchorMessageId}
           />
 
           {/* ........................................................Input Area For send text................................................ */}
           <div className="p-4 border-t border-gray-300">
             {/* File attachments preview */}
-            {attachments.length > 0 && (
+            {attachments.length > 0 && (roomType === "group" || roomType === "private") && (
               <div className="mb-3 flex flex-wrap gap-2">
                 {attachments.map((file, index) => (
                   <div key={index} className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
@@ -462,23 +392,27 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
               </div>
             )}
             <div className="flex gap-3 w-full min-w-0">
-              {/* File upload button for all room types */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept=".jpg,.jpeg,.png,.gif,.webp,.svg,.xls,.xlsx,.csv,.doc,.docx,.pdf"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              <button
-                onClick={handleFileInputClick}
-                disabled={isInputDisabled}
-                className="text-gray-600 hover:text-gray-800 disabled:opacity-50"
-                title="Attach files"
-              >
-                <FiPaperclip size={24} />
-              </button>
+              {/* File upload button for group and private */}
+              {(roomType === "group" || roomType === "private") && (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept=".jpg,.jpeg,.png,.gif,.webp,.svg,.xls,.xlsx,.csv,.doc,.docx"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={handleFileInputClick}
+                    disabled={isInputDisabled}
+                    className="text-gray-600 hover:text-gray-800 disabled:opacity-50"
+                    title="Attach files"
+                  >
+                    <FiPaperclip size={24} />
+                  </button>
+                </>
+              )}
               {roomType === "group" ? (
                 <div className="flex-1 relative min-w-0 ">
                   <MentionsInput
@@ -529,16 +463,16 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
                   onChange={handleInputChange}
                   onKeyDown={handleInputKeyDown}
                   placeholder={inputPlaceholder}
-                  className={`flex-1 outline-none resize-none overflow-y-auto border border-gray-300 rounded-lg p-2 min-w-0 text-base min-h-[100px] ${data?.pages[0]?.room?.chat_blocked || data?.pages[0]?.room?.can_send === false ? 'placeholder:text-red-500' : ''}`}
+                  className={`flex-1 outline-none resize-none overflow-y-auto border border-gray-300 rounded-lg p-2 min-w-0 text-base min-h-[100px] ${data?.pages[0].chatInfo?.chat_blocked || data?.pages[0].chatInfo?.can_send === false ? 'placeholder:text-red-500' : ''}`}
                   style={{ minHeight: "100px", maxHeight: "250px" }}
                 />
               )}
               <button
                 onClick={handleSendMessage}
                 disabled={(!inputMessage.trim() && attachments.length === 0) || isInputDisabled}
-                className="disabled:opacity-50  bg-primary text-white p-3 rounded-lg flex items-center justify-center"
+                className="disabled:opacity-50"
               >
-                <FiSend size={24} className="hover:scale-105 transform transition-transform duration-700 ease-in-out" />
+                <FiSend size={24} />
               </button>
             </div>
 

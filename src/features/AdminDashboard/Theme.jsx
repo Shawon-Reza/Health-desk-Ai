@@ -7,7 +7,7 @@ const Theme = () => {
 
     // Predefined color palette
     const colors = [
-        { name: 'Teal', hex: '#00A4A6', rgb: '0, 164, 166' },       // ✅ correct
+        { name: 'Default', hex: '#00A4A6', rgb: '0, 164, 166' },       // ✅ correct
         { name: 'Deep Navy', hex: '#0C2C55' },                     // was "Midnight Navy"
         // Midnight navy is usually almost black-blue
         { name: 'Hot Pink', hex: '#FF4686' },                      // was "Blush Pink"

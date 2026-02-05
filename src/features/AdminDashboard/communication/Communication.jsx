@@ -45,7 +45,7 @@ const Communication = () => {
 
     // .....................................Fetch user permissions..................................\\
     const { data: permissionData, isLoading: isLoadingPermission, isError: isErrorPermission } = useUserPermissionsForOwn();
-    console.log("Permission:", permissionData?.enabledPermissions
+    console.log("Permission:********************************************", permissionData?.enabledPermissions
     );
     // ......................................................................\\
     // ...................Access Control Logic For Sidebar display/Hidden........................\\
@@ -67,7 +67,8 @@ const Communication = () => {
 
         communicationAccess:
             userProfileData?.role === "owner" ||
-            userProfileData?.role === "president"
+            userProfileData?.role === "president" ||
+            (userProfileData?.role === "manager" && permissionData?.enabledPermissions?.includes("chat"))
         // ||
         // permissionData?.enabledPermissions?.includes("chat"), 
         ,
@@ -158,9 +159,9 @@ const Communication = () => {
     useEffect(() => {
         const roomIdFromNotification = location.state?.roomId;
         const messageIdFromNotification = location.state?.messageId;
-        
+
         console.log("🔔 Notification state detected:", { roomIdFromNotification, messageIdFromNotification });
-        
+
         if (roomIdFromNotification && rooms?.results && rooms.results.length > 0) {
             const matchingChat = rooms.results.find(
                 (chat) => chat.room_id === roomIdFromNotification

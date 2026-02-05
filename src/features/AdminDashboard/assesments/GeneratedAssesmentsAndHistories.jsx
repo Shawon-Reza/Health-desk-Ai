@@ -166,7 +166,7 @@ const GeneratedAssesmentsAndHistories = () => {
             </div>
 
             {/* ..........................Ongoing Assessments............................. */}
-            <div className=" max-h-[calc(100dvh-50px)] overflow-y-auto bg-primarytransparent rounded-2xl shadow-md border border-teal-100 p-6 md:p-8">
+            <div className=" max-h-[calc(100dvh-50px)] overflow-y-auto bg-primarytransparent rounded-2xl shadow-md border border-bg-primay p-6 md:p-8">
                 <div className="flex items-start gap-3 mb-6">
                     <div className="p-3 bg-white rounded-lg shadow-sm">
                         <PiGraduationCapLight className="w-6 h-6 text-teal-600" />
@@ -288,7 +288,7 @@ const GeneratedAssesmentsAndHistories = () => {
             </div>
 
             {/* ............................Assessment History.............................. */}
-            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6 md:p-8  max-h-[calc(100dvh-50px)] overflow-y-auto">
+            <div className="bg-white/50 rounded-2xl shadow-md border border-gray-200 p-6 md:p-8  max-h-[calc(100dvh-50px)] overflow-y-auto">
                 <div className="flex items-start gap-3 mb-6">
                     <div className="p-3 bg-teal-50 rounded-lg">
                         <PiGraduationCapLight className="w-6 h-6 text-teal-600" />

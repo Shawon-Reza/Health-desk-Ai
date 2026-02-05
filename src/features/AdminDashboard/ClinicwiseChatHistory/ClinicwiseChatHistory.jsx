@@ -72,7 +72,7 @@ const ClinicwiseChatHistory = () => {
     }
 
     return (
-        <div className="pb-20">
+        <div className="pb-10">
 
             {/* ================================== CLINIC SELECTOR DROPDOWN =================================== */}
             <ClinicSelector
@@ -137,7 +137,7 @@ const ClinicwiseChatHistory = () => {
             {/* =================================== COMMUNICATION PANEL FOR CHAT HISTORY ==================================== */}
             <section className="grid grid-cols-10 gap-6 mt-6 h-[calc(100vh-350px)]">
                 {/* Chat Rooms Sidebar - 30% width (3 out of 10 columns) */}
-                <div className="col-span-3">
+                <div className="col-span-3 h-[calc(100vh-350px)] overflow-auto">
                     <ChatRoomsSidebar
                         roomsData={roomsData}
                         roomsLoading={roomsLoading}

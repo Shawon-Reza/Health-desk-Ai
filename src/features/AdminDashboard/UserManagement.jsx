@@ -255,7 +255,7 @@ export default function UserManagement() {
 
     return (
         <div className=" space-y-6 max-h-[calc(100dvh-100px)] overflow-auto">
-            
+
             {/* Add New User Modal */}
             <AddNewUserModal
                 isOpen={isAddUserOpen}
@@ -280,8 +280,8 @@ export default function UserManagement() {
                 {/* Add User Button */}
                 <button
                     onClick={handleAddUser}
-                    style={{ backgroundColor: "#00A4A6" }}
-                    className="flex items-center gap-2 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:opacity-90 transition-opacity text-sm md:text-base"
+
+                    className="flex bg-primary items-center gap-2 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:opacity-90 transition-opacity text-sm md:text-base"
                 >
                     <FiUserPlus size={18} className="md:w-5 md:h-5" />
                     <span className="hidden sm:inline">Add User</span>
@@ -316,7 +316,7 @@ export default function UserManagement() {
                                 <FiChevronDown size={16} className="flex-shrink-0" />
                             </button>
                             {showRoleDropdown && (
-                                <div className="absolute left-0 md:right-0 md:left-auto mt-2 w-full md:w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
+                                <div className="absolute left-0 md:right-0 md:left-auto mt-2 w-full md:w-48 bg-white  border border-gray-300 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
                                     {roles.map((role) => (
                                         <button
                                             key={role}

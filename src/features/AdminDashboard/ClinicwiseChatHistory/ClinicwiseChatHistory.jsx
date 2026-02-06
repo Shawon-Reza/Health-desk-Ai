@@ -7,11 +7,13 @@ import ChatRoomsSidebar from "./ChatRoomsSidebar"
 
 // Constants for filter options
 const ROOM_TYPES = [
+    { value: 'all', label: 'All' },
     { value: 'private', label: 'Private' },
     { value: 'group', label: 'Group' }
 ]
 
 const MEMBER_ROLES = [
+    { value: 'all', label: 'All' },
     { value: 'president', label: 'President' },
     { value: 'manager', label: 'Manager' },
     { value: 'doctor', label: 'Doctor' },
@@ -22,8 +24,8 @@ const MEMBER_ROLES = [
 const ClinicwiseChatHistory = () => {
     // ============ STATE MANAGEMENT ============
     const [selectedClinic, setSelectedClinic] = useState(null)
-    const [selectedType, setSelectedType] = useState(null)
-    const [selectedRole, setSelectedRole] = useState(null)
+    const [selectedType, setSelectedType] = useState('all')
+    const [selectedRole, setSelectedRole] = useState('all')
     const [selectedRoom, setSelectedRoom] = useState(null)
 
     // ============ FETCH CLINIC CHAT DATA ============
@@ -46,8 +48,8 @@ const ClinicwiseChatHistory = () => {
             const response = await axiosApi.get('/api/v1/clinicChat/', {
                 params: {
                     clinic_id: selectedClinic.id,
-                    type: selectedType,
-                    member_role: selectedRole
+                    type: selectedType === 'all' ? '' : selectedType,
+                    member_role: selectedRole === 'all' ? '' : selectedRole
                 }
             })
             console.log('[Rooms API Response]:', response.data)
@@ -152,7 +154,7 @@ const ClinicwiseChatHistory = () => {
                     {selectedRoom ? (
                         <ChatPanel chatRoom={selectedRoom.room_id} activeTab="messages" />
                     ) : (
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex items-center justify-center">
+                        <div className="bg-white/50 rounded-lg shadow-sm border border-gray-200 h-full flex items-center justify-center">
                             <p className="text-gray-500 text-center">
                                 Select a chat room to start messaging
                             </p>

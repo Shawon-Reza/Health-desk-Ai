@@ -7,7 +7,7 @@ import {
     FiFileText,
     FiType,
 } from "react-icons/fi";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axiosApi from "../../service/axiosInstance";
 import { toast } from "react-toastify";
 
@@ -15,7 +15,7 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
     if (!isOpen) return null; // Don't render when closed
 
 
-    console.log("Clinic data :88888888888888888888888888888888888888::0",data)
+    console.log("Clinic data :88888888888888888888888888888888888888::0", data)
 
     const [formData, setFormData] = useState({
         name: data?.name || "",
@@ -23,8 +23,9 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
         phone: data?.phone_number || "",
         fax: data?.fax_number || "",
         website: data?.website || "",
-        type: data?.type || "",
+        clinic_type: data?.clinic_type || "",
     });
+    const [searchClinicType, setSearchClinicType] = useState("");
 
     // Reset form data when data prop changes
     useEffect(() => {
@@ -35,7 +36,7 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
                 phone: data.phone_number || "",
                 fax: data.fax_number || "",
                 website: data.website || "",
-                type: data.type || "",
+                clinic_type: data.clinic_type || "",
             });
         } else {
             setFormData({
@@ -44,14 +45,30 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
                 phone: "",
                 fax: "",
                 website: "",
-                type: "",
+                clinic_type: "",
             });
         }
+        setSearchClinicType("");
     }, [data]);
 
     const isEditMode = data?.id;
+    //=============================================== Get Clinic types =================================================\\
 
-    // Create clinic mutation
+    const { data: clinicTypes, error: clinicTypesError, isLoading: clinicTypesLoading } = useQuery({
+        queryKey: ["clinicTypes"],
+        queryFn: async () => {
+           const response = await axiosApi.get("/api/v1/clinictype/");
+            return response.data;
+        },
+        // enabled: !isEditMode, // Only fetch types when creating a new clinic
+        onError: (error) => {
+            const message = error?.response?.data?.message || error.message || "Failed to fetch clinic types";
+        }
+    });
+    console.log(clinicTypes)
+
+
+    //============================================= Create clinic mutation =============================================//
     const createClinicMutation = useMutation({
         mutationFn: async (clinicData) => {
             const response = await axiosApi.post("/api/v1/clinics/create/", {
@@ -60,7 +77,7 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
                 phone_number: clinicData.phone,
                 fax_number: clinicData.fax,
                 website: clinicData.website,
-                type: clinicData.type,
+                clinic_type: clinicData.clinic_type,
             });
             return response.data;
         },
@@ -73,7 +90,7 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
                 phone: "",
                 fax: "",
                 website: "",
-                type: "",
+                clinic_type: "",
             });
         },
         onError: (error) => {
@@ -92,7 +109,7 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
                 phone_number: clinicData.phone,
                 fax_number: clinicData.fax,
                 website: clinicData.website,
-                type: clinicData.type,
+                clinic_type: clinicData.clinic_type,
             });
             console.log('[Update Clinic Response]:', response.data);
             return response.data;
@@ -127,7 +144,7 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
     const isLoading = createClinicMutation.isPending || updateClinicMutation.isPending;
 
     return (
-        <div className="fixed inset-0 bg-black/10 flex items-center justify-center z-50 px-4">
+        <div className="fixed inset-0 bg-black/10 flex items-center justify-center z-50 px-4" >
             <div className="bg-white w-full max-w-2xl rounded-lg shadow-lg">
                 {/* Header */}
                 <div className="flex justify-between items-center border-b-3 border-gray-300 px-6 py-4">
@@ -243,16 +260,81 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Type
                         </label>
-                        <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-3 py-2">
-                            <FiType className="text-gray-400 w-4 h-4" />
-                            <input
-                                type="text"
-                                name="type"
-                                value={formData.type}
-                                onChange={handleChange}
-                                placeholder="Enter clinic type (e.g., dental, general)"
-                                className="w-full outline-none text-gray-700"
-                            />
+                        <div className="space-y-2">
+                            <div className="relative">
+                                <FiType className="absolute left-3 top-2.5 text-gray-500" />
+                                <input
+                                    type="text"
+                                    placeholder="Search clinic types..."
+                                    value={searchClinicType}
+                                    onChange={(e) => setSearchClinicType(e.target.value)}
+                                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                />
+                            </div>
+
+                            {formData.clinic_type && (
+                                <div className="px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium text-teal-700">
+                                            {clinicTypes?.find((t) => t.id === formData.clinic_type)?.name || "Selected"}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData((prev) => ({ ...prev, clinic_type: "" }))}
+                                            className="text-teal-600 hover:text-teal-800"
+                                            aria-label="Clear clinic type"
+                                        >
+                                            <FiX className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="border border-gray-300 rounded-lg p-2 max-h-48 overflow-y-auto">
+                                {clinicTypesLoading ? (
+                                    <span className="text-sm text-gray-500">Loading clinic types...</span>
+                                ) : Array.isArray(clinicTypes) && clinicTypes.length > 0 ? (
+                                    <div className="space-y-1">
+                                        {clinicTypes
+                                            .filter(
+                                                (t) =>
+                                                    t.is_active !== false &&
+                                                    t.name.toLowerCase().includes(searchClinicType.toLowerCase())
+                                            )
+                                            .map((type) => (
+                                                <button
+                                                    key={type.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setFormData((prev) => ({
+                                                            ...prev,
+                                                            clinic_type: type.id,
+                                                        }));
+                                                        setSearchClinicType("");
+                                                    }}
+                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm border transition ${
+                                                        formData.clinic_type === type.id
+                                                            ? "bg-teal-100 text-teal-700 border-teal-300"
+                                                            : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                                                    }`}
+                                                >
+                                                    {type.name}
+                                                </button>
+                                            ))}
+                                        {clinicTypes.filter(
+                                            (t) =>
+                                                t.is_active !== false &&
+                                                t.name.toLowerCase().includes(searchClinicType.toLowerCase())
+                                        ).length === 0 && (
+                                            <span className="text-sm text-gray-500 p-2">
+                                                No clinic types found
+                                            </span>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <span className="text-sm text-gray-500">No data available</span>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -276,7 +358,7 @@ const AddClinicModal = ({ isOpen, onClose, data }) => {
                     </div>
                 </form>
             </div>
-        </div>
+        </div >
     );
 };
 

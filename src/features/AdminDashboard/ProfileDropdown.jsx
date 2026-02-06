@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { FiLogOut } from 'react-icons/fi'
 import { base_URL } from '../../config/Config'
 import { CgProfile } from "react-icons/cg";
+import useIsBelowMd from '../../Components/hooks/useIsBelowMd';
 
 
 const ProfileDropdown = ({ userProfileData }) => {
     const navigate = useNavigate()
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const dropdownRef = useRef(null)
+    const isMobile = useIsBelowMd()
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -54,9 +56,9 @@ const ProfileDropdown = ({ userProfileData }) => {
 
             {/* Dropdown Menu */}
             {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                <div className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 ${isMobile ? 'left-0' : ''}`}>
                     <button
-                        onClick={() => { 
+                        onClick={() => {
                             navigate('/admin/settings/profile')
                             setIsDropdownOpen(false)
                         }}

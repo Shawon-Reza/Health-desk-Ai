@@ -12,7 +12,7 @@ const ChatRoomsSidebar = ({ roomsData, roomsLoading, roomsError, selectedRoom, o
         }
     }, [selectedRoom])
     return (
-        <div className="lg:col-span-1 bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="lg:col-span-1 bg-white/60 rounded-lg shadow-sm border border-gray-200">
             <div className="p-4 border-b border-gray-200">
                 <h2 className="text-lg font-semibold text-gray-900">
                     Chat Rooms ({roomsData?.results?.length || 0})
@@ -56,7 +56,7 @@ const ChatRoomsSidebar = ({ roomsData, roomsLoading, roomsError, selectedRoom, o
                                         <h3 className="font-semibold text-gray-900 truncate">
                                             {room.name}
                                         </h3>
-                                        <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full flex-shrink-0">
+                                        <span className="text-xs bg-primary text-white px-2 py-1 rounded-full flex-shrink-0">
                                             {room.type === 'private' ? '1-1' : 'Grp'}
                                         </span>
                                     </div>

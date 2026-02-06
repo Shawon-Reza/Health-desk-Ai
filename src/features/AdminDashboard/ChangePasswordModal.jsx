@@ -168,7 +168,7 @@ const ChangePasswordModal = ({ isOpen, onClose, userId, userName }) => {
               className={`px-5 py-2 rounded-lg text-white font-semibold transition ${
                 changePasswordMutation.isPending
                   ? 'bg-teal-300 cursor-not-allowed'
-                  : 'bg-teal-600 hover:bg-teal-700'
+                  : 'bg-primary '
               }`}
             >
               {changePasswordMutation.isPending ? 'Changing...' : 'Change Password'}

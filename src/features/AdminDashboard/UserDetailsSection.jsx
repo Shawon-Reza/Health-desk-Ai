@@ -6,7 +6,7 @@ const UserDetailsSection = ({ user, permissionData, permissionLoading, permissio
     return (
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Personal Information */}
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div className="bg-white/50 rounded-xl shadow-md p-6 border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <FiFileText className="text-primary" />
                     Personal Information
@@ -53,7 +53,7 @@ const UserDetailsSection = ({ user, permissionData, permissionLoading, permissio
             </div>
 
             {/* Professional Details */}
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div className="bg-white/50 rounded-xl shadow-md p-6 border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <FiFileText className="text-primary" />
                     Professional Details
@@ -103,7 +103,7 @@ const UserDetailsSection = ({ user, permissionData, permissionLoading, permissio
             </div>
 
             {/* Permissions */}
-            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div className="bg-white/50 rounded-xl shadow-md p-6 border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <FiMessageCircle className="text-primary" />
                     Permissions

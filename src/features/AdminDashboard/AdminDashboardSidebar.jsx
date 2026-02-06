@@ -12,6 +12,7 @@ import useUserPermissionsForOwn from "../../hooks/useUserPermissionsForOwn"
 import useGetUserProfile from "../../hooks/useGetUserProfile"
 import { GoHistory } from "react-icons/go"
 import { RiChatVoiceAiLine } from "react-icons/ri";
+import useIsBelowMd from "../../Components/hooks/useIsBelowMd"
 
 const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: FiGrid },
@@ -25,7 +26,12 @@ const menuItems = [
 ]
 
 export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCollapse }) {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    const isMobile = useIsBelowMd();
+
+    useEffect(() => {
+        console.log("Is below :)))))))))))))))))))))))))))))))000000000000000000000000000: ", isMobile)
+    }, [isMobile]);
 
     // =================================== Theme Color From Localstorage ==================================\\
     useEffect(() => {
@@ -121,7 +127,7 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
                 </div>
             </div>
 
-            {/* Navigation Menu */}
+            {/* =============================================== Navigation Menu ==============================================*/}
             <nav className="flex-1 p-4 space-y-2.5 overflow-y-auto">
                 <NavLink
                     to="/admin/dashboard"

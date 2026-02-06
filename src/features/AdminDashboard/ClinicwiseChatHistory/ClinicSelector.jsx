@@ -48,7 +48,7 @@ const ClinicSelector = ({ clinics, isLoading, onSelectClinic }) => {
                 {/* Dropdown Button */}
                 <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 flex items-center justify-between hover:border-gray-400 transition-colors"
+                    className="w-full bg-white/50 border border-gray-300 rounded-lg px-4 py-3 flex items-center justify-between hover:border-gray-400 transition-colors"
                 >
                     <span className={selectedClinic ? "text-gray-900" : "text-gray-500"}>
                         {selectedClinic ? selectedClinic.name : "Select a clinic"}

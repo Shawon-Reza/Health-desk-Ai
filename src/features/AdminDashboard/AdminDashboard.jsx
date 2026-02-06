@@ -240,6 +240,7 @@ const AdminDashboard = () => {
 
                                 {/* ============================== Profile Dropdown =================================== */}
                                 <ProfileDropdown userProfileData={userProfileData} />
+
                                 {/* Sidebar toggle icon only on small screens */}
                                 {isMobile && (
                                     <button
@@ -273,7 +274,7 @@ const AdminDashboard = () => {
 
                                     {/* Notification Modal */}
                                     {isNotificationOpen && (
-                                        <div className="absolute right-0 top-12 w-96 bg-white rounded-lg shadow-2xl z-50 max-h-[calc(100vh-200px)] overflow-hidden">
+                                        <div className={`absolute right-0 top-12 w-96 bg-white rounded-lg shadow-2xl z-50 max-h-[calc(100vh-200px)] overflow-hidden ${isMobile ? '-left-36' : ''}`}>
                                             <Notifications
                                                 // notifications={notifications}
                                                 notificationCount={notificationCount}

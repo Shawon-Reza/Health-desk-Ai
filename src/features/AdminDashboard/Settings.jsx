@@ -10,7 +10,7 @@ const LINKS = [
 
 const Settings = () => {
     return (
-        <div className="bg-secondar  px-6 text-secondary">
+        <div className="bg-secondar  text-secondary">
             {/* settings  */}
             <section>
                 <header className="space-y-2 py-3">
@@ -29,7 +29,7 @@ const Settings = () => {
                                 <NavLink
                                     to={to}
                                     className={({ isActive }) =>
-                                        `block text-lg px-4 py-1 rounded transition-colors hover:bg-secondary font-semibold ${isActive
+                                        `block text-lg px-2 sm:px-4 py-1 rounded transition-colors hover:bg-secondary font-semibold ${isActive
                                             ? 'bg-primary text-white '    // active link styling
                                             : 'text-secondary hover:bg-primary ' // inactive link styling
                                         }`

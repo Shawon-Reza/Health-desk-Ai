@@ -61,11 +61,12 @@ const GivenAssessmentDetailsFromUser = () => {
     const answeredPercentage = summary?.percentage || 0;
 
     return (
-        <div className="space-y-6 pb-8">
+        <div className="space-y-6">
             {/* Back Button */}
             <button
                 onClick={handleBack}
-                className="inline-flex items-center gap-2 px-4 py-2 text-teal-600 border-2 border-teal-200 rounded-lg hover:bg-teal-50 transition font-medium cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2 text-bg-primary border-2 border-teal-200 rounded-lg hover:bg-teal-50 transition font-medium cursor-pointer"
+                style={{ borderColor: "var(--color-primary)", }}
             >
                 <FiArrowLeft className="w-4 h-4" />
                 Back
@@ -78,7 +79,7 @@ const GivenAssessmentDetailsFromUser = () => {
             </div>
 
             {/* Assessment Info Card */}
-            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6">
+            <div className="bg-white/50 rounded-2xl shadow-md border border-gray-200 p-6">
                 <div className="flex items-start gap-4">
                     <div className="p-3 bg-blue-50 rounded-lg">
                         <FiBookOpen className="w-6 h-6 text-blue-600" />
@@ -90,11 +91,10 @@ const GivenAssessmentDetailsFromUser = () => {
                             <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
                                 {assessment?.role}
                             </span>
-                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                                assessment?.status === 'closed' 
-                                    ? 'bg-gray-100 text-gray-600' 
+                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${assessment?.status === 'closed'
+                                    ? 'bg-gray-100 text-gray-600'
                                     : 'bg-green-100 text-green-600'
-                            }`}>
+                                }`}>
                                 {assessment?.status}
                             </span>
                             {assessment?.end_date && (
@@ -108,7 +108,7 @@ const GivenAssessmentDetailsFromUser = () => {
             </div>
 
             {/* Progress Section */}
-            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6">
+            <div className="bg-white/50 rounded-2xl shadow-md border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-gray-900">Your Score</h3>
                     <span className="text-2xl font-bold text-emerald-600">{answeredPercentage}%</span>
@@ -125,7 +125,7 @@ const GivenAssessmentDetailsFromUser = () => {
             </div>
 
             {/* Answers List */}
-            <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+            <div className="bg-white/50 rounded-2xl shadow-md border border-gray-200 overflow-hidden">
                 <div className="p-6 border-b border-gray-200">
                     <h3 className="text-lg font-bold text-gray-900">Question Answers</h3>
                 </div>
@@ -133,7 +133,7 @@ const GivenAssessmentDetailsFromUser = () => {
                 <div className="divide-y divide-gray-200">
                     {questions.map((question, index) => {
                         const isAnswered = question.selected_option_id !== null;
-                        
+
                         return (
                             <div key={question.question_id} className="p-6 hover:bg-gray-50 transition">
                                 {/* Question Header */}
@@ -169,39 +169,36 @@ const GivenAssessmentDetailsFromUser = () => {
                                             return (
                                                 <div
                                                     key={option.id}
-                                                    className={`p-3 rounded-lg border-2 transition ${
-                                                        isCorrectAnswer
+                                                    className={`p-3 rounded-lg border-2 transition ${isCorrectAnswer
                                                             ? 'border-green-500 bg-green-50'
                                                             : isWrong
                                                                 ? 'border-red-500 bg-red-50'
                                                                 : isUserSelected
                                                                     ? 'border-teal-500 bg-teal-50'
                                                                     : 'border-gray-200 bg-gray-50'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                                                            isCorrectAnswer
+                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isCorrectAnswer
                                                                 ? 'border-green-500 bg-green-500'
                                                                 : isWrong
                                                                     ? 'border-red-500 bg-red-500'
                                                                     : isUserSelected
                                                                         ? 'border-teal-500 bg-teal-500'
                                                                         : 'border-gray-300'
-                                                        }`}>
+                                                            }`}>
                                                             {(isUserSelected || isCorrectAnswer) && (
                                                                 <div className="w-2 h-2 bg-white rounded-full"></div>
                                                             )}
                                                         </div>
-                                                        <span className={`text-sm flex-1 ${
-                                                            isCorrectAnswer
+                                                        <span className={`text-sm flex-1 ${isCorrectAnswer
                                                                 ? 'font-semibold text-green-700'
                                                                 : isWrong
                                                                     ? 'font-semibold text-red-700'
                                                                     : isUserSelected
                                                                         ? 'font-semibold text-teal-700'
                                                                         : 'text-gray-700'
-                                                        }`}>
+                                                            }`}>
                                                             {option.text}
                                                         </span>
                                                         <div className="flex items-center gap-2">

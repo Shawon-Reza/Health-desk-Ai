@@ -111,7 +111,7 @@ export default function UserDetailsTable({ users = [], onEditUser, onChangePassw
       {/* Table Container */}
       <div className="max-h-[calc(100vh-450px)] ">
         <table className="w-full">
-          <thead className="sticky top-0 z-10 ">
+          <thead className="sticky -top-1.5 z-10 ">
             <tr className="border-b border-gray-300 bg-gray-100">
               <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">ID NO</th>
               <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">User Name</th>

@@ -680,7 +680,7 @@ const AddNewUserModal = ({
             <button
               type="submit"
               disabled={!canSubmit || createUserMutation.isPending || loadingUserData}
-              className={`px-5 py-2 rounded-lg text-white font-semibold transition ${!canSubmit || createUserMutation.isPending || loadingUserData ? 'bg-teal-300 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'
+              className={`px-5 py-2 rounded-lg text-white font-semibold transition ${!canSubmit || createUserMutation.isPending || loadingUserData ? 'bg-primary cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'
                 }`}
             >
               {loadingUserData ? 'Loading...' : createUserMutation.isPending ? (mode === 'edit' ? 'Updating…' : 'Adding…') : (mode === 'edit' ? 'Update User' : 'Add User')}

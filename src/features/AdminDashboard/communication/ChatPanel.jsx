@@ -112,9 +112,9 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
     // Check if message exists in current loaded messages
     const messageExists = messages.some((m) => m.id === mentionMessageId);
-    
+
     console.log('🔍 Looking for message:', mentionMessageId, 'Found:', messageExists, 'Total messages:', messages.length);
-    
+
     if (messageExists) {
       if (anchorMessageId !== mentionMessageId) {
         console.log('✅ Message found, setting anchor:', mentionMessageId);
@@ -376,9 +376,11 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
     avatar: `http://10.10.13.2:8000${data?.pages[0]?.room?.image}` ||
       "https://api.dicebear.com/7.x/avataaars/svg?seed=Chat",
   };
+  console.log("pathaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", path)
+  // charting-ai
 
   return (
-    <div className="flex flex-col h-full border border-gray-300 rounded-lg bg-white">
+    <div className={`flex flex-col h-full border border-gray-300 rounded-lg bg-white/50 ${path == "charting-ai" ? "min-h-[calc(100vh-130px)] max-h-[calc(100vh-130px)]" : ""}`}>
       {!chatRoom ? (
         <div className="flex-1 flex items-center justify-center text-gray-500">
           Select a chat
@@ -411,7 +413,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
             <div className={`relative ${data?.pages[0]?.room?.type === "ai" ? "hidden" : ""} `}>
               <FiInfo
                 size={20}
-                className={`cursor-pointer ${path === "user-management" || path === "clinicwise-chat-history" ? "hidden" : ""}`}
+                className={`cursor-pointer ${path === "user-management" || path === "charting-ai" || path === "clinicwise-chat-history" ? "hidden" : ""}`}
                 onClick={() => setShowActions(!showActions)}
               />
 

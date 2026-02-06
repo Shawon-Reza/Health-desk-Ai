@@ -8,4 +8,18 @@ export default defineConfig({
     tailwindcss(),
     react()
   ],
+  server: {
+    port: 5002,
+
+  },
+  hmr: {
+    overlay: true
+  },
+
+  // resolve: {
+  //   alias: { "@": "/src" },
+  //   extensions: [".js", ".jsx", ".ts", ".tsx", ".json"]
+  // }
+
+
 })

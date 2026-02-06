@@ -309,7 +309,7 @@ const Communication = () => {
 
                         <div className={`text-center text-gray-500 ${activeTab === "aiAssistant" ? "" : "hidden"}`}>
                             <div className={`${activeTab === "aiAssistant" ? "" : "hidden"}`}>
-                                {(!Array.isArray(rooms?.results) || rooms.results.length === 0) ? (
+                                {(!Array.isArray(rooms?.ai_rooms) || rooms.ai_rooms.length === 0) ? (
                                     <p className="text-center text-gray-500 py-10">No chats found</p>
                                 ) : (
                                     rooms.ai_rooms

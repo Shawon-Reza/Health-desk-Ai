@@ -68,11 +68,12 @@ export const AssessmentViewAnswers = () => {
     const answeredPercentage = answers.length > 0 ? Math.round((totalAnswered / answers.length) * 100) : 0;
 
     return (
-        <div className="space-y-6 pb-8">
+        <div className="space-y-6 ">
             {/* Back Button */}
             <button
                 onClick={handleBack}
-                className="inline-flex items-center gap-2 px-4 py-2 text-teal-600 border-2 border-teal-200 rounded-lg hover:bg-teal-50 transition font-medium cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2 text-bg-primary border-2 border-teal-200 rounded-lg hover:bg-teal-50 transition font-medium cursor-pointer"
+                style={{ borderColor: "var(--color-primary)", }}
             >
                 <FiArrowLeft className="w-4 h-4" />
                 Back
@@ -87,7 +88,7 @@ export const AssessmentViewAnswers = () => {
             {/* User & Assessment Info Card */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* User Card */}
-                <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6">
+                <div className="bg-white/50 rounded-2xl shadow-md border border-gray-200 p-6">
                     <div className="flex items-start gap-4">
                         <div className="p-3 bg-teal-50 rounded-lg">
                             <FiUser className="w-6 h-6 text-teal-600" />
@@ -101,7 +102,7 @@ export const AssessmentViewAnswers = () => {
                 </div>
 
                 {/* Assessment Card */}
-                <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6">
+                <div className="bg-white/50 rounded-2xl shadow-md border border-gray-200 p-6">
                     <div className="flex items-start gap-4">
                         <div className="p-3 bg-blue-50 rounded-lg">
                             <FiBookOpen className="w-6 h-6 text-blue-600" />
@@ -116,7 +117,7 @@ export const AssessmentViewAnswers = () => {
             </div>
 
             {/* Progress Section */}
-            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6">
+            <div className="bg-white/50 rounded-2xl shadow-md border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-gray-900">Completion Status</h3>
                     <span className="text-2xl font-bold text-emerald-600">{answeredPercentage}%</span>
@@ -133,7 +134,7 @@ export const AssessmentViewAnswers = () => {
             </div>
 
             {/* Answers List */}
-            <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+            <div className="bg-white/50 rounded-2xl shadow-md border border-gray-200 overflow-hidden">
                 <div className="p-6 border-b border-gray-200">
                     <h3 className="text-lg font-bold text-gray-900">Question Answers</h3>
                 </div>

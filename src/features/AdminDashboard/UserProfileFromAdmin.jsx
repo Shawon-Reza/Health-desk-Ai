@@ -27,7 +27,7 @@ const StatCard = ({ icon: Icon, label, value, children, tone = 'default' }) => {
     }, [tone])
 
     return (
-        <div className="bg-white rounded-xl shadow-md p-5 border border-gray-100">
+        <div className="bg-white/50 rounded-xl shadow-md p-5 border border-gray-100">
             <div className="flex items-center justify-center gap-2 text-gray-500 text-sm mb-3">
                 <Icon size={25} />
                 <span className='font-medium'>{label}</span>

@@ -7,7 +7,7 @@ import axiosApi from '../../service/axiosInstance'
 
 const ReviewAssesmentResult = () => {
     const navigate = useNavigate();
-    const {assessmentId} = useParams();
+    const { assessmentId } = useParams();
     // console.log(assessmentId)
 
     // ....................................Fetch assessment Participants data via useQuery........................................\\
@@ -88,7 +88,7 @@ const ReviewAssesmentResult = () => {
             {/* Back Button */}
             <button
                 onClick={handleBack}
-                className="inline-flex items-center gap-2 px-4 py-2 text-teal-600 border-2 border-bg-primary rounded-lg hover:bg-teal-50 transition font-medium cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2 text-primary border-2 border-bg-primary rounded-lg hover:bg-teal-50 transition font-medium cursor-pointer"
             >
                 <FiArrowLeft className="w-4 h-4 " />
                 Back
@@ -101,7 +101,7 @@ const ReviewAssesmentResult = () => {
             </div>
 
             {/* Assessment Summary Card */}
-            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-6 md:p-8">
+            <div className="bg-white/50 rounded-2xl shadow-md border border-gray-200 p-6 md:p-8">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     {/* Left Section */}
                     <div className="flex-1">
@@ -140,7 +140,7 @@ const ReviewAssesmentResult = () => {
             </div>
 
             {/* Participants Table */}
-            <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+            <div className="bg-white/50 rounded-2xl shadow-md border border-gray-200 overflow-hidden">
                 <div className="p-6 border-b border-gray-200">
                     <h3 className="text-lg font-bold text-gray-900">Participants</h3>
                 </div>
@@ -200,7 +200,7 @@ const ReviewAssesmentResult = () => {
                                             {participant.answered}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-lg font-bold text-emerald-500">
+                                            <span className="text-lg font-bold text-primary">
                                                 {participant.score}%
                                             </span>
                                         </td>
@@ -208,11 +208,18 @@ const ReviewAssesmentResult = () => {
                                             <button
                                                 onClick={() => handleViewAnswers(participant.user_id)}
                                                 disabled={participant.score === 0}
-                                                className={`px-4 py-2 text-sm font-medium border-2 rounded-lg transition ${
+                                                className={`px-4 py-2 text-sm font-medium border-2 rounded-lg transition ${participant.score === 0
+                                                    ? 'text-gray-400 border-gray-200 cursor-not-allowed'
+                                                    : 'hover:bg-teal-50'
+                                                    }`}
+                                                style={
                                                     participant.score === 0
-                                                        ? 'text-gray-400 border-gray-200 cursor-not-allowed'
-                                                        : 'text-teal-600 border-bg-primary hover:bg-teal-50'
-                                                }`}
+                                                        ? {}
+                                                        : {
+                                                            color: "var(--color-primary)",
+                                                            borderColor: "var(--color-primary)",
+                                                        }
+                                                }
                                             >
                                                 View Answers
                                             </button>

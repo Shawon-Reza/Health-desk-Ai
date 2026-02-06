@@ -95,7 +95,7 @@ const NotificationsToggle = () => {
                                 onClick={() => handleToggle('notify_assessments')}
                                 className="relative inline-flex h-6 w-14 items-center rounded-full transition-colors"
                                 style={{
-                                    backgroundColor: notifications.notify_assessments ? "#00A4A6" : "#d1d5db",
+                                    backgroundColor: notifications.notify_assessments ? "var(--bg-primary)" : "#d1d5db",
                                 }}
                                 aria-label="Toggle Assessments Reminder"
                             >
@@ -125,7 +125,7 @@ const NotificationsToggle = () => {
                                 onClick={() => handleToggle('notify_tagged_messages')}
                                 className="relative inline-flex h-6 w-14 items-center rounded-full transition-colors"
                                 style={{
-                                    backgroundColor: notifications.notify_tagged_messages ? "#00A4A6" : "#d1d5db",
+                                    backgroundColor: notifications.notify_tagged_messages ? "var(--bg-primary)" : "#d1d5db",
                                 }}
                                 aria-label="Toggle Tagged Message Reminder"
                             >

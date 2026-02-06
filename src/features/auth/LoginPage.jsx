@@ -57,7 +57,7 @@ const LoginPage = () => {
                         </h1>
                     </div>
 
-                    <div className='w-full min-w-lg max-w-xl bg-white p-4 px-12 py-8 rounded-xl shadow-lg z-10'>
+                    <div className='w-full max-w-xl bg-white p-4 px-6 md:px-12 py-8 rounded-xl shadow-lg z-10'>
 
 
                         <form onSubmit={handleSubmit} className='space-y-6'>

@@ -21,6 +21,7 @@ const CreateNewAssesment = () => {
     const [searchSubjectMatter, setSearchSubjectMatter] = useState('')
 
     const roles = ['Manager', 'Doctor', 'Staff', 'Jr_staff']
+    const subroleRoles = ['manager', 'doctor', 'staff', 'jr_staff']
     const {
 
         clinicsList,
@@ -32,11 +33,12 @@ const CreateNewAssesment = () => {
 
     // .............................................Fetch Sub Roles For doctores............................................\\
     const { data: subRolesData, isLoading: isLoadingSubRoles } = useQuery({
-        queryKey: ['subRoles'],
+        queryKey: ['subRoles', formData.clinic],
         queryFn: async () => {
-            const response = await axiosApi.get('/api/v1/subroles/')
+            const response = await axiosApi.get(`/api/v1/subroles/?clinic_ids=${formData.clinic}`)
             return response.data
         },
+        enabled: Boolean(formData.clinic),
     })
     console.log("Doctors Subroles:.........................###################################", subRolesData)
     // ..........................................Fetch subject matters from API............................................\\
@@ -55,7 +57,7 @@ const CreateNewAssesment = () => {
     // .............................................Create assessment mutation.........................................\\
     const createAssessmentMutation = useMutation({
         mutationFn: async (data) => {
-            console.log("data:##############################################################",data)
+            console.log("data:##############################################################", data)
             const response = await axiosApi.post('/api/v1/assesments/create/', {
                 title: data.title,
                 clinic: parseInt(data.clinic),
@@ -108,6 +110,16 @@ const CreateNewAssesment = () => {
         setSearchSubjectMatter('')
     }
 
+    const handleClinicChange = (e) => {
+        const newClinic = e.target.value
+        setFormData(prev => ({
+            ...prev,
+            clinic: newClinic,
+            subroleId: null,
+        }))
+        setSearchSubrole('')
+    }
+
     const handleGenerate = (e) => {
         e.preventDefault()
         console.log("Create assesment data:", formData)
@@ -150,6 +162,26 @@ const CreateNewAssesment = () => {
                             required
                         />
                     </div>
+                    {/* Clinic */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Clinic
+                        </label>
+                        <div className="relative">
+                            <select
+                                value={formData.clinic}
+                                onChange={handleClinicChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 appearance-none bg-white/50 text-gray-700"
+                                required
+                            >
+                                <option value="" disabled>Select clinic</option>
+                                {clinicsList?.map(clinic => (
+                                    <option key={clinic.id} value={clinic.id}>{clinic.name}</option>
+                                ))}
+                            </select>
+                            <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                        </div>
+                    </div>
 
                     {/* Role and Number of Questions */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -175,18 +207,18 @@ const CreateNewAssesment = () => {
                         </div>
 
                         {/* Subroles (Doctor/Staff/Jr Staff) or Subject Matters (others) */}
-                        {formData.role && formData.role !== 'manager' && (
+                        {formData.role && (
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    {['doctor', 'staff', 'jr_staff'].includes(formData.role) ? 'Sub Role (Specialization)' : 'Subject Matter'}
+                                    {subroleRoles.includes(formData.role) ? 'Sub Role (Specialization)' : 'Subject Matter'}
                                 </label>
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        placeholder={['doctor', 'staff', 'jr_staff'].includes(formData.role) ? 'Search sub roles...' : 'Search subjects...'}
-                                        value={['doctor', 'staff', 'jr_staff'].includes(formData.role) ? searchSubrole : searchSubjectMatter}
+                                        placeholder={subroleRoles.includes(formData.role) ? 'Search sub roles...' : 'Search subjects...'}
+                                        value={subroleRoles.includes(formData.role) ? searchSubrole : searchSubjectMatter}
                                         onChange={(e) => {
-                                            if (['doctor', 'staff', 'jr_staff'].includes(formData.role)) {
+                                            if (subroleRoles.includes(formData.role)) {
                                                 setSearchSubrole(e.target.value)
                                             } else {
                                                 setSearchSubjectMatter(e.target.value)
@@ -197,17 +229,17 @@ const CreateNewAssesment = () => {
                                 </div>
 
                                 {/* Selected Item Display */}
-                                {((['doctor', 'staff', 'jr_staff'].includes(formData.role) && formData.subroleId) || (!['doctor', 'staff', 'jr_staff'].includes(formData.role) && formData.subjectMatterId)) && (
+                                {((subroleRoles.includes(formData.role) && formData.subroleId) || (!subroleRoles.includes(formData.role) && formData.subjectMatterId)) && (
                                     <div className="mt-2 px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg flex items-center justify-between">
                                         <span className="text-sm font-medium text-teal-700">
-                                            {['doctor', 'staff', 'jr_staff'].includes(formData.role)
+                                            {subroleRoles.includes(formData.role)
                                                 ? subRolesData?.find((s) => s.id === formData.subroleId)?.name
                                                 : subjectMatters?.find((s) => s.id === formData.subjectMatterId)?.title}
                                         </span>
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                if (['doctor', 'staff', 'jr_staff'].includes(formData.role)) {
+                                                if (subroleRoles.includes(formData.role)) {
                                                     setFormData(prev => ({ ...prev, subroleId: null }))
                                                 } else {
                                                     setFormData(prev => ({ ...prev, subjectMatterId: null }))
@@ -222,7 +254,7 @@ const CreateNewAssesment = () => {
 
                                 {/* Options List */}
                                 <div className="mt-2 border border-gray-300 rounded-lg p-2 max-h-40 overflow-y-auto">
-                                    {['doctor', 'staff', 'jr_staff'].includes(formData.role) ? (
+                                    {subroleRoles.includes(formData.role) ? (
                                         isLoadingSubRoles ? (
                                             <span className="text-sm text-gray-500">Loading...</span>
                                         ) : subRolesData && subRolesData.length > 0 ? (
@@ -244,11 +276,10 @@ const CreateNewAssesment = () => {
                                                                 }))
                                                                 setSearchSubrole('')
                                                             }}
-                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm border transition ${
-                                                                formData.subroleId === subrole.id
+                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm border transition ${formData.subroleId === subrole.id
                                                                     ? 'bg-teal-100 text-teal-700 border-teal-300'
                                                                     : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                                                            }`}
+                                                                }`}
                                                         >
                                                             {subrole.name}
                                                         </button>
@@ -258,8 +289,8 @@ const CreateNewAssesment = () => {
                                                         s.is_active &&
                                                         s.name.toLowerCase().includes(searchSubrole.toLowerCase())
                                                 ).length === 0 && (
-                                                    <span className="text-sm text-gray-500 p-2">No results found</span>
-                                                )}
+                                                        <span className="text-sm text-gray-500 p-2">No results found</span>
+                                                    )}
                                             </div>
                                         ) : (
                                             <span className="text-sm text-gray-500">No data available</span>
@@ -284,11 +315,10 @@ const CreateNewAssesment = () => {
                                                                 }))
                                                                 setSearchSubjectMatter('')
                                                             }}
-                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm border transition ${
-                                                                formData.subjectMatterId === subject.id
+                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm border transition ${formData.subjectMatterId === subject.id
                                                                     ? 'bg-teal-100 text-teal-700 border-teal-300'
                                                                     : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                                                            }`}
+                                                                }`}
                                                         >
                                                             {subject.title}
                                                         </button>
@@ -296,8 +326,8 @@ const CreateNewAssesment = () => {
                                                 {subjectMatters.filter((s) =>
                                                     s.title.toLowerCase().includes(searchSubjectMatter.toLowerCase())
                                                 ).length === 0 && (
-                                                    <span className="text-sm text-gray-500 p-2">No results found</span>
-                                                )}
+                                                        <span className="text-sm text-gray-500 p-2">No results found</span>
+                                                    )}
                                             </div>
                                         ) : (
                                             <span className="text-sm text-gray-500">No data available</span>
@@ -324,26 +354,7 @@ const CreateNewAssesment = () => {
                         </div>
                     </div>
 
-                    {/* Clinic */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Clinic
-                        </label>
-                        <div className="relative">
-                            <select
-                                value={formData.clinic}
-                                onChange={handleChange('clinic')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 appearance-none bg-white/50 text-gray-700"
-                                required
-                            >
-                                <option value="" disabled>Select clinic</option>
-                                {clinicsList?.map(clinic => (
-                                    <option key={clinic.id} value={clinic.id}>{clinic.name}</option>
-                                ))}
-                            </select>
-                            <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                        </div>
-                    </div>
+
 
                     {/* Message Input */}
                     <div>

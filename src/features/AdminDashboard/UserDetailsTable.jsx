@@ -142,7 +142,7 @@ export default function UserDetailsTable({ users = [], onEditUser, onChangePassw
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600">{user.email}</td>
                   
-                  <td className="px-4 py-3 text-sm flex items-center justify-center">
+                  <td className="px-4 py-3 text-sm flex items-center justify-center"> 
                     <span className={`px-4 py-2  rounded-full text-xs font-semibold ${user.roleColor}`}>
                       {user.role.toUpperCase()}
                     </span>

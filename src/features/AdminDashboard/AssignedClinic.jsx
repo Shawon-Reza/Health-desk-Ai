@@ -52,7 +52,7 @@ const AssignedClinic = () => {
                         <BiClinic className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
                         <div>
                             <p className="text-xs text-gray-500 font-medium">Type</p>
-                            <p className="text-sm text-gray-700">{clinic.type}</p>
+                            <p className="text-sm text-gray-700">{clinic.clinic_type_name}</p>
                         </div>
                     </div>
                 </div>

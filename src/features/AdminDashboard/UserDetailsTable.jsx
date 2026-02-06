@@ -116,8 +116,8 @@ export default function UserDetailsTable({ users = [], onEditUser, onChangePassw
               <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">ID NO</th>
               <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">User Name</th>
               <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">User email</th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Subject Matters</th>
               <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Role</th>
+              <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Sub Role</th>
               <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Clinic</th>
               <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Account Status</th>
               <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Action</th>
@@ -141,12 +141,13 @@ export default function UserDetailsTable({ users = [], onEditUser, onChangePassw
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600">{user.email}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{user.subject_matters}</td>
+                  
                   <td className="px-4 py-3 text-sm flex items-center justify-center">
                     <span className={`px-4 py-2  rounded-full text-xs font-semibold ${user.roleColor}`}>
                       {user.role.toUpperCase()}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{user.subroles.join(", ")}</td>
                   <td className="px-4 py-3 text-sm text-gray-900">
                     {
                       user.clinics.join(", ")

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import {
   FiX,
   FiUser,
@@ -12,12 +12,10 @@ import {
   FiHash,
   FiActivity,
   FiMapPin,
-  FiTag,
   FiChevronDown,
 } from 'react-icons/fi'
-import { QueryClient, useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import axiosApi from '../../service/axiosInstance'
-import useGetSubjectMattersAndClinicsList from '../../hooks/useGetSubjectMattersAndClinicsList'
 import { queryClient } from '../../main'
 import { toast } from 'react-toastify'
 
@@ -64,7 +62,6 @@ const AddNewUserModal = ({
   userId = null,
   roles = ['President', 'Manager', 'Doctor', 'Staff', 'jr_staff'],
   clinics = [],
-  subjectMatters = [],
   isLoading = false,
 }) => {
   if (!isOpen) return null
@@ -81,14 +78,14 @@ const AddNewUserModal = ({
     knowledgeLevel: '',
     clinics: [],
     clinicIds: [],
-    subjectMatter: '',
-    subjectMatterId: null,
     status: 'Active',
     subroleId: null,
   })
   const [showPassword, setShowPassword] = useState(false)
   const [loadingUserData, setLoadingUserData] = useState(false)
   const [searchSubrole, setSearchSubrole] = useState('')
+  const hasInitializedClinicIds = useRef(false)
+  const [subroleNameFromUser, setSubroleNameFromUser] = useState('')
 
   // Reset form when mode changes to 'create'
   React.useEffect(() => {
@@ -105,37 +102,35 @@ const AddNewUserModal = ({
         knowledgeLevel: '',
         clinics: [],
         clinicIds: [],
-        subjectMatter: '',
-        subjectMatterId: null,
         status: 'Active',
         subroleId: null,
       })
       setSearchSubrole('')
+      setSubroleNameFromUser('')
       setShowPassword(false)
     }
   }, [mode, isOpen])
+  const subroleRoles = ['Doctor', 'Staff', 'jr_staff', 'Manager']
 
-  // ................................Fetch Sub Roles For doctores/staff/jr_staff..................................\\
   const { data: subRolesData, isLoading: isLoadingSubRoles } = useQuery({
-    queryKey: ['subRoles'],
+    queryKey: ['subRoles', form.clinicIds],
     queryFn: async () => {
-      const response = await axiosApi.get('/api/v1/subroles/')
+      const clinicIdsParam = form.clinicIds.join(',')
+      const response = await axiosApi.get(`/api/v1/subroles/?clinic_ids=${clinicIdsParam}`)
       console.log('SubRoles Response:', response.data)
       return response.data
     },
+    enabled: form.clinicIds.length > 0,
   })
 
-  console.log("Doctors Subroles:.........................", subRolesData)
-
-  // Ensure subject display title syncs once subject list is loaded
   React.useEffect(() => {
-    if (form.subjectMatterId && Array.isArray(subjectMatters) && subjectMatters.length) {
-      const matched = subjectMatters.find((s) => s.id === form.subjectMatterId)
-      if (matched?.title && matched.title !== form.subjectMatter) {
-        setForm((prev) => ({ ...prev, subjectMatter: matched.title }))
-      }
+    if (!hasInitializedClinicIds.current) {
+      hasInitializedClinicIds.current = true
+      return
     }
-  }, [form.subjectMatterId, form.subjectMatter, subjectMatters])
+    setForm((prev) => ({ ...prev, subroleId: null }))
+    setSearchSubrole('')
+  }, [form.clinicIds])
 
   // ========================================Fetch user data when in edit mode======================================\\
   React.useEffect(() => {
@@ -173,20 +168,12 @@ const AddNewUserModal = ({
             normalizedClinicIds = userData.clinic_ids
           }
 
-          // Normalize first subject for initial select
-          // New format: subject_matters is array of strings
-          const firstSubjectTitle = Array.isArray(userData.subject_matters) && userData.subject_matters.length > 0
-            ? userData.subject_matters[0]
-            : null
-          const subjectMatterId = firstSubjectTitle
-            ? subjectMatters.find((s) => (s.title || s) === firstSubjectTitle)?.id || null
-            : null
-
           // Normalize first subrole for initial select
           // New format: subroles is array of strings
           const firstSubroleName = Array.isArray(userData.subroles) && userData.subroles.length > 0
             ? userData.subroles[0]
-            : null
+            : ''
+          setSubroleNameFromUser(firstSubroleName)
           const subroleId = firstSubroleName
             ? subRolesData?.find((s) => s.name === firstSubroleName)?.id || null
             : null
@@ -198,14 +185,16 @@ const AddNewUserModal = ({
             email: userData.email || '',
             phone: userData.phone || '',
             password: '', // Don't pre-fill password
-            role: userData.role ? userData.role.charAt(0).toUpperCase() + userData.role.slice(1) : '',
+            role: userData.role
+              ? userData.role === 'jr_staff'
+                ? 'jr_staff'
+                : userData.role.charAt(0).toUpperCase() + userData.role.slice(1)
+              : '',
             startDate: userData.joining_date || new Date().toISOString().slice(0, 10),
             employeeId: userData.employee_id || '',
             knowledgeLevel: String(userData.knowledge_level || ''),
             clinics: normalizedClinics,
             clinicIds: normalizedClinicIds,
-            subjectMatter: firstSubjectTitle || '',
-            subjectMatterId: subjectMatterId,
             status: userData.is_active ? 'Active' : 'Inactive',
             subroleId: subroleId,
           })
@@ -218,7 +207,15 @@ const AddNewUserModal = ({
           onClose()
         })
     }
-  }, [mode, userId, isOpen, subjectMatters, subRolesData])
+  }, [mode, userId, isOpen])
+
+  React.useEffect(() => {
+    if (!subroleNameFromUser || form.subroleId || !Array.isArray(subRolesData)) return
+    const matched = subRolesData.find((s) => s.name === subroleNameFromUser)
+    if (matched?.id) {
+      setForm((prev) => ({ ...prev, subroleId: matched.id }))
+    }
+  }, [form.subroleId, subRolesData, subroleNameFromUser])
 
   // Mutation for creating/updating user
   const createUserMutation = useMutation({
@@ -269,17 +266,53 @@ const AddNewUserModal = ({
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
+  const getClinicIdByName = (clinicName) => {
+    if (!clinicName || typeof clinicName !== 'string') return undefined
+    return clinics.find((cl) => (cl.name || cl).toLowerCase() === clinicName.toLowerCase())?.id
+  }
+
+  const getClinicName = (clinic) => clinic?.name || clinic
+
+  const getClinicId = (clinic) => {
+    if (clinic?.id) return clinic.id
+    const clinicName = getClinicName(clinic)
+    return getClinicIdByName(clinicName)
+  }
+
+  const isClinicSelected = (clinic) => {
+    const clinicId = getClinicId(clinic)
+    if (clinicId) return form.clinicIds.includes(clinicId)
+    const clinicName = getClinicName(clinic)
+    return form.clinics.includes(clinicName)
+  }
+
+  React.useEffect(() => {
+    if (!form.clinics.length || form.clinicIds.length) return
+    const derivedIds = form.clinics
+      .map((c) => (typeof c === 'object' && c !== null ? c.id : getClinicIdByName(c)))
+      .filter(Boolean)
+    if (derivedIds.length) {
+      setForm((prev) => ({ ...prev, clinicIds: derivedIds }))
+    }
+  }, [clinics, form.clinics, form.clinicIds.length])
+
   const toggleClinic = (clinic) => {
     setForm((prev) => {
-      const clinicName = clinic.name || clinic
-      const clinicId = clinic.id
-      const hasClinic = prev.clinics.includes(clinicName)
+      const clinicName = getClinicName(clinic)
+      const clinicId = getClinicId(clinic)
+      const hasClinic = isClinicSelected(clinic)
       const newClinics = hasClinic
         ? prev.clinics.filter((c) => c !== clinicName)
-        : [...prev.clinics, clinicName]
+        : clinicName
+          ? [...prev.clinics, clinicName]
+          : prev.clinics
       const newClinicIds = hasClinic
-        ? prev.clinicIds.filter((id) => id !== clinicId)
-        : [...prev.clinicIds, clinicId]
+        ? clinicId
+          ? prev.clinicIds.filter((id) => id !== clinicId)
+          : prev.clinicIds
+        : clinicId
+          ? [...prev.clinicIds, clinicId]
+          : prev.clinicIds
       return { ...prev, clinics: newClinics, clinicIds: newClinicIds }
     })
   }
@@ -287,8 +320,13 @@ const AddNewUserModal = ({
   const handleRemoveClinic = (clinicName) => {
     setForm((prev) => {
       const clinicIndex = prev.clinics.indexOf(clinicName)
+      const clinicId = getClinicIdByName(clinicName)
       const newClinics = prev.clinics.filter((c) => c !== clinicName)
-      const newClinicIds = clinicIndex !== -1 ? prev.clinicIds.filter((_, i) => i !== clinicIndex) : prev.clinicIds
+      const newClinicIds = clinicId
+        ? prev.clinicIds.filter((id) => id !== clinicId)
+        : clinicIndex !== -1
+          ? prev.clinicIds.filter((_, i) => i !== clinicIndex)
+          : prev.clinicIds
       return { ...prev, clinics: newClinics, clinicIds: newClinicIds }
     })
   }
@@ -306,7 +344,6 @@ const AddNewUserModal = ({
       is_active: form.status === 'Active',
       clinic_ids: form.clinicIds,
       picture: null,
-      subject_ids: form.subjectMatterId ? [form.subjectMatterId] : [],
       employee_id: form.employeeId,
       knowledge_level: parseInt(form.knowledgeLevel) || 0,
       joining_date: form.startDate,
@@ -436,11 +473,96 @@ const AddNewUserModal = ({
               />
             </Field>
 
-            {/* Sub Role (Doctor, Staff, Jr Staff) */}
-            {['Doctor', 'Staff', 'jr_staff'].includes(form.role) && (
+            {/* Start Date */}
+            <Field label="Start Date" icon={FiCalendar}>
+              <div className="relative">
+                <FiCalendar className="absolute left-3 top-2.5 text-gray-500" />
+                <input
+                  type="date"
+                  value={form.startDate}
+                  onChange={update('startDate')}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+            </Field>
+
+            {/* Employee ID */}
+            <Field label="Employee ID" icon={FiHash}>
+              <div className="relative">
+                <FiHash className="absolute left-3 top-2.5 text-gray-500" />
+                <input
+                  type="text"
+                  value={form.employeeId}
+                  onChange={update('employeeId')}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="e.g., 00125"
+                  required
+                />
+              </div>
+            </Field>
+
+            {/* Knowledge Level */}
+            <Field label="Knowledge Level" icon={FiActivity}>
+              <div className="relative">
+                <FiActivity className="absolute left-3 top-2.5 text-gray-500" />
+                <input
+                  type="number"
+                  min="0"
+                  max="10"
+                  value={form.knowledgeLevel}
+                  onChange={update('knowledgeLevel')}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+            </Field>
+
+            {/* Clinics (multi select chips) */}
+            <Field label="Clinic" icon={FiMapPin}>
+              <div className="border border-gray-300 rounded-lg p-2">
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {form.clinics.map((c) => (
+                    <span key={c} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-teal-50 text-teal-700 border border-teal-200">
+                      {c}
+                      <button type="button" className="ml-1" onClick={() => handleRemoveClinic(c)} aria-label={`Remove ${c}`}>
+                        <FiX className="w-4 h-4" />
+                      </button>
+                    </span>
+                  ))}
+                  {!form.clinics.length && (
+                    <span className="text-sm text-gray-500">No clinic selected</span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {isLoading ? (
+                    <span className="text-sm text-gray-500">Loading clinics...</span>
+                  ) : clinics.length > 0 ? (
+                    clinics.map((clinic) => {
+                      const clinicName = getClinicName(clinic)
+                      return (
+                        <button
+                          type="button"
+                          key={clinic.id || clinic}
+                          onClick={() => toggleClinic(clinic)}
+                          className={`px-3 py-1 rounded-full text-sm border transition ${isClinicSelected(clinic)
+                            ? 'bg-gray-100 text-gray-700 border-gray-300'
+                            : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                            }`}
+                        >
+                          {clinicName}
+                        </button>
+                      )
+                    })
+                  ) : (
+                    <span className="text-sm text-gray-500">No data available</span>
+                  )}
+                </div>
+              </div>
+            </Field>
+
+            {/* Sub Role (Doctor, Staff, Jr Staff, Manager) */}
+            {subroleRoles.includes(form.role) && form.clinicIds.length > 0 && (
               <Field label="Sub Role (Specialization)" icon={FiBriefcase}>
                 <div className="space-y-2">
-                  {/* Search Input */}
                   <div className="relative">
                     <FiBriefcase className="absolute left-3 top-2.5 text-gray-500" />
                     <input
@@ -452,7 +574,6 @@ const AddNewUserModal = ({
                     />
                   </div>
                   
-                  {/* Selected Sub Role Display */}
                   {form.subroleId && (
                     <div className="px-3 py-2 bg-teal-50 border border-teal-200 rounded-lg">
                       <div className="flex items-center justify-between">
@@ -471,7 +592,6 @@ const AddNewUserModal = ({
                     </div>
                   )}
 
-                  {/* Sub Role Options */}
                   <div className="border border-gray-300 rounded-lg p-2 max-h-48 overflow-y-auto">
                     {isLoadingSubRoles ? (
                       <span className="text-sm text-gray-500">Loading sub roles...</span>
@@ -520,141 +640,6 @@ const AddNewUserModal = ({
                 </div>
               </Field>
             )}
-
-            {/* Start Date */}
-            <Field label="Start Date" icon={FiCalendar}>
-              <div className="relative">
-                <FiCalendar className="absolute left-3 top-2.5 text-gray-500" />
-                <input
-                  type="date"
-                  value={form.startDate}
-                  onChange={update('startDate')}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
-            </Field>
-
-            {/* Employee ID */}
-            <Field label="Employee ID" icon={FiHash}>
-              <div className="relative">
-                <FiHash className="absolute left-3 top-2.5 text-gray-500" />
-                <input
-                  type="text"
-                  value={form.employeeId}
-                  onChange={update('employeeId')}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  placeholder="e.g., 00125"
-                  required
-                />
-              </div>
-            </Field>
-
-            {/* Knowledge Level */}
-            <Field label="Knowledge Level" icon={FiActivity}>
-              <div className="relative">
-                <FiActivity className="absolute left-3 top-2.5 text-gray-500" />
-                <input
-                  type="number"
-                  min="0"
-                  max="10"
-                  value={form.knowledgeLevel}
-                  onChange={update('knowledgeLevel')}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
-            </Field>
-
-            {/* Clinics (multi select chips) */}
-            <Field label="Clinic" icon={FiMapPin}>
-              <div className="border border-gray-300 rounded-lg p-2">
-                {/* Selected chips */}
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {form.clinics.map((c) => (
-                    <span key={c} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-teal-50 text-teal-700 border border-teal-200">
-                      {c}
-                      <button type="button" className="ml-1" onClick={() => handleRemoveClinic(c)} aria-label={`Remove ${c}`}>
-                        <FiX className="w-4 h-4" />
-                      </button>
-                    </span>
-                  ))}
-                  {!form.clinics.length && (
-                    <span className="text-sm text-gray-500">No clinic selected</span>
-                  )}
-                </div>
-                {/* Options */}
-                <div className="flex flex-wrap gap-2">
-                  {isLoading ? (
-                    <span className="text-sm text-gray-500">Loading clinics...</span>
-                  ) : clinics.length > 0 ? (
-                    clinics.map((clinic) => {
-                      const clinicName = clinic.name || clinic
-                      return (
-                        <button
-                          type="button"
-                          key={clinic.id || clinic}
-                          onClick={() => toggleClinic(clinic)}
-                          className={`px-3 py-1 rounded-full text-sm border transition ${form.clinics.includes(clinicName)
-                            ? 'bg-gray-100 text-gray-700 border-gray-300'
-                            : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
-                            }`}
-                        >
-                          {clinicName}
-                        </button>
-                      )
-                    })
-                  ) : (
-                    <span className="text-sm text-gray-500">No data available</span>
-                  )}
-                </div>
-              </div>
-            </Field>
-
-            {/* Subject Matter Experts */}
-            <Field label="Subjects Matter Experts" icon={FiTag}>
-              {isLoading ? (
-                <div className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
-                  Loading subjects...
-                </div>
-              ) : subjectMatters.length > 0 ? (
-                <div className="relative">
-                  {FiTag && (
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FiTag className="w-4 h-4 text-gray-500" />
-                    </span>
-                  )}
-                  <select
-                    value={form.subjectMatter}
-                    onChange={(e) => {
-                      const selectedTitle = e.target.value
-                      const selectedSubject = subjectMatters.find(s => (s.title || s) === selectedTitle)
-                      setForm((prev) => ({
-                        ...prev,
-                        subjectMatter: selectedTitle,
-                        subjectMatterId: selectedSubject?.id || null
-                      }))
-                    }}
-                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 appearance-none"
-                  >
-                    <option value="" disabled>
-                      Select subject
-                    </option>
-                    {subjectMatters.map((s) => {
-                      const title = s.title || s
-                      return (
-                        <option key={s.id || s} value={title}>
-                          {title}
-                        </option>
-                      )
-                    })}
-                  </select>
-                  <FiChevronDown className="absolute right-3 top-2.5 text-gray-500 pointer-events-none" />
-                </div>
-              ) : (
-                <div className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
-                  No data available
-                </div>
-              )}
-            </Field>
 
             {/* Status */}
             <Field label="Status" icon={FiUser}>

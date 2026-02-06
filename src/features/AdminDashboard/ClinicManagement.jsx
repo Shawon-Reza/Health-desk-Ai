@@ -11,6 +11,7 @@ import { toast } from "react-toastify"
 import Swal from "sweetalert2"
 import { GoHistory } from "react-icons/go";
 import { useNavigate } from "react-router-dom"
+import { TbCategory2 } from "react-icons/tb";
 
 const ClinicManagement = () => {
     // ============ STATE MANAGEMENT ============
@@ -84,6 +85,11 @@ const ClinicManagement = () => {
         setSelectedClinic(clinicToEdit)
         setIsAddClinicOpen(true)
     }
+
+    const handleRoles = () => {
+        navigate('/admin/manage-clinic/roles')
+    }
+
 
     const handleDeleteClinic = (clinicId, clinicName) => {
         Swal.fire({
@@ -262,7 +268,7 @@ const ClinicManagement = () => {
             {/* sticky top-0 z-30 */}
             <div className=" border-gray-200 ">
 
-                <div className=" px-6 py-8 flex items-center justify-between bg-white/8 shadow-lg rounded-xl">
+                <div className=" px-6 py-8 flex flex-col sm:flex-row items-center justify-between bg-white/8 shadow-lg rounded-xl ">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Clinic Management</h1>
                         <p className="text-gray-600 mt-1">Manage your clinic and address</p>
@@ -270,19 +276,27 @@ const ClinicManagement = () => {
                     <div className="flex gap-3">
                         <button
                             onClick={() => navigate('/admin/clinicwise-chat-history')}
-                            className="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg transition-colors hover:opacity-90"
+                            className="flex items-center sm:gap-2 text-white font-semibold py-2 px-2 sm:px-4 rounded-lg transition-colors hover:opacity-90"
                             style={{ backgroundColor: "var(--color-primary)" }}
                         >
-                            <GoHistory className="w-5 h-5" />
+                            <GoHistory size={20} />
                             Clinics chat history
                         </button>
                         <button
                             onClick={handleAddClinic}
-                            className="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg transition-colors hover:opacity-90"
+                            className="flex items-center sm:gap-2 text-white font-semibold py-2 px-2 sm:px-4 rounded-lg transition-colors hover:opacity-90"
                             style={{ backgroundColor: "var(--color-primary)" }}
                         >
-                            <FiPlus className="w-5 h-5" />
+                            <FiPlus size={20} />
                             Add Clinic
+                        </button>
+                        <button
+                            onClick={handleRoles}
+                            className="flex items-center sm:gap-2 text-white font-semibold py-2 px-2 sm:px-4 rounded-lg transition-colors hover:opacity-90"
+                            style={{ backgroundColor: "var(--color-primary)" }}
+                        >
+                            <TbCategory2 size={20} />
+                            Roles
                         </button>
                     </div>
                 </div>

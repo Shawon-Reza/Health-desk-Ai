@@ -30,6 +30,7 @@ import Communication from "../features/AdminDashboard/Communication/Communicatio
 import Charting_AI from "../features/AdminDashboard/Communication/Charting_AI";
 import Theme from "../features/AdminDashboard/Theme";
 import GivenAssessmentDetailsFromUser from "../features/AdminDashboard/DashboardContent/GivenAssessmentDetailsFromUser";
+import RolesTypes from "../features/AdminDashboard/RolesTypes";
 
 
 
@@ -76,6 +77,10 @@ export const router = createBrowserRouter([
             {
                 path: "manage-clinic",
                 element: <PrivateRoute roles={[ROLES.OWNER, ROLES.PRESIDENT]} ><ClinicManagement></ClinicManagement></PrivateRoute>,
+            },
+            {
+                path: "manage-clinic/roles",
+                element: <PrivateRoute roles={[ROLES.OWNER, ROLES.PRESIDENT]} ><RolesTypes></RolesTypes></PrivateRoute>,
             },
             {
                 path: "assigned-clinic",

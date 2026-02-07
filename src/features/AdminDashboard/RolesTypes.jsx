@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { FiSearch, FiPlus, FiX } from "react-icons/fi";
 import axiosApi from "../../service/axiosInstance";
@@ -16,6 +16,7 @@ const RolesTypes = () => {
     const [newClinicTypeName, setNewClinicTypeName] = useState("");
     const [newSubroleName, setNewSubroleName] = useState("");
     const [selectedSubrolesToAssign, setSelectedSubrolesToAssign] = useState([]);
+    const [selectedSubrolesToRemove, setSelectedSubrolesToRemove] = useState([]);
     const [assignSearchTerm, setAssignSearchTerm] = useState("");
 
     //=============================================== Get Clinic types =================================================\\
@@ -103,6 +104,27 @@ const RolesTypes = () => {
         },
     });
 
+    //=============================================== Remove Subrole from Clinic Mutation ==========================\\
+    const removeSubroleMutation = useMutation({
+        mutationFn: async ({ subroleIds, clinicTypeId }) => {
+            const response = await axiosApi.delete("/api/v1/subroleclinic/remove/", {
+                data: {
+                    clinic_type: clinicTypeId,
+                    subroles: subroleIds,
+                },
+            });
+            return response.data;
+        },
+        onSuccess: () => {
+            toast.success("Subroles removed successfully");
+            queryClient.invalidateQueries(["subroles", selectedClinicType]);
+            setSelectedSubrolesToRemove([]);
+        },
+        onError: (error) => {
+            toast.error(error?.response?.data?.message || "Failed to remove subroles");
+        },
+    });
+
     const filteredTypes = Array.isArray(clinicTypes)
         ? clinicTypes.filter((type) =>
             type.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -120,6 +142,10 @@ const RolesTypes = () => {
             (subrole.name || "").toLowerCase().includes(assignSearchTerm.toLowerCase())
         )
         : [];
+
+    useEffect(() => {
+        setSelectedSubrolesToRemove([]);
+    }, [selectedClinicType]);
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100vh-125px)]">
@@ -167,17 +193,16 @@ const RolesTypes = () => {
                                         <button
                                             key={type.id}
                                             onClick={() => setSelectedClinicType(type.id)}
-                                            className={`w-full px-4 py-3 hover:bg-teal-50 transition text-left flex items-center justify-between ${
-                                                selectedClinicType === type.id
+                                            className={`w-full px-4 py-3 hover:bg-teal-50 transition text-left flex items-center justify-between ${selectedClinicType === type.id
                                                     ? 'bg-teal-100 border-l-4 border-teal-600'
                                                     : ''
-                                            }`}
+                                                }`}
                                         >
                                             <div className="flex-1">
                                                 <p className="text-sm font-medium text-gray-800">{type.name}</p>
-                                                <p className="text-xs text-gray-500">
+                                                {/* <p className="text-xs text-gray-500">
                                                     ID: {type.id}
-                                                </p>
+                                                </p> */}
                                             </div>
                                             {/* {type.is_active && (
                                                 <span className="inline-block px-2 py-1 bg-teal-100 text-teal-700 text-xs font-semibold rounded">
@@ -207,13 +232,30 @@ const RolesTypes = () => {
                 {/* Header */}
                 <div className="mb-4 border-b-2 border-gray-200 pb-3 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-gray-800">
-                        {selectedClinicType 
+                        {selectedClinicType
                             ? `Subroles - ${clinicTypes.find(t => t.id === selectedClinicType)?.name || 'Selected'}`
                             : 'Select a Clinic Type'
                         }
                     </h2>
                     {selectedClinicType && (
                         <div className="flex gap-2">
+                            <button
+                                onClick={() => {
+                                    if (selectedSubrolesToRemove.length > 0) {
+                                        const payload = {
+                                            subroleIds: selectedSubrolesToRemove,
+                                            clinicTypeId: selectedClinicType,
+                                        };
+                                        console.log("[RolesTypes] Remove subroles payload:", payload);
+                                        removeSubroleMutation.mutate(payload);
+                                    }
+                                }}
+                                disabled={selectedSubrolesToRemove.length === 0 || removeSubroleMutation.isPending}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition disabled:opacity-50"
+                            >
+                                <FiX className="w-4 h-4" />
+                                {removeSubroleMutation.isPending ? "Removing..." : "Remove"}
+                            </button>
                             <button
                                 onClick={() => setShowAddSubroleModal(true)}
                                 className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-lg transition"
@@ -265,20 +307,27 @@ const RolesTypes = () => {
                                     {filteredSubroles.length > 0 ? (
                                         <div className="divide-y divide-gray-200">
                                             {filteredSubroles.map((subrole) => (
-                                                <div
+                                                <label
                                                     key={subrole.id}
-                                                    className="px-4 py-3 hover:bg-teal-50 transition"
+                                                    className="flex items-center gap-3 px-4 py-3 hover:bg-teal-50 transition cursor-pointer"
                                                 >
-                                                    <p className="text-sm font-medium text-gray-800">{subrole.subrole_name}</p>
-                                                    <div className="flex items-center justify-between mt-1">
-                                                        <p className="text-xs text-gray-500">ID: {subrole.subrole_id}</p>
-                                                        {/* {subrole.is_active && (
-                                                            <span className="inline-block px-2 py-1 bg-teal-100 text-teal-700 text-xs font-semibold rounded">
-                                                                Active
-                                                            </span>
-                                                        )} */}
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedSubrolesToRemove.includes(subrole.subrole_id)}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                                setSelectedSubrolesToRemove(prev => [...prev, subrole.subrole_id]);
+                                                            } else {
+                                                                setSelectedSubrolesToRemove(prev => prev.filter(id => id !== subrole.subrole_id));
+                                                            }
+                                                        }}
+                                                        className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+                                                    />
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-medium text-gray-800">{subrole.subrole_name}</p>
+                                                        {/* <p className="text-xs text-gray-500">ID: {subrole.subrole_id}</p> */}
                                                     </div>
-                                                </div>
+                                                </label>
                                             ))}
                                         </div>
                                     ) : (
@@ -476,24 +525,24 @@ const RolesTypes = () => {
                                         <div className="border border-gray-300 rounded-lg max-h-64 overflow-y-auto">
                                             {filteredAssignSubroles.length > 0 ? (
                                                 filteredAssignSubroles.map((subrole) => (
-                                                <label
-                                                    key={subrole.id}
-                                                    className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedSubrolesToAssign.includes(subrole.id)}
-                                                        onChange={(e) => {
-                                                            if (e.target.checked) {
-                                                                setSelectedSubrolesToAssign(prev => [...prev, subrole.id]);
-                                                            } else {
-                                                                setSelectedSubrolesToAssign(prev => prev.filter(id => id !== subrole.id));
-                                                            }
-                                                        }}
-                                                        className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
-                                                    />
-                                                    <span className="text-sm text-gray-700">{subrole.name}</span>
-                                                </label>
+                                                    <label
+                                                        key={subrole.id}
+                                                        className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedSubrolesToAssign.includes(subrole.id)}
+                                                            onChange={(e) => {
+                                                                if (e.target.checked) {
+                                                                    setSelectedSubrolesToAssign(prev => [...prev, subrole.id]);
+                                                                } else {
+                                                                    setSelectedSubrolesToAssign(prev => prev.filter(id => id !== subrole.id));
+                                                                }
+                                                            }}
+                                                            className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                                                        />
+                                                        <span className="text-sm text-gray-700">{subrole.name}</span>
+                                                    </label>
                                                 ))
                                             ) : (
                                                 <div className="px-3 py-4 text-sm text-gray-500 text-center">

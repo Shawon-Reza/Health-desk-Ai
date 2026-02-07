@@ -7,6 +7,33 @@ const PromptModifySection = () => {
     const [promptValue, setPromptValue] = useState("");
     const [isEditing, setIsEditing] = useState(false);
 
+    const stripMarkdownToText = (value) => {
+        if (!value) return "";
+        return value
+            .replace(/```[\s\S]*?```/g, "")
+            .replace(/`([^`]*)`/g, "$1")
+            .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+            .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+            .replace(/[*_~>#-]+/g, "")
+            .replace(/\n{3,}/g, "\n\n")
+            .trim();
+    };
+
+    const resetPromptMutation = useMutation({
+        mutationFn: async () => {
+            const response = await axiosApi.delete('/api/v1/global-prompt/');
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['globalPrompt'] });
+            setPromptValue("");
+            setIsEditing(false);
+        },
+        onError: (err) => {
+            console.error('[PromptModifySection] Failed to reset prompt:', err);
+        },
+    });
+
     // =======================================Fetch global prompt==========================================\\
     const { data: promptData, isLoading, error } = useQuery({
         queryKey: ['globalPrompt'],
@@ -38,7 +65,7 @@ const PromptModifySection = () => {
 
     useEffect(() => {
         if (promptData?.data?.prompt && !isEditing) {
-            setPromptValue(promptData.data.prompt);
+            setPromptValue(stripMarkdownToText(promptData.data.prompt));
         }
     }, [promptData?.data?.prompt, isEditing]);
 
@@ -75,13 +102,30 @@ const PromptModifySection = () => {
                     Prompt Modify
                 </h2>
                 <div className="bg-white/70 rounded-xl border border-gray-200 shadow-sm p-4 md:p-5">
-                    <p className="text-xs text-gray-500 mb-2">Prompt</p>
+
+                    <div className="flex justify-between items-center pb-2">
+                        <p className="text-xs text-gray-500 mb-2">Prompt</p>
+                        <button
+                            type="button"
+                            onClick={() => resetPromptMutation.mutate()}
+                            className="text-xs text-white bg-primary p-2 rounded-lg font-medium cursor-pointer disabled:opacity-50"
+                            disabled={resetPromptMutation.isPending}
+                        >
+                            {resetPromptMutation.isPending ? "Resetting..." : "Reset"}
+                        </button>
+
+
+                    </div>
+
                     <textarea
-                        className="w-full min-h-[120px] md:min-h-[140px] resize-none border border-gray-200 rounded-lg p-3 text-sm md:text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="w-full min-h-[120px] md:min-h-[250px] resize-none border border-gray-200 rounded-lg p-3 text-sm md:text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
                         value={promptValue}
                         onChange={(e) => setPromptValue(e.target.value)}
                         disabled={!isEditing}
                     />
+
+
+
                     <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
                         <span>Last updated by: {promptData?.data?.updated_by || 'N/A'}</span>
                         <span>

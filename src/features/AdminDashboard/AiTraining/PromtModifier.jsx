@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosApi from "../../../service/axiosInstance";
 
-const PromptModifySection = () => {
+const PromtModifier = () => {
     const queryClient = useQueryClient();
-    const [promptValue, setPromptValue] = useState("");
+    const [modifierValue, setModifierValue] = useState("");
     const [isEditing, setIsEditing] = useState(false);
 
     const stripMarkdownToText = (value) => {
@@ -19,56 +19,67 @@ const PromptModifySection = () => {
             .trim();
     };
 
-    // =======================================Reset Template==========================================\\
-    const resetPromptMutation = useMutation({
+    // =======================================Reset Modifier==========================================\\
+    const resetModifierMutation = useMutation({
         mutationFn: async () => {
-            const response = await axiosApi.delete('/api/v1/global-prompt/');
+            const response = await axiosApi.delete(
+                "/api/v1/president-prompt/modifier/"
+            );
             return response.data;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['globalPrompt'] });
-            setPromptValue("");
+            queryClient.invalidateQueries({ queryKey: ["presidentPromptModifier"] });
+            setModifierValue("");
             setIsEditing(false);
         },
         onError: (err) => {
-            console.error('[PromptModifySection] Failed to reset prompt:', err);
+            console.error("[PromtModifier] Failed to reset modifier:", err);
         },
     });
 
-    // =======================================Fetch global prompt==========================================\\
-    const { data: promptData, isLoading, error } = useQuery({
-        queryKey: ['globalPrompt'],
+    // =======================================Fetch modifier==========================================\\
+    const {
+        data: modifierData,
+        isLoading,
+        error,
+    } = useQuery({
+        queryKey: ["presidentPromptModifier"],
         queryFn: async () => {
-            const response = await axiosApi.get('/api/v1/global-prompt/');
-            console.log('[PromptModifySection] Global Template Data:', response.data);
+            const response = await axiosApi.get(
+                "/api/v1/president-prompt/modifier/"
+            );
+            console.log("[PromtModifier] Modifier Data:", response.data);
             return response.data;
         },
     });
 
-    // =======================================Update global prompt==========================================\\
-    const updatePromptMutation = useMutation({
+    // =======================================Update modifier==========================================\\
+    const updateModifierMutation = useMutation({
         mutationFn: async (payload) => {
-            const response = await axiosApi.put('/api/v1/global-prompt/', payload);
-            console.log('[PromptModifySection] Update Template Response:', response.data);
+            const response = await axiosApi.put(
+                "/api/v1/president-prompt/modifier/",
+                payload
+            );
+            console.log("[PromtModifier] Update Modifier Response:", response.data);
             return response.data;
         },
         onSuccess: (data) => {
-            console.log('[PromptModifySection] Template updated successfully:', data);
-            queryClient.invalidateQueries({ queryKey: ['globalPrompt'] });
+            console.log("[PromtModifier] Modifier updated successfully:", data);
+            queryClient.invalidateQueries({ queryKey: ["presidentPromptModifier"] });
             setIsEditing(false);
         },
         onError: (err) => {
-            console.error('[PromptModifySection] Failed to update template:', err);
+            console.error("[PromtModifier] Failed to update modifier:", err);
         },
     });
 
-    console.log('[PromptModifySection] Template Data State:', promptData?.data);
+    console.log("[PromtModifier] Modifier Data State:", modifierData?.data);
 
     useEffect(() => {
-        if (promptData?.data?.prompt && !isEditing) {
-            setPromptValue(stripMarkdownToText(promptData.data.prompt));
+        if (modifierData?.data?.modifier && !isEditing) {
+            setModifierValue(stripMarkdownToText(modifierData.data.modifier));
         }
-    }, [promptData?.data?.prompt, isEditing]);
+    }, [modifierData?.data?.modifier, isEditing]);
 
     if (isLoading) {
         return (
@@ -90,40 +101,40 @@ const PromptModifySection = () => {
         return (
             <section className="rounded-2xl border border-red-200 p-6 md:p-8 bg-red-50">
                 <div className="">
-                    <p className="text-red-600">Failed to load prompt data</p>
+                    <p className="text-red-600">Failed to load modifier data</p>
                 </div>
             </section>
         );
     }
 
     return (
-        <section className="rounded-2xl border border-[#E9E4DB] bg-white/60 shadow-sm h-full">
+        <section className="rounded-2xl border border-[#E9E4DB] bg-white/50 shadow-sm h-full">
             <div className="flex h-full flex-col gap-3 rounded-xl border border-gray-200 bg-white/50 p-4 md:p-5">
                 <div className="flex items-center justify-between">
-                    <p className="text-xs text-gray-500">Template</p>
+                    <p className="text-xs text-gray-500">Modifier</p>
                     <button
                         type="button"
-                        onClick={() => resetPromptMutation.mutate()}
+                        onClick={() => resetModifierMutation.mutate()}
                         className="text-xs text-white bg-primary px-3 py-2 rounded-lg font-medium cursor-pointer disabled:opacity-50"
-                        disabled={resetPromptMutation.isPending}
+                        disabled={resetModifierMutation.isPending}
                     >
-                        {resetPromptMutation.isPending ? "Resetting..." : "Reset"}
+                        {resetModifierMutation.isPending ? "Resetting..." : "Reset"}
                     </button>
                 </div>
 
                 <textarea
                     className="w-full flex-1 min-h-[260px] md:min-h-[320px] resize-none border border-gray-200 rounded-lg p-3 text-sm md:text-base text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    value={promptValue}
-                    onChange={(e) => setPromptValue(e.target.value)}
+                    value={modifierValue}
+                    onChange={(e) => setModifierValue(e.target.value)}
                     disabled={!isEditing}
                 />
 
                 <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>Last updated by: {promptData?.data?.updated_by || 'N/A'}</span>
+                    <span>Last updated by: {modifierData?.data?.updated_by || "N/A"}</span>
                     <span>
-                        {promptData?.data?.updated_at
-                            ? new Date(promptData.data.updated_at).toLocaleString()
-                            : 'N/A'}
+                        {modifierData?.data?.updated_at
+                            ? new Date(modifierData.data.updated_at).toLocaleString()
+                            : "N/A"}
                     </span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -137,11 +148,11 @@ const PromptModifySection = () => {
                     </button>
                     <button
                         type="button"
-                        onClick={() => updatePromptMutation.mutate({ prompt: promptValue })}
+                        onClick={() => updateModifierMutation.mutate({ modifier: modifierValue })}
                         className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#5E5B4E] transition disabled:opacity-50"
-                        disabled={!isEditing || updatePromptMutation.isPending}
+                        disabled={!isEditing || updateModifierMutation.isPending}
                     >
-                        {updatePromptMutation.isPending ? 'Saving...' : 'Save'}
+                        {updateModifierMutation.isPending ? "Saving..." : "Save"}
                     </button>
                 </div>
             </div>
@@ -149,4 +160,4 @@ const PromptModifySection = () => {
     );
 };
 
-export default PromptModifySection;
+export default PromtModifier;

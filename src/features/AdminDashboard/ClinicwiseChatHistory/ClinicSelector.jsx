@@ -113,7 +113,7 @@ const ClinicSelector = ({ clinics, isLoading, onSelectClinic }) => {
             {selectedClinic && (
                 <div className="mt-3 p-3 bg-blue-50 rounded-lg">
                     <p className="text-sm text-blue-900">
-                        Selected: <span className="font-semibold">{selectedClinic.name}</span> (ID: {selectedClinic.id})
+                        Selected: <span className="font-semibold">{selectedClinic.name}</span> 
                     </p>
                 </div>
             )}

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import ReactMarkdown from 'react-markdown';
 // import remarkGfm from 'remark-gfm';
-import { useLocation } from "react-router-dom";
 import { FiThumbsUp, FiThumbsDown, FiDownload, FiFile, FiChevronDown } from "react-icons/fi";
 import { useMutation } from "@tanstack/react-query";
 import axiosApi from "../../../service/axiosInstance";
@@ -18,6 +17,7 @@ const MessageList = ({
     roomType,
     isAiTyping,
     anchorMessageId,
+    path
 }) => {
     const messagesEndRef = useRef(null);
     const containerRef = useRef(null);
@@ -30,7 +30,7 @@ const MessageList = ({
     const [showScrollButton, setShowScrollButton] = useState(false);
     const lastScrollButtonStateRef = useRef(false);
 
-
+    console.log("pathaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", path)
     // Deduplicate messages by id to avoid duplicate keys
     const uniqueMessages = useMemo(() => {
         const map = new Map();
@@ -189,7 +189,7 @@ const MessageList = ({
         // Track if user is at the bottom (for auto-scroll later)
         const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
         wasAtBottomBeforeFetchRef.current = isAtBottom;
-        
+
         // Show/hide scroll-to-bottom button ONLY if state actually changed (prevent re-renders)
         if (lastScrollButtonStateRef.current !== !isAtBottom) {
             lastScrollButtonStateRef.current = !isAtBottom;
@@ -227,7 +227,6 @@ const MessageList = ({
     };
 
     const MessageBubble = ({ msg }) => {
-        console.log("message ::::::", msg)
         const isAI = msg?.is_ai === true;
         const isMe = roomType === "ai"
             ? !isAI // In AI chats, any non-AI message is from the user
@@ -258,69 +257,15 @@ const MessageList = ({
             }
         };
 
-        // Local state for optimistic UI updates
-        const [optimisticReaction, setOptimisticReaction] = useState(msg?.my_reaction || null);
-        const [optimisticCounts, setOptimisticCounts] = useState({
-            like: msg?.reactions?.like?.count || 0,
-            dislike: msg?.reactions?.dislike?.count || 0
-        });
-
-        // ====================================Like/Displike Ai message ==================================\\
-        const reactionMutation = useMutation({
-            mutationFn: (reaction) =>
-                axiosApi.post(`/api/v1/messages/${msg.id}/react/`, { reaction }),
-            onSuccess: () => {
-                console.log("✅ Reaction sent successfully");
-            },
-            onError: (err) => {
-                console.error("❌ Reaction failed:", err?.response?.data || err?.message);
-                // Revert optimistic update on error
-                setOptimisticReaction(msg?.my_reaction || null);
-                setOptimisticCounts({
-                    like: msg?.reactions?.like?.count || 0,
-                    dislike: msg?.reactions?.dislike?.count || 0
-                });
-            }
-        });
-
-        const handleReaction = (reaction) => {
-            const previousReaction = optimisticReaction;
-            const previousCounts = { ...optimisticCounts };
-
-            // Optimistic update - immediately update UI
-            setOptimisticReaction(reaction === optimisticReaction ? null : reaction);
-            
-            // Update counts optimistically
-            setOptimisticCounts(prev => {
-                const updated = { ...prev };
-                
-                // If clicking the same reaction, toggle it off
-                if (reaction === optimisticReaction) {
-                    updated[reaction] = Math.max(0, updated[reaction] - 1);
-                } else {
-                    // Clicking a different reaction
-                    if (optimisticReaction) {
-                        updated[optimisticReaction] = Math.max(0, updated[optimisticReaction] - 1);
-                    }
-                    updated[reaction] = updated[reaction] + 1;
-                }
-                
-                return updated;
-            });
-
-            // Send to server
-            reactionMutation.mutate(reaction);
-        };
-
         return (
             <div id={`message-${msg.id}`} className={`flex mb-4 ${isMe ? "justify-end" : "justify-start"} ${isHighlighted ? 'animate-pulse' : ''}`}>
                 <div
                     className={`px-4 py-2 rounded-lg max-w-md break-words
-          ${isAI && "bg-purple-100 border border-purple-300"}
-          ${isMe && "bg-teal-100 text-gray-900"}
-          ${!isMe && !isAI && "bg-blue-100 text-gray-900"}
-          ${isHighlighted && "ring-2 ring-yellow-400 shadow-lg"}
-        `}
+                ${isAI && "bg-purple-100 border border-purple-300"}
+                ${isMe && "bg-teal-100 text-gray-900"}
+                ${!isMe && !isAI && "bg-blue-100 text-gray-900"}
+                ${isHighlighted && "ring-2 ring-yellow-400 shadow-lg"}
+                select-text overflow-hidden`} // Added overflow-hidden to prevent leakage
                 >
                     {/* ...............AI label................ */}
                     {isAI && (
@@ -330,11 +275,9 @@ const MessageList = ({
                     )}
 
                     {/* ................Convert Markdown to HTML................. */}
-                    <div className="text-sm prose prose-sm max-w-none break-words">
+                    <div className="text-sm max-w-none break-words">
                         {isAI ? (
-                            <ReactMarkdown>
-                                {text}
-                            </ReactMarkdown>
+                            <ReactMarkdown>{text}</ReactMarkdown>
                         ) : (
                             <p className="break-words">{text}</p>
                         )}
@@ -348,7 +291,6 @@ const MessageList = ({
                                 return (
                                     <div key={attachment.id}>
                                         {fileType === 'image' ? (
-                                            // Display image
                                             <img
                                                 src={attachment.url}
                                                 alt="Attachment"
@@ -356,7 +298,6 @@ const MessageList = ({
                                                 onClick={() => window.open(attachment.url, '_blank')}
                                             />
                                         ) : (
-                                            // Display file attachment
                                             <a
                                                 href={attachment.url}
                                                 target="_blank"
@@ -382,45 +323,29 @@ const MessageList = ({
                             minute: "2-digit",
                         })}
                     </div>
-
-                    {/* ====================================== REACTIONS - Show for AI messages only ==================================== */}
-                    {isAI && msg?.reactions && (
-                        <div className="flex gap-3 mt-2 pt-2 border-t" style={{ borderTopColor: '#d8b4fe' }}>
-                            <div className="flex items-center gap-1 text-xs">
-                                <FiThumbsUp
-                                    size={14}
-                                    onClick={() => handleReaction('like')}
-                                    className={`cursor-pointer transition-colors ${optimisticReaction === 'like' ? 'text-green-600 fill-green-600' : 'text-gray-500'}`}
-                                />
-                                <span className="text-gray-600 font-medium">{optimisticCounts.like}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-xs">
-                                <FiThumbsDown
-                                    size={14}
-                                    onClick={() => handleReaction('dislike')}
-                                    className={`cursor-pointer transition-colors ${optimisticReaction === 'dislike' ? 'text-red-600 fill-red-600' : 'text-gray-500'}`}
-                                />
-                                <span className="text-gray-600 font-medium">{optimisticCounts.dislike}</span>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
         );
     };
 
+
+
+
     return (
+        // This is the parent container where messages are wrapped
+        // Parent container
         <div
             ref={containerRef}
             onScroll={handleScroll}
-            className="flex-1 overflow-y-auto p-4 space-y-2 relative"
+            className="flex-1 overflow-y-auto p-4 space-y-2 relative select-none" // Prevent selection of the whole container
         >
             {isFetchingNextPage && (
                 <div className="text-center text-sm text-gray-500 py-2">
                     Loading older messages...
                 </div>
             )}
-            {/* // .....................**Group messages by date logic**......................\\ */}
+
+            {/* Loop through grouped messages and render them */}
             {groupedMessages.map((item, index) => {
                 if (item.type === 'date') {
                     return (
@@ -434,8 +359,9 @@ const MessageList = ({
                     return <MessageBubble key={item.data.id} msg={item.data} />;
                 }
             })}
+
             {/* AI Typing Indicator */}
-            {isAiTyping && roomType === "ai" && (
+            {isAiTyping && (roomType === "ai" || path === "charting-ai") && (
                 <div className="flex mb-4 justify-start">
                     <div className="px-4 py-2 rounded-lg bg-purple-100 border border-purple-300">
                         <div className="text-xs font-semibold text-purple-600 mb-1">
@@ -452,19 +378,22 @@ const MessageList = ({
                     </div>
                 </div>
             )}
+
             <div ref={messagesEndRef} />
 
             {/* Scroll to bottom button */}
             {showScrollButton && (
                 <button
                     onClick={handleScrollToBottom}
-                    className="fixed bottom-48 right-15 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 shadow-lg transition-all duration-200 flex items-center justify-center cursor-pointer"
+                    className="fixed bottom-48 right-15 bg-primary text-white rounded-full p-2 shadow-lg transition-all duration-200 flex items-center justify-center cursor-pointer"
                     title="Scroll to latest message"
                 >
                     <FiChevronDown size={20} />
                 </button>
             )}
         </div>
+
+
     );
 };
 

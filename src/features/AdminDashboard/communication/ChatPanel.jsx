@@ -11,6 +11,7 @@ import { getAuthData } from "../../../config/Config";
 import MessageList from "./MessageList";
 import { useLocation } from "react-router-dom";
 import ActionsDropdown from "./ActionsDropdown";
+import { RiResetLeftLine } from "react-icons/ri";
 
 const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
@@ -28,7 +29,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
   const userId = userInfo?.user_id;
   const location = useLocation();
   const path = location.pathname.split('/')[2];
-  const isAiRoom = roomType === "ai";
+  const isAiRoom = roomType === "ai" || path === "charting-ai";
 
   // =============================Fetch room members for mentions (group rooms only)=================================\\
   const { data: roomMembersData } = useQuery({
@@ -148,7 +149,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
         const newMessage = payload.data;
 
         // Turn off AI typing indicator when AI responds
-        if (newMessage?.is_ai && roomType === "ai") {
+        if (newMessage?.is_ai && isAiRoom) {
           setIsAiTyping(false);
         }
 
@@ -178,13 +179,12 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
     return () => socket.close();
   }, [chatRoom, queryClient]);
 
-  // ============================================Send message with optimistic update=====================================\\
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim() && attachments.length === 0) return;
+  const sendMessage = async ({ content, files = [] }) => {
+    if (!content.trim() && files.length === 0) return;
 
     const optimisticMsg = {
       id: `temp-${Date.now()}`,
-      text: inputMessage,
+      text: content,
       created_at: new Date().toISOString(),
       sender: { id: userId },
       avatar: safeUser.avatar,
@@ -193,7 +193,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
     setInputMessage("");
 
     // Show AI typing indicator if this is an AI chat
-    if (roomType === "ai") {
+    if (isAiRoom) {
       setIsAiTyping(true);
     }
 
@@ -216,8 +216,8 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
       (text || "").replace(/@\[(.+?)\]\(.+?\)/g, "@$1");
 
     // Prepare payload
-    const mentionIds = extractMentionIdsFromMarkup(inputMessage);
-    const contentPlain = toPlainText(inputMessage).trim();
+    const mentionIds = extractMentionIdsFromMarkup(content);
+    const contentPlain = toPlainText(content).trim();
 
     // Debug: Log what we're about to send
     try {
@@ -239,8 +239,8 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
       }
 
       // Append attachments
-      if (attachments.length > 0) {
-        attachments.forEach((file) => {
+      if (files.length > 0) {
+        files.forEach((file) => {
           formData.append("attachments", file);
         });
       }
@@ -265,11 +265,20 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
       setAttachments([]);
     } catch (err) {
       // Turn off typing indicator on error
-      if (roomType === "ai") {
+      if (isAiRoom) {
         setIsAiTyping(false);
       }
       console.error("❌ Send message failed:", err?.response?.status, err?.response?.data || err?.message);
     }
+  };
+
+  // ============================================Send message with optimistic update=====================================\\
+  const handleSendMessage = async () => {
+    await sendMessage({ content: inputMessage, files: attachments });
+  };
+
+  const handleResetCase = async () => {
+    await sendMessage({ content: "new case" });
   };
 
 
@@ -441,12 +450,13 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
             roomType={roomType}
             isAiTyping={isAiTyping}
             anchorMessageId={anchorMessageId}
+            path={path}
           />
 
           {/* ........................................................Input Area For send text................................................ */}
           <div className="p-4 border-t border-gray-300">
             {/* File attachments preview */}
-            {attachments.length > 0 && (roomType === "group" || roomType === "private") && (
+            {attachments.length > 0 && (roomType === "group" || roomType === "private" || roomType === "ai") && (
               <div className="mb-3 flex flex-wrap gap-2">
                 {attachments.map((file, index) => (
                   <div key={index} className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
@@ -463,8 +473,8 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
               </div>
             )}
             <div className="flex gap-3 w-full min-w-0">
-              {/* File upload button for group and private */}
-              {(roomType === "group" || roomType === "private") && (
+              {/* ===================================== File upload button for group and private ================================== */}
+              {(roomType === "group" || roomType === "private" || roomType === "ai") && (
                 <>
                   <input
                     ref={fileInputRef}
@@ -484,6 +494,22 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
                   </button>
                 </>
               )}
+
+              {
+                path === "charting-ai" && (
+                  <button
+                    type="button"
+                    onClick={handleResetCase}
+                    disabled={isInputDisabled}
+                    className="flex items-center gap-2 bg-yellow-50 rounded-lg p-3 disabled:opacity-50"
+                    title="Reset / Start a new case"
+                    aria-label="Reset / Start a new case"
+                  >
+                    <RiResetLeftLine size={24} className="text-yellow-600" />
+                  </button>
+                )
+              }
+
               {roomType === "group" ? (
                 <div className="flex-1 relative min-w-0 ">
                   <MentionsInput
@@ -542,6 +568,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
                 onClick={handleSendMessage}
                 disabled={(!inputMessage.trim() && attachments.length === 0) || isInputDisabled}
                 className="disabled:opacity-50"
+                title="Send Messages"
               >
                 <FiSend size={24} />
               </button>

@@ -294,7 +294,7 @@ const AiTrainingChat = () => {
             </div>
 
             {/* Message Input */}
-            <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-3">
+            <div className="flex items-center gap-2 bg-white/50 rounded-lg p-3">
                 <input
                     type="text"
                     value={messageInput}

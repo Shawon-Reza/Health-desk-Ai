@@ -105,6 +105,7 @@ const Notifications = ({ notifications = [], notificationCount = 0, onNotificati
   console.log('Notifications Data:', notificationsData?.results)
 
   // ====================================== Navigate to specefic route on Click Notification ====================================== //
+
   const handleNotificationClick = (notification) => {
     console.log("Specific Notification:==========", notification)
     const type = notification?.type
@@ -118,7 +119,12 @@ const Notifications = ({ notifications = [], notificationCount = 0, onNotificati
     if (type === 'assesments') {
       navigate('/admin/dashboard')
     }
+    if (type === 'ai_training') {
+      navigate('/admin/dashboard')
+    }
   }
+
+
   // ====================================== Clear All Notifications UI ====================================== //
   const handleClearAll = () => {
     console.log("Clear All Notifications Clicked")

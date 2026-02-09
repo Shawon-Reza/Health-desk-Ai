@@ -24,7 +24,7 @@ const GivenAssessmentViewFromUsers = () => {
     if (isLoading) {
         return (
             <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Assessments</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Given Assessments</h2>
                 <p className="text-gray-600 mb-6">Your answers and scores</p>
                 <div className="flex justify-center items-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -36,7 +36,7 @@ const GivenAssessmentViewFromUsers = () => {
     if (error) {
         return (
             <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Assessments</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Given Assessments</h2>
                 <p className="text-gray-600 mb-6">Your answers and scores</p>
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                     <p>Error loading assessments: {error.message}</p>
@@ -50,7 +50,7 @@ const GivenAssessmentViewFromUsers = () => {
 
     return (
         <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Assessments</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Given Assessments</h2>
             <p className="text-gray-600 mb-6">Your answers and scores</p>
 
             {/* Assessments List */}

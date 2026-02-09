@@ -230,8 +230,8 @@ const RolesTypes = () => {
             {/* Right: Subroles */}
             <div className="bg-white/50 rounded-lg shadow-md p-4 overflow-hidden flex flex-col h-full">
                 {/* Header */}
-                <div className="mb-4 border-b-2 border-gray-200 pb-3 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-gray-800">
+                <div className="mb-4 border-b-2 border-gray-200 pb-3 flex flex-col items-center justify-between">
+                    <h2 className="text-lg font-semibold text-gray-800 ">
                         {selectedClinicType
                             ? `Subroles - ${clinicTypes.find(t => t.id === selectedClinicType)?.name || 'Selected'}`
                             : 'Select a Clinic Type'

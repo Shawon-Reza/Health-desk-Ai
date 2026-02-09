@@ -245,7 +245,7 @@ const DashboardContent = () => {
     <div className="font-sans">
       {/* Header */}
       <div className="border-gray-200 ">
-        <div className="px-6 py-8">
+        <div className=" py-2">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Here's an overview of your members activities.</p>
         </div>

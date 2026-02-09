@@ -231,7 +231,7 @@ const Communication = () => {
     return (
         <div className=" mx-auto">
             {/* Header */}
-            <section className="text-secondary mb-8">
+            <section className="text-secondary mb-2">
                 <h2 className="text-2xl lg:text-3xl font-bold">Communication Hub</h2>
                 <p className="text-lg opacity-80">Chat with your team and AI assistant</p>
             </section>
@@ -387,8 +387,11 @@ const Communication = () => {
                                                         {formatChatTime(chat?.last_message?.created_at)}
                                                     </span>
                                                 </div>
-                                                <p className={`text-xs text-gray-600 truncate ${chat?.unseen_count > 0 ? "font-bold" : ""}`}>
-                                                    {chat?.last_message?.text || "No messages yet"}
+                                                <p className={`text-xs text-gray-600 truncate max-h-[30px] ${chat?.unseen_count > 0 ? "font-bold" : ""}`}>
+                                                    {/* {chat?.last_message?.text || "No messages yet"} */}
+                                                    <ReactMarkdown>
+                                                        {chat?.last_message?.text || "No messages yet"}
+                                                    </ReactMarkdown>
                                                 </p>
                                             </div>
                                             {chat?.unseen_count > 0 && (

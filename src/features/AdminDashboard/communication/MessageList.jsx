@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, memo } from "react";
 import ReactMarkdown from 'react-markdown';
 // import remarkGfm from 'remark-gfm';
 import { FiThumbsUp, FiThumbsDown, FiDownload, FiFile, FiChevronDown } from "react-icons/fi";
@@ -29,8 +29,8 @@ const MessageList = ({
     const lastProgrammaticScrollRef = useRef(0);
     const [showScrollButton, setShowScrollButton] = useState(false);
     const lastScrollButtonStateRef = useRef(false);
+    const isSelectingRef = useRef(false);
 
-    console.log("pathaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", path)
     // Deduplicate messages by id to avoid duplicate keys
     const uniqueMessages = useMemo(() => {
         const map = new Map();
@@ -184,6 +184,16 @@ const MessageList = ({
         // Ignore scroll events triggered programmatically
         if (Date.now() - lastProgrammaticScrollRef.current < 300) return;
 
+        const hasActiveSelection = (() => {
+            if (typeof window === "undefined") return false;
+            const selection = window.getSelection();
+            return !!(selection && !selection.isCollapsed);
+        })();
+
+        if (isSelectingRef.current || hasActiveSelection) {
+            return;
+        }
+
         const { scrollTop, scrollHeight, clientHeight } = e.target;
 
         // Track if user is at the bottom (for auto-scroll later)
@@ -227,6 +237,7 @@ const MessageList = ({
     };
 
     const MessageBubble = ({ msg }) => {
+        const isChartingAI = roomType === "ai_charting" && msg?.is_ai;
         const isAI = msg?.is_ai === true;
         const isMe = roomType === "ai"
             ? !isAI // In AI chats, any non-AI message is from the user
@@ -258,7 +269,7 @@ const MessageList = ({
         };
 
         return (
-            <div id={`message-${msg.id}`} className={`flex mb-4 ${isMe ? "justify-end" : "justify-start"} ${isHighlighted ? 'animate-pulse' : ''}`}>
+            <div id={`message-${msg.id}`} className={`flex mb-4 ${isMe || isChartingAI ? "justify-end" : "justify-start"} ${isHighlighted ? 'animate-pulse' : ''} `}>
                 <div
                     className={`px-4 py-2 rounded-lg max-w-md break-words
                 ${isAI && "bg-purple-100 border border-purple-300"}
@@ -337,7 +348,16 @@ const MessageList = ({
         <div
             ref={containerRef}
             onScroll={handleScroll}
-            className="flex-1 overflow-y-auto p-4 space-y-2 relative select-none" // Prevent selection of the whole container
+            onMouseDown={() => {
+                isSelectingRef.current = true;
+            }}
+            onMouseUp={() => {
+                isSelectingRef.current = false;
+            }}
+            onMouseLeave={() => {
+                isSelectingRef.current = false;
+            }}
+            className="flex-1 overflow-y-auto p-4 space-y-2 relative select-text"
         >
             {isFetchingNextPage && (
                 <div className="text-center text-sm text-gray-500 py-2">
@@ -385,7 +405,7 @@ const MessageList = ({
             {showScrollButton && (
                 <button
                     onClick={handleScrollToBottom}
-                    className="fixed bottom-48 right-15 bg-primary text-white rounded-full p-2 shadow-lg transition-all duration-200 flex items-center justify-center cursor-pointer"
+                    className="fixed bottom-48 right-15 bg-primary text-white rounded-full p-2 shadow-lg transition-all duration-200 flex items-center justify-center cursor-pointer select-none"
                     title="Scroll to latest message"
                 >
                     <FiChevronDown size={20} />
@@ -397,4 +417,4 @@ const MessageList = ({
     );
 };
 
-export default MessageList;
+export default memo(MessageList);

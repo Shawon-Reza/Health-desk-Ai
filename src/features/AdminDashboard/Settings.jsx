@@ -13,7 +13,7 @@ const Settings = () => {
         <div className="bg-secondar  text-secondary">
             {/* settings  */}
             <section>
-                <header className="space-y-2 py-3">
+                <header className="space-y-1 pb-2">
                     <h1 className="text-4xl text-secondary font-bold">Settings</h1>
                     <p className="text-secondary text-lg opacity-85">Manage your account and system preferences</p>
                 </header>

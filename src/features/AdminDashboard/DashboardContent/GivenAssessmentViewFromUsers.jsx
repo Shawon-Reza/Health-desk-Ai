@@ -47,7 +47,7 @@ const GivenAssessmentViewFromUsers = () => {
     const completedAssessments = assessmentsData?.data?.completed?.results || []
 
 
-
+                                   
     return (
         <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Given Assessments</h2>

@@ -90,6 +90,7 @@ const CreateNewAssesment = () => {
         },
         onError: (error) => {
             console.error('[CreateNewAssesment] Error creating assessment:', error)
+            toast.error('[CreateNewAssesment] Error creating assessment:', error)
             // TODO: Show error toast/notification
         }
     })
@@ -123,8 +124,8 @@ const CreateNewAssesment = () => {
     const handleGenerate = (e) => {
         e.preventDefault()
         console.log("Create assesment data:", formData)
-        if (!formData.title || !formData.role || !formData.clinic || !formData.message) {
-            console.warn('[CreateNewAssesment] Please fill in all required fields')
+        if (!formData.title || !formData.role || !formData.clinic) {
+            toast.warn(' Please fill in all required fields')
             // TODO: Show validation error toast
             return
         }
@@ -277,8 +278,8 @@ const CreateNewAssesment = () => {
                                                                 setSearchSubrole('')
                                                             }}
                                                             className={`w-full text-left px-3 py-2 rounded-lg text-sm border transition ${formData.subroleId === subrole.id
-                                                                    ? 'bg-teal-100 text-teal-700 border-teal-300'
-                                                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                                                ? 'bg-teal-100 text-teal-700 border-teal-300'
+                                                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                                                                 }`}
                                                         >
                                                             {subrole.name}
@@ -316,8 +317,8 @@ const CreateNewAssesment = () => {
                                                                 setSearchSubjectMatter('')
                                                             }}
                                                             className={`w-full text-left px-3 py-2 rounded-lg text-sm border transition ${formData.subjectMatterId === subject.id
-                                                                    ? 'bg-teal-100 text-teal-700 border-teal-300'
-                                                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                                                ? 'bg-teal-100 text-teal-700 border-teal-300'
+                                                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                                                                 }`}
                                                         >
                                                             {subject.title}

@@ -100,7 +100,7 @@ const PromptModifySection = () => {
         <section className="rounded-2xl border border-[#E9E4DB] bg-white/60 shadow-sm h-full">
             <div className="flex h-full flex-col gap-3 rounded-xl border border-gray-200 bg-white/50 p-4 md:p-5">
                 <div className="flex items-center justify-between">
-                    <p className="text-xs text-gray-500">Template</p>
+                    <p className="text-xs text-gray-500 font-bold">Template</p>
                     <button
                         type="button"
                         onClick={() => resetPromptMutation.mutate()}

@@ -11,7 +11,7 @@ import { getAuthData } from "../../../config/Config";
 import MessageList from "./MessageList";
 import { useLocation } from "react-router-dom";
 import ActionsDropdown from "./ActionsDropdown";
-import { RiResetLeftLine } from "react-icons/ri";
+import { CiCirclePlus } from "react-icons/ci";
 
 const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
@@ -69,7 +69,6 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
-  console.log("Messages (HTTP with infinite scroll) =======================================\\", data?.pages);
 
   // Flatten and reverse to show oldest -> newest
   const messages = useMemo(() => {
@@ -385,7 +384,6 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
     avatar: `http://10.10.13.2:8000${data?.pages[0]?.room?.image}` ||
       "https://api.dicebear.com/7.x/avataaars/svg?seed=Chat",
   };
-  console.log("pathaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", path)
   // charting-ai
 
   return (
@@ -505,7 +503,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
                     title="Reset / Start a new case"
                     aria-label="Reset / Start a new case"
                   >
-                    <RiResetLeftLine size={24} className="text-yellow-600" />
+                    <CiCirclePlus size={24} className="text-yellow-600" />
                   </button>
                 )
               }

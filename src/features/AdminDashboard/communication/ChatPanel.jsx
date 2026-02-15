@@ -14,7 +14,7 @@ import ActionsDropdown from "./ActionsDropdown";
 import { CiCirclePlus } from "react-icons/ci";
 import ReactMarkdown from 'react-markdown';
 
-const ChatPanel = ({ chatRoom, roomType, activeTab, forwardedMessage, onForwardConsumed }) => {
+const ChatPanel = ({ chatRoom, roomType, activeTab, forwardedMessage, onForwardConsumed, avatar, avatarNode }) => {
 
   const queryClient = useQueryClient();
   const [inputMessage, setInputMessage] = useState("");
@@ -412,8 +412,10 @@ const ChatPanel = ({ chatRoom, roomType, activeTab, forwardedMessage, onForwardC
     avatar: `http://10.10.13.2:8000${data?.pages[0]?.room?.image}` ||
       "https://api.dicebear.com/7.x/avataaars/svg?seed=Chat",
   };
+  const headerAvatar = avatar ? `http://10.10.13.2:8000${avatar}` : safeUser.avatar;
   console.log("pathaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", path)
   // charting-ai
+  console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^::::::',headerAvatar)
 
   return (
     <div className={`flex flex-col h-full border border-gray-300 rounded-lg bg-white/50 ${path == "charting-ai" ? "min-h-[calc(100vh-130px)] max-h-[calc(100vh-100px)]" : ""}`}>
@@ -427,11 +429,13 @@ const ChatPanel = ({ chatRoom, roomType, activeTab, forwardedMessage, onForwardC
           <div className="p-4 border-b border-gray-300 flex justify-between items-center relative">
             <div className="flex gap-3 items-start justify-between w-full">
               <div className="flex items-start">
-                <img
-                  src={safeUser.avatar}
-                  className="w-10 h-10 rounded-full"
-                  alt=""
-                />
+                {avatarNode || (
+                  <img
+                    src={headerAvatar}
+                    className="w-10 h-10 rounded-full"
+                    alt=""
+                  />
+                )}
                 <div>
                   <div className="font-semibold">{safeUser.name}</div>
                   <div className="text-xs text-pink-600">{safeUser.role}</div>
@@ -459,7 +463,8 @@ const ChatPanel = ({ chatRoom, roomType, activeTab, forwardedMessage, onForwardC
                       title="Reset / Start a new case"
                       aria-label="Reset / Start a new case"
                     >
-                      <CiCirclePlus size={24} className="text-white font-extrabold" />
+                      {/* <CiCirclePlus size={24} className="text-white font-extrabold" /> */}
+                      <span className="text-white font-medium">New Case</span>
                     </button>
                   </div>
                 )
@@ -544,7 +549,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab, forwardedMessage, onForwardC
             <div className="flex gap-3 w-full min-w-0">
 
               {/* ===================================== File upload button for group and private ================================== */}
-              {(roomType === "group" || roomType === "private" || roomType === "ai" || roomType === "ai_charting") && (
+              {(roomType === "group" || roomType === "private" || roomType === "ai" ) && (
                 <>
                   <input
                     ref={fileInputRef}

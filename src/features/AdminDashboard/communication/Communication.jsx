@@ -14,6 +14,9 @@ import useGetUserProfile from "../../../hooks/useGetUserProfile";
 import useUserPermissionsForOwn from "../../../hooks/useUserPermissionsForOwn";
 
 import ReactMarkdown from 'react-markdown';
+import privetPrfileImg from "../../../assets/privetProfile.png";
+import groupPrfileImg from "../../../assets/groupProfile.png";
+import GroupAvatar from "./GroupAvatar";
 
 
 
@@ -238,6 +241,46 @@ const Communication = () => {
     };
 
     const isLoadingAndEmpty = isLoading && (!Array.isArray(rooms?.results) || rooms.results.length === 0);
+
+    const hasValidImage = (value) =>
+        typeof value === "string" && value.trim().length > 0;
+
+    const getPrivateImageSrc = (chat) => {
+        if (hasValidImage(chat?.image)) return `${base_URL}${chat.image}`;
+        return privetPrfileImg;
+    };
+
+    const renderChatAvatar = (chat) => {
+        if (!chat) return null;
+
+        if (chat?.type === "group") {
+            if (hasValidImage(chat?.image)) {
+                return (
+                    <img
+                        src={`${base_URL}${chat.image}`}
+                        alt={chat.name}
+                        className="w-10 h-10 rounded-full object-cover"
+                    />
+                );
+            }
+
+            return (
+                <GroupAvatar
+                    members={chat?.members}
+                    baseUrl={base_URL}
+                    fallbackSrc={groupPrfileImg}
+                />
+            );
+        }
+
+        return (
+            <img
+                src={getPrivateImageSrc(chat)}
+                alt={chat.name}
+                className="w-10 h-10 rounded-full object-cover"
+            />
+        );
+    };
     if (isLoadingAndEmpty) {
         return (
             <div className="container mx-auto">
@@ -346,11 +389,27 @@ const Communication = () => {
                                                     }`}
                                             >
                                                 <div className="relative">
-                                                    <img
-                                                        src={`${base_URL}${chat.image}`}
-                                                        alt={chat.name}
-                                                        className="w-10 h-10 rounded-full object-cover"
-                                                    />
+                                                    {chat?.type === "group" ? (
+                                                        hasValidImage(chat?.image) ? (
+                                                            <img
+                                                                src={`${base_URL}${chat.image}`}
+                                                                alt={chat.name}
+                                                                className="w-10 h-10 rounded-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <GroupAvatar
+                                                                members={chat?.members}
+                                                                baseUrl={base_URL}
+                                                                fallbackSrc={groupPrfileImg}
+                                                            />
+                                                        )
+                                                    ) : (
+                                                        <img
+                                                            src={getPrivateImageSrc(chat)}
+                                                            alt={chat.name}
+                                                            className="w-10 h-10 rounded-full object-cover"
+                                                        />
+                                                    )}
                                                     {chat?.is_online && (
                                                         <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-green-500"></span>
                                                     )}
@@ -396,11 +455,27 @@ const Communication = () => {
                                                 }`}
                                         >
                                             <div className="relative">
-                                                <img
-                                                    src={`${base_URL}${chat.image}`}
-                                                    alt={chat.name}
-                                                    className="w-10 h-10 rounded-full object-cover"
-                                                />
+                                                {chat?.type === "group" ? (
+                                                    hasValidImage(chat?.image) ? (
+                                                        <img
+                                                            src={`${base_URL}${chat.image}`}
+                                                            alt={chat.name}
+                                                            className="w-10 h-10 rounded-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <GroupAvatar
+                                                            members={chat?.members}
+                                                            baseUrl={base_URL}
+                                                            fallbackSrc={groupPrfileImg}
+                                                        />
+                                                    )
+                                                ) : (
+                                                    <img
+                                                        src={getPrivateImageSrc(chat)}
+                                                        alt={chat.name}
+                                                        className="w-10 h-10 rounded-full object-cover"
+                                                    />
+                                                )}
                                                 {chat?.is_online && (
                                                     <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-green-500"></span>
                                                 )}
@@ -443,6 +518,8 @@ const Communication = () => {
                         chatRoom={selectedChat?.room_id ?? null}
                         roomType={selectedChat?.type ?? null}
                         activeTab={activeTab}
+                        avatar={selectedChat?.image ?? null}
+                        avatarNode={renderChatAvatar(selectedChat)}
                         forwardedMessage={forwardedMessage}
                         onForwardConsumed={() => setForwardedMessage("")}
                     />

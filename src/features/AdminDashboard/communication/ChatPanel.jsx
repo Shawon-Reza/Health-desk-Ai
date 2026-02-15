@@ -428,7 +428,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab, forwardedMessage, onForwardC
           {/* Header */}
           <div className="p-4 border-b border-gray-300 flex justify-between items-center relative">
             <div className="flex gap-3 items-start justify-between w-full">
-              <div className="flex items-start">
+              <div className="flex items-start gap-2">
                 {avatarNode || (
                   <img
                     src={headerAvatar}
@@ -438,7 +438,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab, forwardedMessage, onForwardC
                 )}
                 <div>
                   <div className="font-semibold">{safeUser.name}</div>
-                  <div className="text-xs text-pink-600">{safeUser.role}</div>
+                  <div className="text-xs text-primary font-medium">{safeUser.role}</div>
                 </div>
               </div>
 

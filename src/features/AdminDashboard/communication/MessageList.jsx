@@ -278,6 +278,49 @@ const MessageList = ({
                     return '📎 File';
             }
         };
+        //==================================== Like and Dislike reaction state and mutation========================= \\
+
+        const [optimisticReaction, setOptimisticReaction] = useState(msg?.my_reaction || null);
+        const [optimisticCounts, setOptimisticCounts] = useState({
+            like: msg?.reactions?.like?.count || 0,
+            dislike: msg?.reactions?.dislike?.count || 0
+        });
+
+        const reactionMutation = useMutation({
+            mutationFn: (reaction) =>
+                axiosApi.post(`/api/v1/messages/${msg.id}/react/`, { reaction }),
+            onSuccess: () => {
+                console.log("✅ Reaction sent successfully");
+            },
+            onError: (err) => {
+                console.error("❌ Reaction failed:", err?.response?.data || err?.message);
+                setOptimisticReaction(msg?.my_reaction || null);
+                setOptimisticCounts({
+                    like: msg?.reactions?.like?.count || 0,
+                    dislike: msg?.reactions?.dislike?.count || 0
+                });
+            }
+        });
+
+        const handleReaction = (reaction) => {
+            setOptimisticReaction(reaction === optimisticReaction ? null : reaction);
+            setOptimisticCounts(prev => {
+                const updated = { ...prev };
+
+                if (reaction === optimisticReaction) {
+                    updated[reaction] = Math.max(0, updated[reaction] - 1);
+                } else {
+                    if (optimisticReaction) {
+                        updated[optimisticReaction] = Math.max(0, updated[optimisticReaction] - 1);
+                    }
+                    updated[reaction] = updated[reaction] + 1;
+                }
+
+                return updated;
+            });
+
+            reactionMutation.mutate(reaction);
+        };
 
         return (
             <div id={`message-${msg.id}`} className={`group flex mb-4 ${isMe || isChartingAI ? "justify-end" : "justify-start"} ${isHighlighted ? 'animate-pulse' : ''} `}>
@@ -358,6 +401,27 @@ const MessageList = ({
                             minute: "2-digit",
                         })}
                     </div>
+                    {/* ===================================== Like /Dislike reactions ========================= */}
+                    {isAI && msg?.reactions && (
+                        <div className="flex gap-3 mt-2 pt-2 border-t" style={{ borderTopColor: '#d8b4fe' }}>
+                            <div className="flex items-center gap-1 text-xs">
+                                <FiThumbsUp
+                                    size={14}
+                                    onClick={() => handleReaction('like')}
+                                    className={`cursor-pointer transition-colors ${optimisticReaction === 'like' ? 'text-green-600 fill-green-600' : 'text-gray-500'}`}
+                                />
+                                <span className="text-gray-600 font-medium">{optimisticCounts.like}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-xs">
+                                <FiThumbsDown
+                                    size={14}
+                                    onClick={() => handleReaction('dislike')}
+                                    className={`cursor-pointer transition-colors ${optimisticReaction === 'dislike' ? 'text-red-600 fill-red-600' : 'text-gray-500'}`}
+                                />
+                                <span className="text-gray-600 font-medium">{optimisticCounts.dislike}</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         );

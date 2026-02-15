@@ -323,7 +323,7 @@ const MessageList = ({
         };
 
         return (
-            <div id={`message-${msg.id}`} className={`group flex mb-4 ${isMe || isChartingAI ? "justify-end" : "justify-start"} ${isHighlighted ? 'animate-pulse' : ''} `}>
+            <div id={`message-${msg.id}`} className={`group flex mb-4 ${isMe ? "justify-end" : "justify-start"} ${isHighlighted ? 'animate-pulse' : ''} `}>
                 <div
                     className={`px-4 py-2 rounded-lg max-w-md break-words
                 ${isAI && "bg-purple-100 border border-purple-300"}

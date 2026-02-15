@@ -525,7 +525,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab, forwardedMessage, onForwardC
               </div>
             )}
             {/* File attachments preview */}
-            {attachments.length > 0 && (roomType === "group" || roomType === "private" || roomType === "ai") && (
+            {attachments.length > 0 && (roomType === "group" || roomType === "private" || roomType === "ai" || roomType === "ai_charting") && (
               <div className="mb-3 flex flex-wrap gap-2">
                 {attachments.map((file, index) => (
                   <div key={index} className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
@@ -542,8 +542,9 @@ const ChatPanel = ({ chatRoom, roomType, activeTab, forwardedMessage, onForwardC
               </div>
             )}
             <div className="flex gap-3 w-full min-w-0">
+
               {/* ===================================== File upload button for group and private ================================== */}
-              {(roomType === "group" || roomType === "private" || roomType === "ai") && (
+              {(roomType === "group" || roomType === "private" || roomType === "ai" || roomType === "ai_charting") && (
                 <>
                   <input
                     ref={fileInputRef}

@@ -18,6 +18,7 @@ const Charting_AI = () => {
         }
     })
 
+
     // Call the mutation on component mount
     useEffect(() => {
         createAiChartingRoomMutation.mutate()
@@ -68,7 +69,7 @@ const Charting_AI = () => {
             <section className=''>
                 <ChatPanel
                     chatRoom={createAiChartingRoomMutation.data.room_id}
-                    roomType={createAiChartingRoomMutation.data.room_type}
+                    roomType={createAiChartingRoomMutation.data.type}
                 />
             </section>
 

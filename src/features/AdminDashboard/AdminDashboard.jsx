@@ -291,7 +291,7 @@ const AdminDashboard = () => {
                         </nav>
                     </section>
 
-                    <section className="min-h-[calc(100vh-85px)] mx-auto px-6 py-5"
+                    <section className="min-h-[calc(100vh-85px)] mx-auto px-6 py-2"
                         style={{ backgroundColor: lightenHex(primaryColor || '#00A4A6', 90) }}>
                         <Outlet />
                     </section>

@@ -9,7 +9,7 @@ export default defineConfig({
     react()
   ],
   server: {
-    port: 5002,
+    port: 5005,
 
   },
   hmr: {

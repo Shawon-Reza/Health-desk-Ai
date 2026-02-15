@@ -79,7 +79,7 @@ const UserProfileFromAdmin = () => {
         enabled: !!userId,
     });
 
-    console.log("   User Data:", user)
+    console.log("   User Data:=====================================================================", user)
 
     // ............................Fetch user permission data from API...................................\\
     // const { data: userPermission, isLoading: loadingPermission, error: errorPermission } = useQuery({
@@ -221,7 +221,7 @@ const UserProfileFromAdmin = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6 text-center itc">
                 <StatCard icon={RiContactsBook3Line} label="Employee ID" value={user?.employee_id || '--'} />
 
-                <StatCard icon={FiFileText} label="Subject Matter" value={user?.subject_matters?.join(', ') || '--'} />
+                <StatCard icon={FiFileText} label="Sub Roles Matter" value={user?.subroles?.join(', ') || '--'} />
 
                 <StatCard icon={FiUserX} label="Account Status" value={<span className={!user?.is_active ? 'text-red-500' : ''}>{user?.is_active ? 'Active' : 'Inactive'}</span>}>
                     <div className="mt-2">

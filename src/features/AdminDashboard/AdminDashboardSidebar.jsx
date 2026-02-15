@@ -82,15 +82,16 @@ export default function AdminDashboardSidebar({ onClick, isCollapsed, onToggleCo
             userProfileData?.role === "president" ||
             permissionData?.enabledPermissions?.includes("block_user"),
         clinicAccess:
-            userProfileData?.role === "owner" ||
-            userProfileData?.role === "president",
+            userProfileData?.role === "owner"
+        // || userProfileData?.role === "president",
+        ,
 
         subjectsMattersAccess:
             userProfileData?.role === "owner" ||
             userProfileData?.role === "president",
         assignedClinicsAccess:
-            userProfileData?.role === "owner" ||
-            userProfileData?.role === "president"
+            userProfileData?.role === "owner"
+        // || userProfileData?.role === "president"
     };
 
     console.log(accessControl);

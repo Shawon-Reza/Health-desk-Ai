@@ -89,8 +89,9 @@ const CreateNewAssesment = () => {
             // TODO: Navigate to assessment details or refresh list
         },
         onError: (error) => {
-            console.error('[CreateNewAssesment] Error creating assessment:', error)
-            toast.error('[CreateNewAssesment] Error creating assessment:', error)
+            
+            console.log('[CreateNewAssesment] Error creating assessment:', error?.response?.data?.message)
+            toast.error('[CreateNewAssesment] Error creating assessment ', error?.response?.data?.message )
             // TODO: Show error toast/notification
         }
     })

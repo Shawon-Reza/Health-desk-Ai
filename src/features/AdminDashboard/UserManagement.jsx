@@ -371,7 +371,7 @@ export default function UserManagement() {
             </div>
 
             {/* UserDetailsTable placeholder */}
-            <section className="max-h-[calc(100vh-400px)] overflow-auto ">
+            <section className="max-h-[calc(100vh-350px)] overflow-auto ">
                 <UserDetailsTable
                     users={userList?.results}
                     onEditUser={handleEditUser}

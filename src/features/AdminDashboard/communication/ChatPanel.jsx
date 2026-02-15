@@ -69,6 +69,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
+  console.log("Messages (HTTP with infinite scroll) =======================================\\", data?.pages);
 
   // Flatten and reverse to show oldest -> newest
   const messages = useMemo(() => {
@@ -384,10 +385,11 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
     avatar: `http://10.10.13.2:8000${data?.pages[0]?.room?.image}` ||
       "https://api.dicebear.com/7.x/avataaars/svg?seed=Chat",
   };
+  console.log("pathaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", path)
   // charting-ai
 
   return (
-    <div className={`flex flex-col h-full border border-gray-300 rounded-lg bg-white/50 ${path == "charting-ai" ? "min-h-[calc(100vh-130px)] max-h-[calc(100vh-130px)]" : ""}`}>
+    <div className={`flex flex-col h-full border border-gray-300 rounded-lg bg-white/50 ${path == "charting-ai" ? "min-h-[calc(100vh-130px)] max-h-[calc(100vh-100px)]" : ""}`}>
       {!chatRoom ? (
         <div className="flex-1 flex items-center justify-center text-gray-500">
           Select a chat
@@ -396,16 +398,20 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
         <>
           {/* Header */}
           <div className="p-4 border-b border-gray-300 flex justify-between items-center relative">
-            <div className="flex gap-3 items-start">
-              <img
-                src={safeUser.avatar}
-                className="w-10 h-10 rounded-full"
-                alt=""
-              />
-              <div>
-                <div className="font-semibold">{safeUser.name}</div>
-                <div className="text-xs text-pink-600">{safeUser.role}</div>
+            <div className="flex gap-3 items-start justify-between w-full">
+              <div className="flex items-start">
+                <img
+                  src={safeUser.avatar}
+                  className="w-10 h-10 rounded-full"
+                  alt=""
+                />
+                <div>
+                  <div className="font-semibold">{safeUser.name}</div>
+                  <div className="text-xs text-pink-600">{safeUser.role}</div>
+                </div>
               </div>
+
+              {/* Blocked status */}
               {
                 data?.pages[0]?.room?.chat_blocked && (
                   <div>
@@ -414,8 +420,25 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
                 )
               }
 
-
+              {/* Button at the end */}
+              {
+                path === "charting-ai" && (
+                  <div className="ml-auto">
+                    <button
+                      type="button"
+                      onClick={handleResetCase}
+                      disabled={isInputDisabled}
+                      className="flex items-center gap-2 bg-primary rounded-lg p-3 disabled:opacity-50"
+                      title="Reset / Start a new case"
+                      aria-label="Reset / Start a new case"
+                    >
+                      <CiCirclePlus size={24} className="text-white font-extrabold" />
+                    </button>
+                  </div>
+                )
+              }
             </div>
+
 
             <div className={`relative ${data?.pages[0]?.room?.type === "ai" ? "hidden" : ""} `}>
               <FiInfo
@@ -493,20 +516,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
                 </>
               )}
 
-              {
-                path === "charting-ai" && (
-                  <button
-                    type="button"
-                    onClick={handleResetCase}
-                    disabled={isInputDisabled}
-                    className="flex items-center gap-2 bg-yellow-50 rounded-lg p-3 disabled:opacity-50"
-                    title="Reset / Start a new case"
-                    aria-label="Reset / Start a new case"
-                  >
-                    <CiCirclePlus size={24} className="text-yellow-600" />
-                  </button>
-                )
-              }
+
 
               {roomType === "group" ? (
                 <div className="flex-1 relative min-w-0 ">
@@ -559,7 +569,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
                   onKeyDown={handleInputKeyDown}
                   placeholder={inputPlaceholder}
                   className={`flex-1 outline-none resize-none overflow-y-auto border border-gray-300 rounded-lg p-2 min-w-0 text-base min-h-[100px] ${data?.pages[0]?.room?.chat_blocked || data?.pages[0]?.room?.can_send === false ? 'placeholder:text-red-500' : ''}`}
-                  style={{ minHeight: "100px", maxHeight: "250px" }}
+                  style={{ minHeight: "75px", maxHeight: "250px" }}
                 />
               )}
               <button

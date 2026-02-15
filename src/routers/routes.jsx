@@ -76,7 +76,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "manage-clinic",
-                element: <PrivateRoute roles={[ROLES.OWNER, ROLES.PRESIDENT]} ><ClinicManagement></ClinicManagement></PrivateRoute>,
+                element: <PrivateRoute roles={[ROLES.OWNER]} ><ClinicManagement></ClinicManagement></PrivateRoute>,
             },
             {
                 path: "manage-clinic/roles",
@@ -84,7 +84,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "assigned-clinic",
-                element: <PrivateRoute roles={[ROLES.DOCTOR, ROLES.MANAGER, ROLES.STAFF, ROLES.JR_STAFF]} ><AssignedClinic></AssignedClinic></PrivateRoute>,
+                element: <PrivateRoute roles={[ROLES.DOCTOR, ROLES.MANAGER, ROLES.STAFF, ROLES.JR_STAFF,ROLES.PRESIDENT]} ><AssignedClinic></AssignedClinic></PrivateRoute>,
             },
             {
                 path: "subject-matters",

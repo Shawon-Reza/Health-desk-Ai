@@ -237,7 +237,7 @@ const Communication = () => {
             </section>
 
             {/* Main Layout */}
-            <section className="flex gap-6 h-[calc(100vh-220px)]">
+            <section className="flex gap-6 h-[calc(100vh-190px)]">
                 {/* ......................Sidebar.................... */}
                 <section className="w-[40%] xl:w-[25%] h-full bg-white/70 rounded-xl shadow-md p-4 space-y-4 border border-gray-300">
                     {/* Tabs */}

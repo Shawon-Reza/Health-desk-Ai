@@ -4,6 +4,7 @@ import { FiSearch, FiPlus, FiX } from "react-icons/fi";
 import axiosApi from "../../service/axiosInstance";
 import { queryClient } from "../../main";
 import { toast } from "react-toastify";
+import useGetUserProfile from "../../hooks/useGetUserProfile";
 
 
 const RolesTypes = () => {
@@ -18,6 +19,9 @@ const RolesTypes = () => {
     const [selectedSubrolesToAssign, setSelectedSubrolesToAssign] = useState([]);
     const [selectedSubrolesToRemove, setSelectedSubrolesToRemove] = useState([]);
     const [assignSearchTerm, setAssignSearchTerm] = useState("");
+
+
+    const { userProfileData } = useGetUserProfile();
 
     //=============================================== Get Clinic types =================================================\\
     const { data: clinicTypes = [], error: clinicTypesError, isLoading: clinicTypesLoading } = useQuery({
@@ -150,13 +154,13 @@ const RolesTypes = () => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100vh-125px)]">
             {/* Left: Clinic Types */}
-            <div className="bg-white/50 rounded-lg shadow-md p-4 overflow-hidden flex flex-col h-full">
+            <div className="bg-white/50 rounded-lg shadow-md p-4 overflow-hidden flex flex-col h-full"> 
                 {/* Header */}
                 <div className="mb-4 border-b-2 border-gray-200 pb-3 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-gray-800">Clinic Types</h2>
                     <button
                         onClick={() => setShowAddClinicTypeModal(true)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-lg transition"
+                        className={`flex items-center gap-1 px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-lg transition ${userProfileData?.role === "admin" ? "" : "hidden"}`}
                     >
                         <FiPlus className="w-4 h-4" />
                         Add New
@@ -194,8 +198,8 @@ const RolesTypes = () => {
                                             key={type.id}
                                             onClick={() => setSelectedClinicType(type.id)}
                                             className={`w-full px-4 py-3 hover:bg-teal-50 transition text-left flex items-center justify-between ${selectedClinicType === type.id
-                                                    ? 'bg-teal-100 border-l-4 border-teal-600'
-                                                    : ''
+                                                ? 'bg-teal-100 border-l-4 border-teal-600'
+                                                : ''
                                                 }`}
                                         >
                                             <div className="flex-1">

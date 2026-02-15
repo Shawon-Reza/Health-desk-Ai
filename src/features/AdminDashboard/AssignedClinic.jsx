@@ -3,9 +3,14 @@ import axiosApi from '../../service/axiosInstance'
 import { FaFax } from "react-icons/fa"
 import { FiGlobe, FiMapPin, FiPhone, FiUser } from "react-icons/fi"
 import { BiClinic } from "react-icons/bi"
+import { TbCategory2 } from 'react-icons/tb'
+import { useNavigate } from 'react-router-dom'
+import useGetUserProfile from '../../hooks/useGetUserProfile'
 
 const AssignedClinic = () => {
-
+    const navigate = useNavigate();
+    const { userProfileData } = useGetUserProfile();
+    
     // ============ FETCH CLINICS DATA ============
     const { data: clinics, isLoading: loading, error, refetch } = useQuery({
         queryKey: ['clinics-assigned'],
@@ -22,6 +27,9 @@ const AssignedClinic = () => {
     // ============ CLINIC CARD COMPONENT ============
     const ClinicCard = ({ clinic }) => (
         <div className=" bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+
+
+
             {/* Card Header with Title */}
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -108,12 +116,24 @@ const AssignedClinic = () => {
         <div className="min-h-screen font-sans">
             {/* Header */}
             <div className="border-b border-gray-200 sticky top-0 z-30">
-                <div className="px-6 py-8 bg-[#F0FDF4]">
+                <div className="px-6 py-8 bg-[#F0FDF4] flex justify-between">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Assigned Clinics</h1>
                         <p className="text-gray-600 mt-1">View your assigned clinic details</p>
                     </div>
+                    {/* ======================================== ROles ===================================== */}
+                    <button
+                        onClick={() => {
+                            navigate('/admin/manage-clinic/roles')
+                        }}
+                        className={`flex items-center sm:gap-2 text-white font-semibold py-2 px-2 sm:px-4 rounded-lg transition-colors hover:opacity-90 ${userProfileData?.role==="president"?"":"hidden"}`}
+                        style={{ backgroundColor: "var(--color-primary)" }}
+                    >
+                        <TbCategory2 size={20} />
+                        Roles
+                    </button>
                 </div>
+
             </div>
 
             {/* Main Content */}

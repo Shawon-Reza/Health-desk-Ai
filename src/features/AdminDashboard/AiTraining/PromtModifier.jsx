@@ -52,6 +52,7 @@ const PromtModifier = () => {
             return response.data;
         },
     });
+    console.log("[PromtModifier] Modifier Data from useQuery:", modifierData);
 
     // =======================================Update modifier==========================================\\
     const updateModifierMutation = useMutation({

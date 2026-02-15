@@ -12,17 +12,20 @@ import MessageList from "./MessageList";
 import { useLocation } from "react-router-dom";
 import ActionsDropdown from "./ActionsDropdown";
 import { CiCirclePlus } from "react-icons/ci";
+import ReactMarkdown from 'react-markdown';
 
-const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
+const ChatPanel = ({ chatRoom, roomType, activeTab, forwardedMessage, onForwardConsumed }) => {
 
   const queryClient = useQueryClient();
   const [inputMessage, setInputMessage] = useState("");
   const [showActions, setShowActions] = useState(false);
   const [isAiTyping, setIsAiTyping] = useState(false);
   const [attachments, setAttachments] = useState([]);
+  const [forwardedDraft, setForwardedDraft] = useState("");
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const shouldFetchMentionRef = useRef(false);
+  const lastForwardedRef = useRef(null);
 
   // Auth
   const { userInfo } = getAuthData();
@@ -136,6 +139,22 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
       shouldFetchMentionRef.current = false; // Stop fetching
     }
   }, [chatRoom, mentionMessageId, messages.length, hasNextPage, isFetchingNextPage, data, anchorMessageId]);
+
+  useEffect(() => {
+    if (!forwardedMessage) return;
+    if (lastForwardedRef.current === forwardedMessage) return;
+
+    lastForwardedRef.current = forwardedMessage;
+    setForwardedDraft(forwardedMessage);
+
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+
+    if (typeof onForwardConsumed === "function") {
+      onForwardConsumed();
+    }
+  }, [forwardedMessage, onForwardConsumed]);
 
   // WebSocket for real-time messages
   useEffect(() => {
@@ -274,6 +293,14 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
   // ============================================Send message with optimistic update=====================================\\
   const handleSendMessage = async () => {
+    const trimmedInput = inputMessage.trim();
+    if (forwardedDraft && trimmedInput) {
+      const combined = `**Forwarded message details**\n> ${forwardedDraft.replace(/\n/g, "\n> ")}\n\n---\n\n${trimmedInput}`;
+      await sendMessage({ content: combined, files: attachments });
+      setForwardedDraft("");
+      return;
+    }
+
     await sendMessage({ content: inputMessage, files: attachments });
   };
 
@@ -476,6 +503,26 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
 
           {/* ........................................................Input Area For send text................................................ */}
           <div className="p-4 border-t border-gray-300">
+            {forwardedDraft && (
+              <div className="mb-3 rounded-lg border border-gray-300 bg-gray-50 p-3 max-h-[150px] overflow-y-auto">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="text-xs font-semibold text-gray-600">Forwarded message details</div>
+                  <button
+                    type="button"
+                    onClick={() => setForwardedDraft("")}
+                    className="text-gray-500 hover:text-gray-700"
+                    title="Remove forwarded message"
+                  >
+                    <FiX size={14} />
+                  </button>
+                </div>
+                <div className="mt-2 text-sm text-gray-800 whitespace-pre-wrap break-words">
+                  {/* {forwardedDraft} */}
+                  <ReactMarkdown>{forwardedDraft}</ReactMarkdown>
+
+                </div>
+              </div>
+            )}
             {/* File attachments preview */}
             {attachments.length > 0 && (roomType === "group" || roomType === "private" || roomType === "ai") && (
               <div className="mb-3 flex flex-wrap gap-2">
@@ -560,6 +607,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab }) => {
                   </MentionsInput>
                 </div>
               ) : (
+
                 <textarea
                   ref={textareaRef}
                   rows={2}

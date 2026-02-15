@@ -238,7 +238,7 @@ const AdminDashboard = () => {
 
 
 
-                                {/* ============================== Profile Dropdown =================================== */}
+                                {/* ================================ Profile Dropdown =================================== */}
                                 <ProfileDropdown userProfileData={userProfileData} />
 
                                 {/* Sidebar toggle icon only on small screens */}
@@ -258,7 +258,7 @@ const AdminDashboard = () => {
 
 
 
-                                {/* ======================Notifications Icons============================== */}
+                                {/* ============================Notifications Icons============================== */}
                                 <div
                                     ref={notificationRef}
                                     className="relative p-3 rounded-full bg-[#00A4A61A] cursor-pointer"

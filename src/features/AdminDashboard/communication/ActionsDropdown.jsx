@@ -94,7 +94,7 @@ const ActionsDropdown = ({ showActions, onEditDetails, onAddMember, onBlockMembe
     },
     onError: (error) => {
       console.error('Error blocking/unblocking chat:', error);
-      const msg = error?.response?.data?.message || error?.message || 'Failed to update chat';
+      const msg = error?.response?.data?.error?.message || error?.message || 'Failed to update chat';
       toast.error(msg);
     },
   });

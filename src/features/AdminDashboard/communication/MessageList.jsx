@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, useMemo, memo } from "react";
 import ReactMarkdown from 'react-markdown';
 // import remarkGfm from 'remark-gfm';
-import { FiThumbsUp, FiThumbsDown, FiDownload, FiFile, FiChevronDown } from "react-icons/fi";
+import { FiThumbsUp, FiThumbsDown, FiDownload, FiFile, FiChevronDown, FiCornerUpRight } from "react-icons/fi";
 import { useMutation } from "@tanstack/react-query";
 import axiosApi from "../../../service/axiosInstance";
+import { useNavigate } from "react-router-dom";
 
 const MessageList = ({
     messages,
@@ -30,6 +31,7 @@ const MessageList = ({
     const [showScrollButton, setShowScrollButton] = useState(false);
     const lastScrollButtonStateRef = useRef(false);
     const isSelectingRef = useRef(false);
+    const navigate = useNavigate();
 
     // Deduplicate messages by id to avoid duplicate keys
     const uniqueMessages = useMemo(() => {
@@ -236,6 +238,15 @@ const MessageList = ({
         }
     };
 
+    const handleForwardToAiAssistant = (messageText) => {
+        navigate("/admin/communication", {
+            state: {
+                openAiAssistant: true,
+                forwardedMessage: messageText
+            }
+        });
+    };
+
     const MessageBubble = ({ msg }) => {
         const isChartingAI = roomType === "ai_charting" && msg?.is_ai;
         const isAI = msg?.is_ai === true;
@@ -269,14 +280,14 @@ const MessageList = ({
         };
 
         return (
-            <div id={`message-${msg.id}`} className={`flex mb-4 ${isMe || isChartingAI ? "justify-end" : "justify-start"} ${isHighlighted ? 'animate-pulse' : ''} `}>
+            <div id={`message-${msg.id}`} className={`group flex mb-4 ${isMe || isChartingAI ? "justify-end" : "justify-start"} ${isHighlighted ? 'animate-pulse' : ''} `}>
                 <div
                     className={`px-4 py-2 rounded-lg max-w-md break-words
                 ${isAI && "bg-purple-100 border border-purple-300"}
                 ${isMe && "bg-teal-100 text-gray-900"}
                 ${!isMe && !isAI && "bg-blue-100 text-gray-900"}
                 ${isHighlighted && "ring-2 ring-yellow-400 shadow-lg"}
-                select-text overflow-hidden`} // Added overflow-hidden to prevent leakage
+                select-text overflow-hidden relative`} // Added overflow-hidden to prevent leakage
                 >
                     {/* ...............AI label................ */}
                     {isAI && (
@@ -285,14 +296,27 @@ const MessageList = ({
                         </div>
                     )}
 
+                    {path === "charting-ai" && isAI && (
+                        <button
+                            type="button"
+                            onClick={() => handleForwardToAiAssistant(text)}
+                            title="Forward to AI Assistant"
+                            className="absolute -top-0 -right-0 opacity-0 group-hover:opacity-100 transition bg-white border border-gray-300 rounded-full p-1.5 shadow-sm hover:bg-gray-100 cursor-pointer"
+                        >
+                            <FiCornerUpRight size={14} className="text-gray-600" />
+                        </button>
+                    )}
+
                     {/* ................Convert Markdown to HTML................. */}
                     <div className="text-sm max-w-none break-words">
-                        {isAI ? (
-                            <ReactMarkdown>{text}</ReactMarkdown>
-                        ) : (
-                            <p className="break-words">{text}</p>
-                        )}
+                        <ReactMarkdown>{text}</ReactMarkdown>
+                        {/* {!isAI && (
+                            <p className="break-words">
+                                <ReactMarkdown>{text}</ReactMarkdown>
+                            </p>
+                        )} */}
                     </div>
+
 
                     {/* ................Display Attachments................. */}
                     {msg?.attachments && msg.attachments.length > 0 && (

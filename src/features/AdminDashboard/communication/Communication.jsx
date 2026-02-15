@@ -24,6 +24,8 @@ const Communication = () => {
     const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
     const [showCreateMessageModal, setShowCreateMessageModal] = useState(false);
     const [selectedChat, setSelectedChat] = useState(null);
+    const [forwardedMessage, setForwardedMessage] = useState("");
+    const [pendingForward, setPendingForward] = useState(null);
 
     const roles = ["All", "private", "group"];
     const socketRef = useRef(null);
@@ -177,6 +179,29 @@ const Communication = () => {
     }, [location, rooms?.results]);
 
     useEffect(() => {
+        const shouldOpenAi = location.state?.openAiAssistant;
+        const message = location.state?.forwardedMessage;
+        if (shouldOpenAi && message) {
+            setPendingForward(message);
+        }
+    }, [location.state?.openAiAssistant, location.state?.forwardedMessage]);
+
+    useEffect(() => {
+        if (!pendingForward) return;
+        setActiveTab("aiAssistant");
+
+        if (Array.isArray(rooms?.ai_rooms) && rooms.ai_rooms.length > 0) {
+            const aiChat = rooms.ai_rooms[0];
+            if (!selectedChat || selectedChat.room_id !== aiChat.room_id) {
+                setSelectedChat(aiChat);
+            }
+            setForwardedMessage(pendingForward);
+            setPendingForward(null);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, [pendingForward, rooms?.ai_rooms, selectedChat]);
+
+    useEffect(() => {
         if (
             activeTab === "aiAssistant" &&
             Array.isArray(rooms?.ai_rooms) &&
@@ -317,7 +342,7 @@ const Communication = () => {
                                             <button
                                                 key={chat.room_id}
                                                 onClick={() => handleChatSelect(chat)}
-                                                className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition ${selectedChat?.room_id === chat.room_id ? "bg-gray-200" : ""
+                                                className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition max-h-[100px] overflow-hidden ${selectedChat?.room_id === chat.room_id ? "bg-gray-200" : ""
                                                     }`}
                                             >
                                                 <div className="relative">
@@ -367,7 +392,7 @@ const Communication = () => {
                                         <button
                                             key={chat.room_id}
                                             onClick={() => handleChatSelect(chat)}
-                                            className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition ${selectedChat?.room_id === chat.room_id ? "bg-gray-200" : ""
+                                            className={`flex items-center gap-3 w-full p-2 rounded-lg text-left hover:bg-gray-100 transition  ${selectedChat?.room_id === chat.room_id ? "bg-gray-200" : ""
                                                 }`}
                                         >
                                             <div className="relative">
@@ -414,7 +439,13 @@ const Communication = () => {
 
                 {/* ............................Chat Panel............................. */}
                 <section className="w-[60%] xl:w-[75%] h-full bg-white/70 rounded-lg shadow-md p-4 ">
-                    <ChatPanel chatRoom={selectedChat?.room_id ?? null} roomType={selectedChat?.type ?? null} activeTab={activeTab} />
+                    <ChatPanel
+                        chatRoom={selectedChat?.room_id ?? null}
+                        roomType={selectedChat?.type ?? null}
+                        activeTab={activeTab}
+                        forwardedMessage={forwardedMessage}
+                        onForwardConsumed={() => setForwardedMessage("")}
+                    />
                 </section>
 
                 {/* Modals */}

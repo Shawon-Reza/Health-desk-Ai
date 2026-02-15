@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosApi from "../../../service/axiosInstance";
 
@@ -96,6 +97,22 @@ const PromptModifySection = () => {
         );
     }
 
+    const handleSave = async () => {
+        const result = await Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, save it!"
+        });
+
+        if (result.isConfirmed) {
+            updatePromptMutation.mutate({ prompt: promptValue });
+        }
+    };
+
     return (
         <section className="rounded-2xl border border-[#E9E4DB] bg-white/60 shadow-sm h-full">
             <div className="flex h-full flex-col gap-3 rounded-xl border border-gray-200 bg-white/50 p-4 md:p-5">
@@ -137,7 +154,7 @@ const PromptModifySection = () => {
                     </button>
                     <button
                         type="button"
-                        onClick={() => updatePromptMutation.mutate({ prompt: promptValue })}
+                        onClick={handleSave}
                         className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#5E5B4E] transition disabled:opacity-50"
                         disabled={!isEditing || updatePromptMutation.isPending}
                     >

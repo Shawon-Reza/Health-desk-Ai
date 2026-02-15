@@ -295,7 +295,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab, forwardedMessage, onForwardC
   const handleSendMessage = async () => {
     const trimmedInput = inputMessage.trim();
     if (forwardedDraft && trimmedInput) {
-      const combined = `**Forwarded message details**\n> ${forwardedDraft.replace(/\n/g, "\n> ")}\n\n---\n\n${trimmedInput}`;
+      const combined = `**Forwarded message:** \n> ${forwardedDraft.replace(/\n/g, "\n> ")}\n\n---\n\n**Added Query:** \n>${trimmedInput}`;
       await sendMessage({ content: combined, files: attachments });
       setForwardedDraft("");
       return;
@@ -418,7 +418,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab, forwardedMessage, onForwardC
   return (
     <div className={`flex flex-col h-full border border-gray-300 rounded-lg bg-white/50 ${path == "charting-ai" ? "min-h-[calc(100vh-130px)] max-h-[calc(100vh-100px)]" : ""}`}>
       {!chatRoom ? (
-        <div className="flex-1 flex items-center justify-center text-gray-500">
+        <div className="flex-1 flex items-center justify-center text-gray-500 bg-white/50 rounded-lg">
           Select a chat
         </div>
       ) : (
@@ -503,6 +503,7 @@ const ChatPanel = ({ chatRoom, roomType, activeTab, forwardedMessage, onForwardC
 
           {/* ........................................................Input Area For send text................................................ */}
           <div className="p-4 border-t border-gray-300">
+            {/* ====================================== Forwarded message display ==================================== */}
             {forwardedDraft && (
               <div className="mb-3 rounded-lg border border-gray-300 bg-gray-50 p-3 max-h-[150px] overflow-y-auto">
                 <div className="flex items-start justify-between gap-2">

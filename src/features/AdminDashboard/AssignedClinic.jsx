@@ -26,7 +26,7 @@ const AssignedClinic = () => {
 
     // ============ CLINIC CARD COMPONENT ============
     const ClinicCard = ({ clinic }) => (
-        <div className=" bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+        <div className=" bg-white/50 rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
 
 
 

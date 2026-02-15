@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { useLocation, useNavigate } from 'react-router-dom'
 import { FiUploadCloud, FiX } from "react-icons/fi"
 import AiTrainingChat from "./AiTraining/AiTrainingChat"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import axiosApi from "../../service/axiosInstance"
 import { toast } from "react-toastify"
 import { queryClient } from "../../main"
@@ -73,6 +73,30 @@ export default function AITrainingCenter() {
     const chatRoom = roomData?.data?.room_id
     console.log(chatRoom)
 
+    const uploadTrainingMutation = useMutation({
+        mutationFn: async (formData) => {
+            console.log("[AITrainingCenter] Uploading to:", `/api/v1/mytrainingrooms/${chatRoom}/upload/`)
+            const response = await axiosApi.post(`/api/v1/mytrainingrooms/${chatRoom}/upload/`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            })
+            return response.data
+        },
+        onSuccess: (data) => {
+            console.log("[AITrainingCenter] Upload success:", data)
+            toast.success("Files uploaded successfully!")
+            setUploadQueue([])
+            setTitle("")
+            setProvidedTopics("")
+            queryClient.invalidateQueries({ queryKey: ['aiTrainingDocs'] })
+        },
+        onError: (error) => {
+            console.error("[AITrainingCenter] Upload failed:", error)
+            toast.error("Upload failed. Please try again.")
+        },
+    })
+
     // Handle drag events
     const handleDrag = (e) => {
         e.preventDefault()
@@ -129,7 +153,7 @@ export default function AITrainingCenter() {
     }
 
     // Handle update AI model
-    const handleUpdateAIModel = async () => {
+    const handleUpdateAIModel = () => {
         if (!chatRoom) {
             console.error("[AITrainingCenter] No chat room available for upload")
             return
@@ -145,22 +169,7 @@ export default function AITrainingCenter() {
             }
         })
 
-        console.log("[AITrainingCenter] Uploading to:", `/api/v1/mytrainingrooms/${chatRoom}/upload/`)
-        try {
-            const response = await axiosApi.post(`/api/v1/mytrainingrooms/${chatRoom}/upload/`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            })
-            console.log("[AITrainingCenter] Upload success:", response.data)
-            toast.success("Files uploaded successfully!")
-            setUploadQueue([])
-            setTitle("")
-            setProvidedTopics("")
-            queryClient.invalidateQueries({ queryKey: ['aiTrainingDocs'] })
-        } catch (error) {
-            console.error("[AITrainingCenter] Upload failed:", error)
-        }
+        uploadTrainingMutation.mutate(formData)
     }
 
     // Check if all required fields are filled
@@ -265,13 +274,13 @@ export default function AITrainingCenter() {
                     {/* Update AI Model Button */}
                     <button
                         onClick={handleUpdateAIModel}
-                        disabled={!isFormValid}
+                        disabled={!isFormValid || uploadTrainingMutation.isPending}
                         className={`w-full font-semibold py-3 rounded-lg transition-colors ${isFormValid
                             ? "bg-teal-500 hover:bg-teal-600 text-white cursor-pointer"
                             : "bg-gray-300 text-gray-500 cursor-not-allowed"
                             }`}
                     >
-                        Update AI Model
+                        {uploadTrainingMutation.isPending ? "Updating..." : "Update AI Model"}
                     </button>
                 </div>
 
